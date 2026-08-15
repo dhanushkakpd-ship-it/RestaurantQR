@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAFE DN - QR Code Studio</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QRious Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        body { 
+            background: #f1f5f9; 
+            font-family: 'Poppins', sans-serif; 
+            color: #1e293b;
+        }
+        .main-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        .control-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        .qr-card { 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08); 
+            padding: 25px; 
+            text-align: center; 
+            margin-bottom: 25px; 
+            transition: transform 0.3s ease;
+            border: 2px solid #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+        .qr-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.12);
+        }
+        .qr-card.outside-badge { border-color: #10b981; }
+        .qr-card.table-badge { border-color: #3b82f6; }
+        
+        .qr-card h5 { color: #0f172a; font-weight: 700; margin-top: 10px; }
+        .badge-custom {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        canvas {
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .qr-card { border: 1px solid #cbd5e1 !important; box-shadow: none !important; break-inside: avoid; }
+            body { background: white !important; }
+            .container { max-width: 100% !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="row no-print">
+            <div class="col-12">
+                <div class="main-header text-center">
+                    <h1 class="fw-bold mb-2">✨ CAFE DN QR Code Studio</h1>
+                    <p class="text-slate-300 mb-0 opacity-75">මේස සඳහා සහ සාමාන්‍ය පිටත ඇණවුම් සඳහා අලංකාර QR Codes පහසුවෙන් සාදාගන්න.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Form -->
+        <div class="row no-print justify-content-center">
+            <div class="col-lg-8">
+                <div class="control-card">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">🌐 මෙනු වෙබ් අඩවියේ මූලික ලින්ක් එක (Base URL):</label>
+                        <input type="text" id="baseUrl" class="form-control form-control-lg" value="https://yourwebsite.com/menu.html" placeholder="https://yourdomain.com/menu.html">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-secondary">🔢 අවශ්‍ය මේස ක්‍රමය (Generation Type):</label>
+                            <select id="genType" class="form-select form-control-lg" onchange="toggleTableInput()">
+                                <option value="all">සියලුම මේස සහ Outside එකවර</option>
+                                <option value="single">නිශ්චිත එක් මේසයක් පමණක් (Single Table)</option>
+                                <option value="customRange">පරාසයක් (Range - උදා: 1 සිට 5)</option>
+                                <option value="outsideOnly">Outside / Takeaway පමණක්</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3" id="singleTableBox" style="display: none;">
+                            <label class="form-label fw-bold text-secondary">🪑 මේස අංකය (Table Number):</label>
+                            <input type="number" id="singleTableNum" class="form-control form-control-lg" value="1" min="1">
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="rangeTableBox" style="display: none;">
+                            <label class="form-label fw-bold text-secondary">🔢 මේස පරාසය (උදා: 1 සිට 5 දක්වා):</label>
+                            <div class="input-group">
+                                <input type="number" id="rangeStart" class="form-control form-control-lg" value="1" min="1" placeholder="Start">
+                                <span class="input-group-text">සිට</span>
+                                <input type="number" id="rangeEnd" class="form-control form-control-lg" value="5" min="1" placeholder="End">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="allTableBox">
+                            <label class="form-label fw-bold text-secondary">📊 මුළු මේස ගණන (Total Tables):</label>
+                            <input type="number" id="totalTables" class="form-control form-control-lg" value="5" min="1" max="50">
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button onclick="generateQRs()" class="btn btn-dark btn-lg fw-bold py-3 shadow-sm">🚀 Generate QR Codes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print Button Bar -->
+        <div class="row mb-4 no-print">
+            <div class="col-12 text-center">
+                <button onclick="window.print()" class="btn btn-success btn-lg px-5 fw-bold shadow">🖨️ Print All QR Codes</button>
+            </div>
+        </div>
+
+        <!-- QR Render Grid Area -->
+        <div class="row justify-content-center" id="qrContainer">
+            <!-- Dynamic QRs will load here -->
+        </div>
+    </div>
+
+    <script>
+        function toggleTableInput() {
+            const type = document.getElementById('genType').value;
+            document.getElementById('singleTableBox').style.display = type === 'single' ? 'block' : 'none';
+            document.getElementById('rangeTableBox').style.display = type === 'customRange' ? 'block' : 'none';
+            document.getElementById('allTableBox').style.display = (type === 'all') ? 'block' : 'none';
+        }
+
+        function generateQRs() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const genType = document.getElementById('genType').value;
+            const container = document.getElementById('qrContainer');
+            
+            if (!baseUrl) {
+                alert('කරුණාකර Base URL එක ඇතුළත් කරන්න!');
+                return;
+            }
+
+            let html = '';
+            let tasks = []; // Store QRs to render after HTML injection
+
+            // 1. Outside QR
+            if (genType === 'all' || genType === 'outsideOnly') {
+                html += `
+                    <div class="col-md-4 col-sm-6">
+                        <div class="qr-card outside-badge">
+                            <span class="badge bg-success badge-custom mb-2">🌟 Outside / Shop</span>
+                            <h5>CAFE DN</h5>
+                            <canvas id="qr-outside" class="my-2"></canvas>
+                            <p class="text-muted small mt-2 mb-0">Scan for Dine-in/Takeaway (Shop)</p>
+                        </div>
+                    </div>
+                `;
+                tasks.push({ id: 'qr-outside', url: baseUrl });
+            }
+
+            // 2. Single Table QR
+            if (genType === 'single') {
+                const tNum = document.getElementById('singleTableNum').value || 1;
+                html += `
+                    <div class="col-md-4 col-sm-6">
+                        <div class="qr-card table-badge">
+                            <span class="badge bg-primary badge-custom mb-2">🪑 Dine-in Table</span>
+                            <h5>Table No: ${tNum}</h5>
+                            <canvas id="qr-table-${tNum}" class="my-2"></canvas>
+                            <p class="text-muted small mt-2 mb-0">Scan to order for Table ${tNum}</p>
+                        </div>
+                    </div>
+                `;
+                tasks.push({ id: `qr-table-${tNum}`, url: `${baseUrl}?table=${tNum}` });
+            }
+
+            // 3. Range Table QRs
+            if (genType === 'customRange') {
+                const start = parseInt(document.getElementById('rangeStart').value) || 1;
+                const end = parseInt(document.getElementById('rangeEnd').value) || 5;
+
+                for (let i = start; i <= end; i++) {
+                    html += `
+                        <div class="col-md-4 col-sm-6">
+                            <div class="qr-card table-badge">
+                                <span class="badge bg-primary badge-custom mb-2">🪑 Dine-in Table</span>
+                               <h5>Table No: ${i}</h5>
+                                <canvas id="qr-table-${i}" class="my-2"></canvas>
+                                <p class="text-muted small mt-2 mb-0">Scan to order for Table ${i}</p>
+                            </div>
+                        </div>
+                    `;
+                    tasks.push({ id: `qr-table-${i}`, url: `${baseUrl}?table=${i}` });
+                }
+            }
+
+            // 4. All Tables QRs
+            if (genType === 'all') {
+                const total = parseInt(document.getElementById('totalTables').value) || 5;
+                for (let i = 1; i <= total; i++) {
+                    html += `
+                        <div class="col-md-4 col-sm-6">
+                            <div class="qr-card table-badge">
+                                <span class="badge bg-primary badge-custom mb-2">🪑 Dine-in Table</span>
+                                <h5>Table No: ${i}</h5>
+                                <canvas id="qr-table-${i}" class="my-2"></canvas>
+                                <p class="text-muted small mt-2 mb-0">Scan to order for Table ${i}</p>
+                            </div>
+                        </div>
+                    `;
+                    tasks.push({ id: `qr-table-${i}`, url: `${baseUrl}?table=${i}` });
+                }
+            }
+
+            container.innerHTML = html;
+
+            // Render all QR canvases using QRious
+            setTimeout(() => {
+                tasks.forEach(task => {
+                    new QRious({
+                        element: document.getElementById(task.id),
+                        value: task.url,
+                        size: 190,
+                        level: 'H'
+                    });
+                });
+            }, 100);
+        }
+
+        // Auto load on page start
+        window.onload = function() {
+            generateQRs();
+        };
+    </script>
+</body>
+</html>

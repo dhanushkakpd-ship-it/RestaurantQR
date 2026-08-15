@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Management - Admin</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .container { max-width: 750px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: #1e293b; margin-bottom: 20px; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        input[type="text"], input[type="number"], input[type="file"] { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; }
+        button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #add-btn { background: #3b82f6; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td, th { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: middle; }
+        .cat-icon-img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; background: #f1f5f9; }
+        .edit-btn { background: #e0f2fe; color: #0284c7; margin-right: 5px; }
+        .del-btn { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📂 Category Management & Take Away Charges</h2>
+    
+    <!-- Form -->
+    <div class="form-group">
+        <input type="hidden" id="edit-id">
+        <input type="hidden" id="existing-image">
+        <input type="text" id="cat-name" placeholder="Category Name (e.g., Juice)" style="flex: 2;">
+        <input type="number" id="cat-charge" placeholder="Take Away Charge (Rs.)" style="flex: 1; min-width: 130px;" step="0.01">
+        <input type="file" id="cat-file" accept="image/*" style="flex: 2;">
+        <button id="add-btn" onclick="saveCategory()">Add</button>
+        <button id="cancel-btn" onclick="clearForm()" style="display:none; background:#94a3b8; color:white;">Cancel</button>
+    </div>
+
+    <!-- Table -->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 60px;">Image</th>
+                <th>Name</th>
+                <th>Take Away Charge</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="cat-table"></tbody>
+    </table>
+</div>
+
+<script>
+    let categories = [];
+
+    // 1. සර්වර් එකෙන් categories ලබා ගැනීම
+    async function fetchCategories() {
+        try {
+            const res = await fetch('/api/categories');
+            if (res.ok) {
+                categories = await res.json();
+            }
+        } catch (e) {
+            console.error("Error fetching categories:", e);
+        }
+
+        if (!categories || categories.length === 0) {
+            categories = [
+                { id: 'juice', name: 'Juice', image: '', takeawayCharge: 0 },
+                { id: 'milkshake', name: 'Milkshake', image: '', takeawayCharge: 0 },
+                { id: 'rice', name: 'Rice', image: '', takeawayCharge: 0 }
+            ];
+        }
+
+        render();
+    }
+
+    function render() {
+        const tbody = document.getElementById('cat-table');
+        if(!tbody) return;
+        tbody.innerHTML = categories.map(c => `
+            <tr>
+                <td>
+                    <img src="${c.image || 'https://via.placeholder.com/40'}" alt="${c.name}" class="cat-icon-img" onerror="this.src='https://via.placeholder.com/40'">
+                </td>
+                <td style="font-weight: 600; color: #1e293b;">${c.name}</td>
+                <td style="color: #64748b; font-weight: 500;">Rs. ${Number(c.takeawayCharge || 0).toFixed(2)}</td>
+                <td style="text-align: right;">
+                    <button class="edit-btn" onclick="editCat('${c.id}')">Edit</button>
+                    <button class="del-btn" onclick="deleteCat('${c.id}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // 2. FormData භාවිතයෙන් සර්වර් එකට පින්තූරය සහ දත්ත යැවීම
+    async function saveCategory() {
+        const idInput = document.getElementById('edit-id').value;
+        const name = document.getElementById('cat-name').value.trim();
+        const charge = parseFloat(document.getElementById('cat-charge').value) || 0;
+        const fileInput = document.getElementById('cat-file');
+        const existingImage = document.getElementById('existing-image').value;
+        
+        if(!name) return alert("Please enter category name");
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('takeawayCharge', charge);
+        
+        if(idInput) {
+            formData.append('id', idInput);
+        }
+        
+        if (fileInput.files && fileInput.files[0]) {
+            formData.append('image', fileInput.files[0]); // අලුත් පින්තූරය
+        } else {
+            formData.append('existingImage', existingImage); // කලින් තිබූ පින්තූරයේ පාත් එක
+        }
+
+        try {
+            const response = await fetch('/api/categories', {
+                method: 'POST',
+                body: formData // Content-Type සඳහන් කිරීම අවශ්‍ය නැත, FormData මඟින් ස්වයංක්‍රීයව සකසයි
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                clearForm();
+                fetchCategories(); // ලැයිස්තුව නැවත සර්වර් එකෙන් ලබා ගෙන අප්ඩේට් කිරීම
+            } else {
+                alert("දෝෂයක් සිදු විය: " + (result.message || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Save error:", err);
+            alert("සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය.");
+        }
+    }
+
+    function editCat(id) {
+        const cat = categories.find(c => c.id === id);
+        if(!cat) return;
+        document.getElementById('edit-id').value = cat.id;
+        document.getElementById('cat-name').value = cat.name;
+        document.getElementById('cat-charge').value = cat.takeawayCharge || 0;
+        document.getElementById('existing-image').value = cat.image || '';
+        document.getElementById('cat-file').value = '';
+        document.getElementById('add-btn').innerText = "Update";
+        document.getElementById('cancel-btn').style.display = "block";
+    }
+
+    function deleteCat(id) {
+        if(confirm("Delete this category?")) {
+            fetch(`/api/categories/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    categories = data.categories;
+                    render();
+                }
+            })
+            .catch(err => {
+                console.error("Delete error:", err);
+                alert("මකා දැමීමේදී දෝෂයක් ඇති විය.");
+            });
+        }
+    }
+
+    function clearForm() {
+        document.getElementById('edit-id').value = "";
+        document.getElementById('cat-name').value = "";
+        document.getElementById('cat-charge').value = "";
+        document.getElementById('existing-image').value = "";
+        document.getElementById('cat-file').value = "";
+        document.getElementById('add-btn').innerText = "Add";
+        document.getElementById('cancel-btn').style.display = "none";
+    }
+
+    fetchCategories();
+</script>
+
+</body>
+</html>

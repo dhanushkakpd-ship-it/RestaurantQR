@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management - CAFE DN</title>
+    <link rel="stylesheet" href="product-manage.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Product Management</h2>
+        <button class="btn btn-add" onclick="openModal()">+ Add Product</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name & Details</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Status Options</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h3>Product Details</h3>
+        <input type="hidden" id="eIdx">
+        <input type="hidden" id="pId">
+        <input type="hidden" id="pExistingImage">
+        
+        <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="pName" placeholder="e.g. Chicken Fried Rice">
+        </div>
+
+        <div class="form-group">
+            <label>Select Category</label>
+            <select id="pCategory" onmousedown="fetchCategories()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                <!-- Categories load වෙන තැන -->
+            </select>
+        </div>
+        
+        <div class="form-group row-group">
+            <div class="col">
+                <label>Current Price (Rs.)</label>
+                <input type="number" id="pPrice" placeholder="900">
+            </div>
+            <div class="col">
+                <label>Old Price (Optional)</label>
+                <input type="number" id="pOldPrice" placeholder="1000">
+            </div>
+        </div>
+
+        <div class="form-group row-group">
+            <div class="col">
+                <label>Badge (e.g. 10% OFF)</label>
+                <input type="text" id="pBadge" placeholder="10% OFF">
+            </div>
+            <div class="col">
+                <label>Select Image File</label>
+                <input type="file" id="pImageFile" accept="image/*">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="pDesc" placeholder="Short description about product">
+        </div>
+
+        <div class="modal-actions" style="margin-top: 15px;">
+            <button class="btn btn-save" onclick="save()">Save</button>
+            <button class="btn btn-close" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let categories = [];
+    let products = [];
+
+    // 1. සර්වර් API එකෙන් Categories ලබා ගැනීම
+    async function fetchCategories() {
+        try {
+            const res = await fetch('/api/categories');
+            if (res.ok) {
+                categories = await res.json();
+            }
+        } catch (e) {
+            console.error("Error fetching categories:", e);
+        }
+
+        if (!categories || categories.length === 0) {
+            categories = [
+                { id: 'foods', name: 'Foods', image: '' },
+                { id: 'drinks', name: 'Drinks', image: '' },
+                { id: 'desserts', name: 'Desserts', image: '' },
+                { id: 'shorts', name: 'Short Eats', image: '' }
+            ];
+        }
+        
+        populateCategoryDropdown();
+    }
+
+    // 2. Modal එකේ Dropdown එකට Categories පුරවා ගැනීම
+    function populateCategoryDropdown(selectedCatId = '') {
+        const selectEl = document.getElementById('pCategory');
+        if (!selectEl) return;
+        
+        selectEl.innerHTML = categories.map(cat => `
+            <option value="${cat.id}" ${cat.id === selectedCatId ? 'selected' : ''}>${cat.name}</option>
+        `).join('');
+    }
+
+    // 3. ඇප් එක ක්‍රියාත්මක කිරීම සහ සර්වර් එකෙන් Products ලබා ගැනීම
+    async function initApp() {
+        await fetchCategories();
+
+        try {
+            const res = await fetch('/api/products');
+            if (res.ok) {
+                products = await res.json();
+            }
+            
+            if (!products || products.length === 0) {
+                products = [
+                    { id: 'PROD-1', name: "Chicken Fried Rice", category: "foods", price: 900, oldPrice: 1000, desc: "Spiced rice with chicken", badge: "10% OFF", image: "", visible: true, available: true },
+                    { id: 'PROD-2', name: "Cheese Kottu", category: "foods", price: 1050, oldPrice: 1200, desc: "Spicy shredded rotti with loads", badge: "Rs. 150 OFF", image: "", visible: true, available: true }
+                ];
+                syncServerProducts(products);
+            }
+        } catch (e) {
+            console.error("Error loading products:", e);
+        }
+
+        render();
+    }
+
+    function render() {
+        const tbody = document.getElementById('tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = products.map((p, i) => {
+            const catObj = categories.find(c => c.id === p.category);
+            const catName = catObj ? catObj.name : (p.category || 'Uncategorized');
+
+            return `
+                <tr>
+                    <td>
+                        <img src="${p.image || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover; border-radius:4px;" onerror="this.src='https://via.placeholder.com/40'">
+                    </td>
+                    <td>
+                        <b>${p.name}</b><br>
+                        <small style="color:#64748b;">${p.desc || ''}</small>
+                    </td>
+                    <td>
+                        <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #475569;">${catName}</span>
+                    </td>
+                    <td>
+                        Rs. ${p.price} 
+                        ${p.oldPrice ? `<br><small style="text-decoration:line-through; color:red;">Rs. ${p.oldPrice}</small>` : ''}
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button class="btn" style="background: ${p.visible !== false ? '#d1fae5' : '#fee2e2'}; color: ${p.visible !== false ? '#065f46' : '#991b1b'}; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;" onclick="toggleVisible(${i})">
+                                👁️ ${p.visible !== false ? 'Visible' : 'Hidden'}
+                            </button>
+                            <button class="btn" style="background: ${p.available !== false ? '#e0f2fe' : '#ffedd5'}; color: ${p.available !== false ? '#0369a1' : '#c2410c'}; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;" onclick="toggleAvailable(${i})">
+                                🛒 ${p.available !== false ? 'Available' : 'Unavailable'}
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-edit" onclick="edit(${i})">Edit</button>
+                        <button class="btn btn-del" onclick="del('${p.id}')">Del</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // 4. FormData හරහා පින්තූරය සහ නිෂ්පාදනය සර්වර් එකට යැවීම
+    async function save() {
+        let i = document.getElementById('eIdx').value;
+        let productId = document.getElementById('pId').value;
+        let name = document.getElementById('pName').value.trim();
+        let category = document.getElementById('pCategory').value;
+        let price = document.getElementById('pPrice').value.trim();
+        let oldPrice = document.getElementById('pOldPrice').value.trim();
+        let badge = document.getElementById('pBadge').value.trim();
+        let desc = document.getElementById('pDesc').value.trim();
+        let existingImage = document.getElementById('pExistingImage').value;
+        let fileInput = document.getElementById('pImageFile');
+
+        if (!name || !price) {
+            alert('කරුණාකර නිෂ්පාදනයේ නම සහ මිල ඇතුළත් කරන්න!');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('category', category);
+        formData.append('price', price);
+        if(oldPrice) formData.append('oldPrice', oldPrice);
+        if(badge) formData.append('badge', badge);
+        if(desc) formData.append('desc', desc);
+        
+        let currentVisible = (i === "" || i === null || i === undefined) ? true : (products[i].visible !== false);
+        let currentAvailable = (i === "" || i === null || i === undefined) ? true : (products[i].available !== false);
+        
+        formData.append('visible', currentVisible);
+        formData.append('available', currentAvailable);
+
+        if (productId) {
+            formData.append('id', productId);
+        }
+
+        if (fileInput.files && fileInput.files[0]) {
+            formData.append('image', fileInput.files[0]);
+        } else {
+            formData.append('existingImage', existingImage);
+        }
+
+        try {
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                closeModal();
+                initApp();
+                alert('සාර්ථකව Save විය!');
+            } else {
+                alert("දෝෂයක් සිදු විය: " + (result.message || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Save error:", err);
+            alert("සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය.");
+        }
+    }
+
+    function toggleVisible(i) {
+        products[i].visible = !products[i].visible;
+        render();
+        syncServerProducts(products);
+    }
+
+    function toggleAvailable(i) {
+        products[i].available = !products[i].available;
+        render();
+        syncServerProducts(products);
+    }
+
+    function syncServerProducts(dataArray) {
+        fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataArray)
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error("සර්වර් එකට දත්ත යැවීමේදී දෝෂයක් ඇති විය.");
+            }
+        })
+        .catch(err => console.error("Sync error:", err));
+    }
+
+    function del(id) {
+        if (confirm('Are you sure you want to delete this product?')) {
+            fetch(`/api/products/${id}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    products = data.products;
+                    render();
+                }
+            })
+            .catch(err => {
+                products = products.filter(p => p.id !== id);
+                render();
+            });
+        }
+    }
+
+    function edit(i) {
+        document.getElementById('eIdx').value = i;
+        document.getElementById('pId').value = products[i].id || "";
+        document.getElementById('pName').value = products[i].name || "";
+        populateCategoryDropdown(products[i].category || "");
+        document.getElementById('pPrice').value = products[i].price || "";
+        document.getElementById('pOldPrice').value = products[i].oldPrice || "";
+        document.getElementById('pBadge').value = products[i].badge || "";
+        document.getElementById('pExistingImage').value = products[i].image || "";
+        document.getElementById('pImageFile').value = "";
+        document.getElementById('pDesc').value = products[i].desc || "";
+        
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function openModal() {
+        document.getElementById('eIdx').value = "";
+        document.getElementById('pId').value = "";
+        document.getElementById('pName').value = "";
+        populateCategoryDropdown();
+        document.getElementById('pPrice').value = "";
+        document.getElementById('pOldPrice').value = "";
+        document.getElementById('pBadge').value = "";
+        document.getElementById('pExistingImage').value = "";
+        document.getElementById('pImageFile').value = "";
+        document.getElementById('pDesc').value = "";
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    // ඇප් එක ක්‍රියාත්මක කිරීම
+    initApp();
+</script>
+</body>
+</html>

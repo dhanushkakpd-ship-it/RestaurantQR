@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Display System (KDS) - CAFE DN</title>
+    <link rel="stylesheet" href="kitchen.css">
+</head>
+<body>
+
+    <!-- KDS Header Bar -->
+    <header class="kds-header">
+        <div class="kds-brand">
+            <h2>👨‍🍳 Kitchen Display System</h2>
+            <span class="live-indicator">🔴 LIVE ORDERS</span>
+        </div>
+        <div class="kds-controls">
+            <!-- Clear All Orders Button -->
+            <button onclick="clearAllOrders()" style="background-color: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+                🗑️ Clear All Orders
+            </button>
+            <button id="sound-toggle-btn" class="sound-btn" onclick="toggleSound()">
+                🔊 Sound Alert: ON
+            </button>
+            <div class="clock" id="kds-clock">00:00:00 PM</div>
+        </div>
+    </header>
+
+    <!-- Orders Filter Tabs (Completed Tab එක එකතු කරන ලදී) -->
+    <div class="kds-filter-bar">
+        <button class="filter-btn active" onclick="filterOrders('all')">📋 Active Orders</button>
+        <button class="filter-btn pending-tab" onclick="filterOrders('pending')">⏳ New Orders</button>
+        <button class="filter-btn preparing-tab" onclick="filterOrders('preparing')">🍳 Preparing</button>
+        <button class="filter-btn ready-tab" onclick="filterOrders('ready')">🔔 Ready</button>
+        <!-- 🎯 NEW COMPLETED TAB -->
+        <button class="filter-btn completed-tab" onclick="filterOrders('completed')" style="border-left: 2px solid #cbd5e1;">🏁 Completed Orders</button>
+    </div>
+
+    <!-- Live Tickets Grid Container -->
+    <main class="tickets-container">
+        <div id="tickets-grid" class="tickets-grid">
+            <!-- Dynamic Kitchen Tickets Load Here -->
+        </div>
+    </main>
+
+    <!-- Kitchen JS Link -->
+    <script src="kitchen.js"></script>
+
+    <!-- Script for Clear All Orders -->
+    <script>
+    async function clearAllOrders() {
+        if (!confirm("ඔබට සැබවින්ම සියලුම Orders මකා දැමීමට අවශ්‍යද?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/orders', {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            alert(data.message || "සියලුම Orders මකා දමන ලදී!");
+            location.reload(); 
+
+        } catch (error) {
+            console.error("Error clearing orders:", error.message);
+            alert("Orders මකා දැමීමට නොහැකි විය. Server එකේ DELETE route එක තිබේදැයි සහ Server එක Restart කර ඇත්දැයි පරික්ෂා කරන්න.");
+        }
+    }
+    </script>
+</body>
+</html>

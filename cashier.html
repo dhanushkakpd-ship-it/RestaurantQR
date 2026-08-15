@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashier Panel - CAFE DN</title>
+    <link rel="stylesheet" href="kitchen.css">
+    <style>
+        /* Modal Styles & Thermal Print Rules */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            width: 320px;
+            color: black;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Print කරන විට මුද්‍රණය විය යුත්තේ බිල්පත පමණි */
+        @media print {
+            body > *:not(#bill-modal) {
+                display: none !important;
+            }
+            #bill-modal {
+                display: flex !important;
+                position: static !important;
+                background: none !important;
+                backdrop-filter: none !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            .modal-content {
+                margin: 0 auto !important;
+                width: 280px !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cashier Header Bar -->
+    <header class="kds-header" style="background-color: #0f172a;">
+        <div class="kds-brand">
+            <h2>💰 Cashier & Billing Panel</h2>
+            <span class="live-indicator" style="background-color: #22c55e;">🟢 PAYMENT COUNTER</span>
+        </div>
+        <div class="kds-controls">
+            <div class="clock" id="cashier-clock">00:00:00 PM</div>
+        </div>
+    </header>
+
+   <!-- Cashier Order Filter Tabs -->
+<div class="kds-filter-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <button class="filter-btn active" onclick="switchCashierTab('unpaid')" id="tab-unpaid-btn" style="padding: 10px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; background: #3b82f6; color: white;">
+        ⏳ Unpaid Orders (<span id="unpaid-count">0</span>)
+    </button>
+    <button class="filter-btn" onclick="switchCashierTab('paid')" id="tab-paid-btn" style="padding: 10px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; background: #e2e8f0; color: #475569;">
+        ✅ Paid Orders (<span id="paid-count">0</span>)
+    </button>
+</div>
+
+    <!-- Tickets Grid Container -->
+    <main class="tickets-container">
+        <div id="cashier-tickets-grid" class="tickets-grid">
+            <!-- Dynamic Cashier Tickets Load Here -->
+        </div>
+    </main>
+
+    <!-- Bill Modal Box -->
+    <div id="bill-modal" class="modal">
+        <div id="modal-bill-body" class="modal-content">
+            <!-- Dynamic Bill Content Loads Here -->
+        </div>
+    </div>
+
+    <!-- Cashier JS Link -->
+    <script src="cashier.js"></script>
+</body>
+</html>

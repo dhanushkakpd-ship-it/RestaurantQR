@@ -1,0 +1,69 @@
+/* --- CAFE DN - Admin Panel Styles --- */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Top Navigation Tabs */
+.admin-nav {
+    display: flex;
+    background: #1e293b;
+    padding: 10px 20px;
+    gap: 15px;
+    border-bottom: 1px solid #334155;
+    height: 50px;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+.tab-btn {
+    padding: 8px 20px;
+    border: none;
+    cursor: pointer;
+    background: #334155;
+    color: #cbd5e1;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: #475569;
+    color: white;
+}
+
+.tab-btn.active {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Content Areas */
+.content-area {
+    width: 100%;
+    height: calc(100vh - 50px);
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Iframes for Kitchen and Cashier Panels */
+.panel-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #0f172a;
+}

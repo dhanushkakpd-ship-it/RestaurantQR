@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAFE DN - Quick Order</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+    <!-- smooth loard --> 
+<div id="app-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">CAFE DN 🍽️</div>
+    <div class="loader-subtext">Loading delicious menu for you...</div>
+</div>
+
+
+
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="brand">
+            <div class="logo">Logo</div>
+            <div>
+                <h1>CAFE DN</h1>
+                <div class="status-badges">
+                    <span class="badge-table">📍 Table 04</span>
+                    <span class="badge-status">🟢 Open Now</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Order Type Selector -->
+    <div class="order-type-tabs">
+        <button class="tab-btn active" onclick="setOrderType('dinein')">🍽️ Dine-in</button>
+        <button class="tab-btn" onclick="setOrderType('takeaway')">🛍️ Takeaway</button>
+    </div>
+
+    <!-- මෙනු පිටුවේ ඉහළින් Categories ටැබස් පෙන්වන Container එක -->
+        <div id="categoryTabs" class="category-tabs">
+    <!-- දත්ත සර්වර් එකෙන් මෙතැනට Load වේ -->
+        </div>
+
+
+
+    <!-- Product List Container -->
+    <main class="menu-container">
+        <h2 class="section-title">📖 Menu Items</h2>
+        <div id="product-list" class="product-grid">
+            <!-- Products will be dynamically loaded from app.js -->
+        </div>
+    </main>
+
+    <!-- Floating Bottom Cart Bar -->
+    <div id="cart-bar" class="cart-bar" style="display: none;">
+        <div class="cart-summary" onclick="toggleCart()">
+            <div class="cart-left">
+                🛒 View Order (<span id="cart-count">0</span>)
+            </div>
+            <div class="cart-right">
+                <span id="cart-total-price">Rs. 0.00</span> ▲
+            </div>
+        </div>
+
+        <!-- Cart Dropdown Details -->
+        <div id="cart-details" class="cart-details" style="display: none;">
+            <h3>🛒 Your Selected Items</h3>
+            <div id="cart-items-container" class="cart-items-list"></div>
+            
+            <div class="cart-input-group">
+                <label for="cust-name">👤 Customer Name (ඔබගේ නම):</label>
+                <input type="text" id="cust-name" placeholder="e.g. Kamal Perera">
+
+                <label for="cust-phone" style="margin-top: 8px;">📱 Phone / WhatsApp Number (Optional):</label>
+                <input type="tel" id="cust-phone" placeholder="e.g. 0771234567">
+            </div>
+
+            <!-- Pick-up Time Input (Takeaway සඳහා පමණක් පෙන්වයි) -->
+            <div class="cart-input-group" id="pickup-time-container">
+                <label for="cust-time">🕒 Pick-up Time (රැගෙන යන වෙලාව):</label>
+                <input type="time" id="cust-time">
+            </div>
+
+            <button class="checkout-btn" onclick="openOrderModal()">📋 Review Order & Proceed</button>
+        </div>
+    </div>
+
+    <!-- 🌟 Order Summary Popup Modal 🌟 -->
+    <div id="order-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🧾 Order Review</h3>
+                <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Summary details will appear here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-confirm" onclick="submitOrder(false)">
+                    ✅ Confirm Order Only
+                </button>
+                <button class="btn-modal btn-wa" onclick="submitOrder(true)">
+                    📲 Confirm & Send via WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+<!-- App JS Link -->
+    <script src="app.js"></script>
+
+    <!-- 🌟 Order Status, Tab Visibility & Modal Review Fix Script 🌟 -->
+    <script>
+        let statusInterval;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const timeContainer = document.getElementById('pickup-time-container');
+            
+            // 1. Takeaway සහ Table QR සඳහා Pickup Time පෙන්වීම හෝ සැඟවීම පාලනය කිරීම
+            function updateVisibility() {
+                if (!timeContainer) return;
+                if (typeof isTableQR !== 'undefined' && isTableQR) {
+                    timeContainer.style.display = 'none';
+                    return;
+                }
+                const activeTab = document.querySelector('.tab-btn.active');
+                if (activeTab && activeTab.textContent.includes('Takeaway')) {
+                    timeContainer.style.display = 'block';
+                } else {
+                    timeContainer.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.tab-btn')) {
+                    setTimeout(updateVisibility, 50);
+                }
+            });
+
+            setTimeout(updateVisibility, 200);
+
+            // 2. Order Review Modal එකට Pickup Time එක ස්වයංක්‍රීයව ඇතුළත් කිරීම (Override openOrderModal)
+            setTimeout(() => {
+                if (typeof window.openOrderModal === 'function') {
+                    const originalOpenOrderModal = window.openOrderModal;
+                    window.openOrderModal = function() {
+                        originalOpenOrderModal(); // මුල් Modal එක විවෘත කරයි
+                        
+                        setTimeout(() => {
+                            const modalBody = document.getElementById('modal-body');
+                            const timeInput = document.getElementById('cust-time');
+                            
+                            if (modalBody && timeInput && timeContainer && timeContainer.style.display !== 'none') {
+                                const timeVal = timeInput.value ? timeInput.value : 'ASAP';
+                                if (!modalBody.innerHTML.includes('Pick-up Time')) {
+                                    modalBody.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc;">🕒 <b>Pick-up Time:</b> ${timeVal}</div>`;
+                                }
+                            }
+                        }, 50);
+                    };
+                }
+            }, 300);
+        });
+
+        // 3. සජීවී Order Status Tracking සහ Banner එක පෙන්වීම
+        async function trackOrderStatus() {
+            const orderId = localStorage.getItem('customerOrderId');
+            
+            if (!orderId) {
+                removeBanner();
+                return; 
+            }
+
+            if (localStorage.getItem(`order_finished_${orderId}`) === 'true') {
+                localStorage.removeItem('customerOrderId');
+                removeBanner();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/orders?_t=' + new Date().getTime(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                if (!response.ok) return;
+
+                const orders = await response.json();
+                const myOrder = orders.find(o => o.id === orderId);
+
+                if (!myOrder || myOrder.status === 'completed') {
+                    updateLiveStatusUI('completed', orderId, '', '');
+                    localStorage.setItem(`order_finished_${orderId}`, 'true');
+                    localStorage.removeItem('customerOrderId');
+
+                    setTimeout(() => {
+                        removeBanner();
+                    }, 4000);
+                    return;
+                }
+
+                updateLiveStatusUI(myOrder.status, myOrder.id, myOrder.pickupTime, myOrder.table);
+
+            } catch (error) {
+                console.error("Tracking Error:", error);
+            }
+        }
+
+        function updateLiveStatusUI(status, orderId, pickupTime, tableType) {
+            let banner = document.getElementById('live-order-status-banner');
+            
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'live-order-status-banner';
+                banner.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 90%;
+                    max-width: 400px;
+                    padding: 14px;
+                    text-align: center;
+                    font-weight: bold;
+                    color: white;
+                    z-index: 99999;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    font-size: 14px;
+                    line-height: 1.5;
+                `;
+                document.body.appendChild(banner);
+            }
+
+            banner.style.display = 'block';
+
+            let timeText = '';
+            if (pickupTime && pickupTime !== 'ASAP' && tableType && !tableType.includes('Table')) {
+                timeText = `<br>🕒 Expected Pick-up: <b>${pickupTime}</b>`;
+            }
+
+            if (status === 'pending') {
+                banner.style.backgroundColor = '#f59e0b';
+                banner.innerHTML = `⏳ Order #${orderId} - භාරගන්නා ලදී (Pending)${timeText}`;
+            } else if (status === 'preparing') {
+                banner.style.backgroundColor = '#3b82f6';
+                banner.innerHTML = `🍳 Order #${orderId} - පිළියෙල වෙමින් පවතී (Preparing)${timeText}`;
+            } else if (status === 'ready') {
+                banner.style.backgroundColor = '#10b981';
+                banner.innerHTML = `✅ Order #${orderId} - ලෑස්තියි! කරුණාකර Counter එකෙන් ලබාගන්න.${timeText}`;
+            } else if (status === 'completed') {
+                banner.style.backgroundColor = '#059669';
+                banner.innerHTML = `🎉 Order #${orderId} - සාර්ථකව අවසන් විය! ස්තූතියි!`;
+            }
+        }
+
+        function removeBanner() {
+            let banner = document.getElementById('live-order-status-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+
+        trackOrderStatus();
+        statusInterval = setInterval(trackOrderStatus, 3000);
+    </script>
+</body>
+</html>
