@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings - CAFE DN</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+        .card { background: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; }
+        button { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>⚙️ Shop Settings</h2>
+    
+    <div class="input-group">
+        <label>Business Name</label>
+        <input type="text" id="biz-name" placeholder="CAFE DN">
+    </div>
+
+    <div class="input-group">
+        <label>Hotline / Phone Number</label>
+        <input type="tel" id="biz-phone" placeholder="94771234567">
+    </div>
+
+    <div class="input-group">
+        <label>Logo URL</label>
+        <input type="text" id="biz-logo" placeholder="https://yourwebsite.com/logo.png">
+    </div>
+
+    <button onclick="saveSettings()">Save Changes</button>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

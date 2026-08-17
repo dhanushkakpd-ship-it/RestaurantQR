@@ -16,7 +16,7 @@ body {
 .header {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
-    padding: 16px 20px;
+    padding: 5px 0px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
     position: sticky;
     top: 0;
@@ -30,19 +30,7 @@ body {
     gap: 14px;
 }
 
-.logo {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #4f46e5, #4338ca);
-    color: #ffffff;
-    font-weight: 800;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.25);
-}
+
 
 .brand h1 {
     font-size: 1.35rem;
@@ -81,7 +69,7 @@ body {
 .order-type-tabs {
     display: flex;
     background: #e2e8f0;
-    margin: 16px;
+    margin: 5px;
     padding: 4px;
     border-radius: 14px;
     gap: 4px;
@@ -464,7 +452,7 @@ html, body {
     display: flex;
     overflow-x: auto; /* ජංගම දුරකථන වලදී ස්වයිප් කළ හැකි වීමට */
     gap: 10px;
-    padding: 15px 10px;
+    padding: 10px 10px;
     background: #ffffff;
     position: sticky;
     top: 0;
@@ -543,4 +531,163 @@ html, body {
     color: #64748b;
     font-size: 0.85rem;
     font-family: sans-serif;
+}
+
+/* Logo රූපයේ ප්‍රමාණය සහ හැඩය */
+.logo img {
+    width: 100px;       /* ලෝගෝවේ පළල (අවශ්‍ය පරිදි වෙනස් කරන්න) */
+    height: 100px;      /* ලෝගෝවේ උස */
+    object-fit: cover; /* පින්තූරය විකෘති නොවේ */
+    border-radius: 50%;/* ලෝගෝව රවුම් කිරීමට (අවශ්‍ය නැතිනම් මෙය ඉවත් කරන්න) */
+    /* border: 2px solid #e2e8f0; /* කුඩා මායිමක් */
+    display: block;
+}
+
+/* Header එක තුළ අයිතම පෙළගැස්වීම (Flexbox) */
+.header .brand {
+    display: flex;
+    align-items: center; /* ලෝගෝව සහ text එක එක මට්ටමකට */
+    gap: 0px;           /* ලෝගෝව සහ text එක අතර පරතරය */
+}
+
+/* CAFE DN මාතෘකාවේ margin ඉවත් කිරීම */
+.header .brand h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Status badges වල පරතරය සකස් කිරීම */
+.header .brand .status-badges {
+    margin-top: 4px;
+}
+
+
+/* 🌟 Horizontal Scrollable Category Pills */
+.category-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #ffffff;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox සඳහා scrollbar එක සඟවයි */
+    -ms-overflow-style: none; /* IE සඳහා */
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Chrome, Safari සහ Opera සඳහා scrollbar එක සඟවයි */
+.category-tabs::-webkit-scrollbar {
+    display: none; 
+}
+
+/* තනි Category Pill එකක මෝස්තරය */
+.cat-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px; /* රවුම් හැඩැති Pill එකක් ලෙස */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Category එකක පින්තූරය (Icon) */
+.cat-tab img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Hover කළ විට පෙනෙන ආකාරය */
+.cat-tab:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+/* Active (තෝරාගත්) Category එක සඳහා */
+.cat-tab.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* --- Modern Horizontal Category Tabs Styling --- */
+
+#categoryTabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 5px 16px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox සඳහා scrollbar එක සඟවයි */
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Chrome, Safari සහ Opera සඳහා scrollbar එක සඟවයි */
+#categoryTabs::-webkit-scrollbar {
+    display: none; 
+}
+
+/* සාමාන්‍ය (Inactive) කැටගරි ටැබ් එක */
+.cat-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 50px; /* ලස්සන රවුම් හැඩය (Pill) */
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* කැටගරි අයිකන්/පින්තූරය */
+.cat-tab img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e2e8f0;
+}
+
+/* මවුස් එක ගෙන ගිය විට (Hover effect) */
+.cat-tab:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* තෝරාගත් (Active) කැටගරි ටැබ් එක - කැෆේ එකකට ගැළපෙන ලස්සන ඔරේಂජ්/රතු පැහැ ග්‍රේඩියන්ට් එකක් */
+.cat-tab.active {
+    background: linear-gradient(135deg, hwb(345 25% 6%), #f05ec4);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 6px 15px rgba(238, 55, 156, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Active වූ විට පින්තූරය වටා සුදු පැහැ මායිමක් */
+.cat-tab.active img {
+    border: 2px solid rgba(255, 255, 255, 0.9);
 }

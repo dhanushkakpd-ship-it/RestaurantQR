@@ -15,9 +15,9 @@
             <span class="live-indicator">🔴 LIVE ORDERS</span>
         </div>
         <div class="kds-controls">
-            <!-- Clear All Orders Button -->
-            <button onclick="clearAllOrders()" style="background-color: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
-                🗑️ Clear All Orders
+            <!-- 🌟 Delete Orders Button (Opens Modal) -->
+            <button onclick="openDeleteModal()" style="background-color: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+                🗑️ Delete Orders
             </button>
             <button id="sound-toggle-btn" class="sound-btn" onclick="toggleSound()">
                 🔊 Sound Alert: ON
@@ -26,13 +26,12 @@
         </div>
     </header>
 
-    <!-- Orders Filter Tabs (Completed Tab එක එකතු කරන ලදී) -->
+    <!-- Orders Filter Tabs -->
     <div class="kds-filter-bar">
         <button class="filter-btn active" onclick="filterOrders('all')">📋 Active Orders</button>
         <button class="filter-btn pending-tab" onclick="filterOrders('pending')">⏳ New Orders</button>
         <button class="filter-btn preparing-tab" onclick="filterOrders('preparing')">🍳 Preparing</button>
         <button class="filter-btn ready-tab" onclick="filterOrders('ready')">🔔 Ready</button>
-        <!-- 🎯 NEW COMPLETED TAB -->
         <button class="filter-btn completed-tab" onclick="filterOrders('completed')" style="border-left: 2px solid #cbd5e1;">🏁 Completed Orders</button>
     </div>
 
@@ -43,34 +42,33 @@
         </div>
     </main>
 
+    <!-- 🌟 Delete Modal Popup Window -->
+    <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 20px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; color: #1e293b;">🗑️ Delete Orders</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">කරුණාකර ඔබට අවශ්‍ය ක්‍රමය තෝරන්න:</p>
+            
+            <!-- 1. දැනට Filter වී පෙනෙන Orders සියල්ල මකා දැමීම -->
+            <button onclick="handleBulkDelete()" style="width: 100%; background: #ef4444; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 15px;">
+                Delete Current Filtered Orders
+            </button>
+            
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+            
+            <!-- 2. නිශ්චිත Order ID එකක් මකා දැමීම -->
+            <input type="text" id="targetOrderId" placeholder="Enter Order Number (e.g. 123)" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+            <button onclick="handleSpecificDelete()" style="width: 100%; background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                Delete Specific Order
+            </button>
+
+            <!-- Close Button -->
+            <button onclick="closeDeleteModal()" style="margin-top: 15px; background: #64748b; color: white; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+
     <!-- Kitchen JS Link -->
     <script src="kitchen.js"></script>
-
-    <!-- Script for Clear All Orders -->
-    <script>
-    async function clearAllOrders() {
-        if (!confirm("ඔබට සැබවින්ම සියලුම Orders මකා දැමීමට අවශ්‍යද?")) {
-            return;
-        }
-
-        try {
-            const response = await fetch('http://localhost:3000/api/orders', {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server Error: ${response.status}`);
-            }
-
-            const data = await response.json();
-            alert(data.message || "සියලුම Orders මකා දමන ලදී!");
-            location.reload(); 
-
-        } catch (error) {
-            console.error("Error clearing orders:", error.message);
-            alert("Orders මකා දැමීමට නොහැකි විය. Server එකේ DELETE route එක තිබේදැයි සහ Server එක Restart කර ඇත්දැයි පරික්ෂා කරන්න.");
-        }
-    }
-    </script>
 </body>
 </html>

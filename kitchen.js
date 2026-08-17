@@ -46,7 +46,7 @@ function renderTickets() {
     
     let filteredOrders = [];
 
-    // 🌟 ගෙවීම් කළ, closed වූ හෝ completed වූ ඇණවුම් සක්‍රීය ලැයිස්තුවෙන් සම්පූර්ණයෙන්ම ඉවත් කිරීම
+    // ගෙවීම් කළ, closed වූ හෝ completed වූ ඇණවුම් සක්‍රීය ලැයිස්තුවෙන් හැසිරවීම
     if (currentFilter === 'all') {
         filteredOrders = orders.filter(o => {
             let status = (o.status || '').toLowerCase();
@@ -260,25 +260,80 @@ function filterOrders(status) {
     renderTickets();
 }
 
-// සියලුම Orders එකපාර මකා දැමීමේ Function එක
-function clearAllOrders() {
-    if (confirm("ඔබට සියලුම Orders එකපාර මකා දැමීමට අවශ්‍යද?")) {
-        fetch('/api/orders', { method: 'DELETE' })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error("Server failed to delete orders");
-                }
-                return res.text().then(text => text ? JSON.parse(text) : {});
-            })
-            .then(data => {
-                orders = [];
-                lastOrdersJson = JSON.stringify([]);
-                renderTickets();
-                alert("🗑️ සියලුම Orders සාර්ථකව මකා දැමුණා!");
-            })
-            .catch(err => {
-                console.error("Error clearing orders:", err);
-                alert("❌ Orders මකා දැමීමේදී දෝෂයක් සිදු විය!");
-            });
+// --- Delete Modal Functions ---
+function openDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// 1. දැනට Filter වී පෙනෙන Orders සියල්ල මකා දැමීම
+async function handleBulkDelete() {
+    const filteredOrders = orders.filter(o => {
+        let status = (o.status || '').toLowerCase();
+        let paymentStatus = (o.paymentStatus || '').toLowerCase();
+        if (currentFilter === 'all') return status !== 'completed' && status !== 'closed' && paymentStatus !== 'paid';
+        if (currentFilter === 'completed') return status === 'completed' && paymentStatus !== 'paid';
+        return status === currentFilter && status !== 'closed' && paymentStatus !== 'paid';
+    });
+
+    if (filteredOrders.length === 0) {
+        alert("මකා දැමීමට Orders කිසිවක් නැත!");
+        return;
+    }
+
+    if (!confirm(`සැබවින්ම දැනට පෙනෙන (${currentFilter}) Orders ${filteredOrders.length} ක් මකා දැමීමට අවශ්‍යද?`)) return;
+
+    try {
+        for (const order of filteredOrders) {
+            await fetch(`/api/orders/${order.id}`, { method: 'DELETE' });
+        }
+        alert("🗑️ දැනට පෙනෙන Orders සාර්ථකව මකා දැමුණා!");
+        closeDeleteModal();
+        fetchOrdersFromServer();
+    } catch (err) {
+        console.error("Error bulk deleting orders:", err);
+        alert("❌ Orders මකා දැමීමේදී දෝෂයක් සිදු විය!");
+    }
+}
+
+// නිශ්චිත Order ID එකක් මකා දැමීම (අංකය පමණක් ටයිප් කළ හැක)
+async function handleSpecificDelete() {
+    const inputField = document.getElementById('targetOrderId');
+    if (!inputField) return;
+    
+    let orderId = inputField.value.trim();
+    if (!orderId) { 
+        alert("කරුණාකර Order Number එකක් (උදා: 123) ඇතුළත් කරන්න!"); 
+        return; 
+    }
+    
+    // "ORD-" හෝ "ord-" යන්න මුලින් නොමැති නම්, එය ස්වයංක්‍රීයව එකතු කිරීම
+    if (!orderId.toUpperCase().startsWith("ORD-")) {
+        orderId = "ORD-" + orderId;
+    } else {
+        // අකුරු uppercase (ORD-) බවට පත් කරගැනීම
+        orderId = orderId.toUpperCase();
+    }
+    
+    if (!confirm(`සැබවින්ම ${orderId} Order එක මකා දැමීමට අවශ්‍යද?`)) return;
+
+    try {
+        const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert(`🗑️ ${orderId} සාර්ථකව මකා දැමුණි!`);
+            inputField.value = '';
+            closeDeleteModal();
+            fetchOrdersFromServer();
+        } else {
+            alert("❌ Order එක මකා දැමීමට නොහැකි විය (ID එක වැරදි විය හැක).");
+        }
+    } catch (e) {
+        console.error("Error deleting specific order:", e);
+        alert("❌ Server දෝෂයක් සිදු විය.");
     }
 }

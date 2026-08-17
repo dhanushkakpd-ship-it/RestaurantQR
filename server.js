@@ -68,15 +68,16 @@ function loadDB() {
             return {
                 products: Array.isArray(parsed.products) ? parsed.products : [],
                 categories: Array.isArray(parsed.categories) ? parsed.categories : [],
-                orders: Array.isArray(parsed.orders) ? parsed.orders : []
+                orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+                shopStatus: parsed.shopStatus || { isOpen: true }
             };
         } catch (e) {
             console.error("Error parsing database.json, resetting structure:", e);
-            return { products: [], categories: [], orders: [] };
+            return { products: [], categories: [], orders: [], shopStatus: { isOpen: true } };
         }
     }
     // database.json නොමැති නම් මුලින්ම හිස් structure එකක් සෑදීම
-    const initialData = { products: [], categories: [], orders: [] };
+    const initialData = { products: [], categories: [], orders: [], shopStatus: { isOpen: true } };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf8');
     return initialData;
 }
@@ -95,14 +96,12 @@ app.get('/api/products', (req, res) => {
 app.post('/api/products', uploadProduct.single('image'), (req, res) => {
     const db = loadDB();
 
-    // 1. පැරණි ක්‍රමයට සම්පූර්ණ Array එකක් ලෙස JSON එව්වොත්
     if (Array.isArray(req.body)) {
         db.products = req.body;
         saveDB(db);
         return res.json({ success: true, message: 'Products saved successfully' });
     }
 
-    // 2. FormData හරහා තනි Product එකක් (පින්තූරයක් සමඟ) අප්ඩේට් හෝ Add කරද්දී
     const { id, name, category, price, description, existingImage, ...otherFields } = req.body;
     
     let imagePath = existingImage || '';
@@ -122,7 +121,7 @@ app.post('/api/products', uploadProduct.single('image'), (req, res) => {
         price: parseFloat(price) || 0,
         description: description || '',
         image: imagePath,
-        ...otherFields // වෙනත් අතිරේක ෆීල්ඩ්ස් යම් වේ නම් ඒවාද ඇතුළත් කිරීමට
+        ...otherFields 
     };
 
     if (existingIndex > -1) {
@@ -152,21 +151,18 @@ app.delete('/api/products/:id', (req, res) => {
 // --- Categories APIs ---
 app.get('/api/categories', (req, res) => {
     const db = loadDB();
-    //console.log('Sending categories to client:', db.categories.length);
     res.json(db.categories || []);
 });
 
 app.post('/api/categories', uploadCategory.single('image'), (req, res) => {
     const db = loadDB();
 
-    // 1. පැරණි ක්‍රමයට සම්පූර්ණ Array එකක් ලෙස JSON එව්වොත්
     if (Array.isArray(req.body)) {
         db.categories = req.body;
         saveDB(db);
         return res.json({ success: true, message: 'Categories saved successfully' });
     }
 
-    // 2. FormData හරහා තනි Category එකක් (පින්තූරයක් සමඟ) අප්ඩේට් හෝ Add කරද්දී
     const { id, name, takeawayCharge, existingImage } = req.body;
     
     let imagePath = existingImage || '';
@@ -265,17 +261,49 @@ app.delete('/api/orders', (req, res) => {
     }
 });
 
-// Port භාවිතය (Environment Port හෝ 5000)
-//const PORT = process.env.PORT || 5000;
-//app.listen(PORT, () => {
-//    console.log(`🚀 CAFE DN Server running on http://localhost:${PORT}`);
- //   console.log(`📁 Category Images: ${categoryUploadDir}`);
- //  console.log(`📁 Product Images: ${productUploadDir}`);
+// 🌟 තනි Order එකක් ID එක මඟින් ඩේටාබේස් එකෙන් මකා දැමීම සඳහා DELETE Route එක (app.listen එකට ඉහළට ගෙන එන ලදී)
+app.delete('/api/orders/:id', (req, res) => {
+    try {
+        const db = loadDB();
+        const { id } = req.params;
 
-// ❌ වැරදි ක්‍රමය (මෙලෙස තිබුණොත් වෙනස් කළ යුතුය):
-// app.listen(3000, () => { console.log('Server running...'); });
+        if (!db.orders) {
+            db.orders = [];
+        }
 
-// ✅ නිවැරදි ක්‍රමය (Render එකට මෙය අත්‍යවශ්‍යයි):
+        const initialLength = db.orders.length;
+        db.orders = db.orders.filter(order => order.id !== id);
+
+        if (db.orders.length === initialLength) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        saveDB(db);
+        console.log(`✅ Order ${id} deleted successfully from database.`);
+        res.json({ success: true, message: `Order ${id} deleted successfully` });
+    } catch (error) {
+        console.error("Error deleting order:", error);
+        res.status(500).json({ success: false, error: "Failed to delete order" });
+    }
+});
+
+// --- Shop Status APIs ---
+app.get('/api/shop-status', (req, res) => {
+    const db = loadDB();
+    res.json(db.shopStatus || { isOpen: true });
+});
+
+app.post('/api/shop-status', (req, res) => {
+    const db = loadDB();
+    const { isOpen } = req.body;
+    
+    db.shopStatus = { isOpen: isOpen };
+    saveDB(db);
+    
+    res.json(db.shopStatus);
+});
+
+// Port භාවිතය (සියලුම Routes වලට පසුව තැබීම නිවැරදියි)
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`🚀 CAFE DN Server running on port ${PORT}`);

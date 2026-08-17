@@ -1,6 +1,6 @@
-// --- CAFE DN - Customer App JavaScript (Complete & Fixed) ---
+// --- CAFE DN - Customer App JavaScript (Added 'Paid' Status Support) ---
 
-const RESTAURANT_WA_NUMBER = "94771234567"; // Restaurant WhatsApp Number
+const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
 let systemData = {
     business: { name: "CAFE DN", isOpen: true },
@@ -13,54 +13,123 @@ let cart = {};
 let currentOrderType = 'dinein';
 let isTableQR = false;
 let tableNumber = "";
+let isShopOpen = true; 
+let latestActiveOrders = []; 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 🌟 මුලින්ම Categories සහ පසුව Products එකවර ලෝඩ් කර ගැනීම
+    await fetchShopStatus();
     await loadCategoriesForCart();
     await loadProductsFromServer();
-    
-    // 🌟 දැන් Categories සහ Products දෙකම සෑම තත්පර 3කට වතාවක්ම එකවර අප්ඩේට් වේ
+    checkMyOrderStatus();
+
     setInterval(async () => {
+        await fetchShopStatus();
         await loadCategoriesForCart();
         await loadProductsFromServer();
+        checkMyOrderStatus();
     }, 3000);
 
     const urlParams = new URLSearchParams(window.location.search);
     tableNumber = urlParams.get('table');
 
     const orderTypeTabs = document.getElementById('order-type-tabs');
-    const tableBadge = document.querySelector('.badge-table');
 
     if (tableNumber) {
         isTableQR = true;
         currentOrderType = 'dinein';
-        if (tableBadge) tableBadge.innerText = `📍 Table ${tableNumber}`;
         if (orderTypeTabs) orderTypeTabs.style.display = 'flex'; 
     } else {
-        if (tableBadge) tableBadge.innerText = `📍 Dine-in (Shop)`;
         if (orderTypeTabs) orderTypeTabs.style.display = 'flex';
         showOrderTypePopup();
     }
 
+    updateTableBadgeUI();
     updateCartUI();
-
-    // 🌟 දත්ත සියල්ල ලෝඩ් වී අවසන් වූ පසු Loader එක Smooth ලෙස ඉවත් කිරීම (Fade out)
     hideAppLoader();
 });
 
-// Loader එක ක්‍රියාත්මක කර ඉවත් කරන ෆන්ෂන් එක
 function hideAppLoader() {
     const loader = document.getElementById('app-loader');
     if (loader) {
         loader.classList.add('fade-out');
         setTimeout(() => {
             loader.style.display = 'none';
-        }, 600); // CSS transition කාලයට සමාන වේලාවක් තබා ඇත
+        }, 600);
     }
 }
 
+async function fetchShopStatus() {
+    try {
+        const res = await fetch('/api/shop-status');
+        if (res.ok) {
+            const data = await res.json();
+            isShopOpen = (typeof data.isOpen === 'boolean') ? data.isOpen : true;
+            systemData.business.isOpen = isShopOpen;
+            updateStatusBadge();
+        }
+    } catch (e) {
+        console.error("Error fetching shop status:", e);
+    }
+}
 
-// Categories සර්වර් එකෙන් ලබා ගැනීම
+function updateStatusBadge() {
+    const badge = document.querySelector('.badge-status');
+    const orderTypeTabs = document.getElementById('order-type-tabs'); 
+    const tabButtons = document.querySelectorAll('.tab-btn'); 
+
+    if (badge) {
+        if (isShopOpen) {
+            badge.innerHTML = "🟢 Open Now";
+            badge.style.color = "#16a34a"; 
+
+            if (orderTypeTabs) {
+                orderTypeTabs.style.pointerEvents = 'auto';
+                orderTypeTabs.style.opacity = '1';
+            }
+
+            tabButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.cursor = 'pointer';
+            });
+
+        } else {
+            badge.innerHTML = "🔴 Shop Closed";
+            badge.style.color = "#dc2626"; 
+
+            if (orderTypeTabs) {
+                orderTypeTabs.style.pointerEvents = 'none'; 
+                orderTypeTabs.style.opacity = '0.5';        
+            }
+
+            tabButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.cursor = 'not-allowed'; 
+            });
+
+            const cartDetails = document.getElementById('cart-details');
+            if (cartDetails && cartDetails.style.display === 'block') {
+                toggleCart();
+            }
+
+            const cartBar = document.getElementById('cart-bar');
+            if (cartBar) {
+                cartBar.style.display = 'none';
+            }
+        }
+    }
+}
+
+function updateTableBadgeUI() {
+    const tableBadge = document.querySelector('.badge-table');
+    if (!tableBadge) return;
+
+    if (isTableQR) {
+        tableBadge.innerText = `📍 Table ${tableNumber} (${currentOrderType === 'takeaway' ? 'Takeaway' : 'Dine-in'})`;
+    } else {
+        tableBadge.innerText = currentOrderType === 'takeaway' ? `📍 Takeaway` : `📍 Dine-in (Shop)`;
+    }
+}
+
 async function loadCategoriesForCart() {
     try {
         const res = await fetch('/api/categories');
@@ -72,7 +141,6 @@ async function loadCategoriesForCart() {
     }
 }
 
-// Products සර්වර් එකෙන් ලබා ගැනීම
 async function loadProductsFromServer() {
     try {
         const response = await fetch('/api/products');
@@ -109,14 +177,14 @@ function showOrderTypePopup() {
             ">
                 <h3 style="margin-bottom: 8px; color: #1e293b; font-size: 1.25rem;">Welcome to CAFE DN! 🍽️</h3>
                 <p style="color: #64748b; margin-bottom: 20px; font-size: 0.95rem;">කරුණාකර ඔබගේ ඇණවුම් ක්‍රමය තෝරන්න:</p>
-                
+
                 <div style="display: flex; gap: 10px; justify-content: center;">
                     <button onclick="selectExternalOrderType('dinein')" style="
                         flex: 1; padding: 12px; background: #3b82f6; color: white;
                         border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
                         font-size: 1rem;
                     ">Dine-in</button>
-                    
+
                     <button onclick="selectExternalOrderType('takeaway')" style="
                         flex: 1; padding: 12px; background: #10b981; color: white;
                         border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
@@ -131,10 +199,7 @@ function showOrderTypePopup() {
 
 function selectExternalOrderType(type) {
     currentOrderType = type;
-    const tableBadge = document.querySelector('.badge-table');
-    if (tableBadge) {
-        tableBadge.innerText = type === 'dinein' ? `📍 Dine-in (Shop)` : `📍 Takeaway`;
-    }
+    updateTableBadgeUI(); 
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const btnText = btn.innerText.toLowerCase();
@@ -150,7 +215,6 @@ function selectExternalOrderType(type) {
     updateCartUI(); 
 }
 
-// 🌟 Categories ටැබ් නිවැරදිව පෙන්වීම
 function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
@@ -159,19 +223,34 @@ function renderCategoryTabs() {
 
     if (!categoriesList || categoriesList.length === 0) {
         categoriesList = [
-            { id: 'juice', name: 'Juice' },
-            { id: 'milkshake', name: 'Milkshake' },
-            { id: 'rice', name: 'Rice' }
+            { id: 'juice', name: 'Juice', image: '' },
+            { id: 'milkshake', name: 'Milkshake', image: '' },
+            { id: 'rice', name: 'Rice', image: '' }
         ];
     }
 
-    let html = `<button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">🌟 All</button>`;
-    
+    let html = `
+        <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
+            <span style="font-size: 1rem;">🌟</span>
+            <span>All</span>
+        </button>
+    `;
+
     categoriesList.forEach(cat => {
         let catId = typeof cat === 'object' ? (cat.id || cat.name) : cat;
         let catName = typeof cat === 'object' ? (cat.name || cat.id) : cat;
+        let catImage = typeof cat === 'object' ? cat.image : '';
 
-        html += `<button class="cat-tab ${currentCategory === catId ? 'active' : ''}" onclick="filterCategory('${catId}')">${catName}</button>`;
+        let imageHtml = catImage 
+            ? `<img src="${catImage}" alt="${catName}" onerror="this.style.display='none'">` 
+            : `<span style="font-size: 1rem;">🍽️</span>`;
+
+        html += `
+            <button class="cat-tab ${currentCategory === catId ? 'active' : ''}" onclick="filterCategory('${catId}')">
+                ${imageHtml}
+                <span>${catName}</span>
+            </button>
+        `;
     });
 
     container.innerHTML = html;
@@ -201,49 +280,63 @@ function renderProducts() {
         return;
     }
 
-    container.innerHTML = visibleProducts.map(product => `
-        <div class="product-card" style="${(product.available === false || product.available === "false") ? 'opacity: 0.75; background: #fdf2f2;' : ''}">
-            ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <div class="badge-box">
-                    ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
+    container.innerHTML = visibleProducts.map(product => {
+        const isProductUnavailable = (product.available === false || product.available === "false");
+        const isDisabled = !isShopOpen || isProductUnavailable;
+
+        return `
+            <div class="product-card" style="${isDisabled ? 'opacity: 0.75; background: #fdf2f2;' : ''}">
+                ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <div class="badge-box">
+                        ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
+                    </div>
+                    <p class="desc">${product.desc || ''}</p>
+                    <div class="price-box">
+                        <span class="current-price">Rs. ${Number(product.price).toFixed(0)}</span>
+                        ${product.oldPrice ? `<span class="old-price">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
+                    </div>
                 </div>
-                <p class="desc">${product.desc || ''}</p>
-                <div class="price-box">
-                    <span class="current-price">Rs. ${Number(product.price).toFixed(0)}</span>
-                    ${product.oldPrice ? `<span class="old-price">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
+                <div class="product-action">
+                    <div>
+                        ${isShopOpen ? `
+                            ${!isProductUnavailable ? `
+                                <div class="qty-control" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <button onclick="changeQty('${product.id}', -1)" style="padding: 4px 10px;">-</button>
+                                    <span id="qty-${product.id}" style="font-weight: bold;">${cart[product.id] || 0}</span>
+                                    <button onclick="changeQty('${product.id}', 1)" style="padding: 4px 10px;">+</button>
+                                </div>
+                                <button class="add-btn" onclick="addToCart('${product.id}')" style="width: 100%;">Add to Cart</button>
+                            ` : `
+                                <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Today unavailable</span>
+                            `}
+                        ` : `
+                            <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Shop Closed</span>
+                        `}
+                    </div>
                 </div>
             </div>
-            <div class="product-action">
-    <div>
-        ${(product.available !== false && product.available !== "false") ? `
-            <div class="qty-control" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <button onclick="changeQty('${product.id}', -1)" style="padding: 4px 10px;">-</button>
-                <span id="qty-${product.id}" style="font-weight: bold;">${cart[product.id] || 0}</span>
-                <button onclick="changeQty('${product.id}', 1)" style="padding: 4px 10px;">+</button>
-            </div>
-            <button class="add-btn" onclick="addToCart('${product.id}')" style="width: 100%;">Add to Cart</button>
-        ` : `
-            <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Today unavailable</span>
-        `}
-    </div>
-</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function changeQty(productId, change) {
+    if (!isShopOpen) return;
     if (!cart[productId]) cart[productId] = 0;
     cart[productId] += change;
     if (cart[productId] <= 0) delete cart[productId];
-    
+
     const qtySpan = document.getElementById(`qty-${productId}`);
     if (qtySpan) qtySpan.innerText = cart[productId] || 0;
     updateCartUI();
 }
 
 function addToCart(productId) {
+    if (!isShopOpen) {
+        alert('කණගාටුයි, දැනට ආපන ශාලාව වසා ඇත. ඇණවුම් කළ නොහැක!');
+        return;
+    }
     if (!cart[productId]) cart[productId] = 1;
     const qtySpan = document.getElementById(`qty-${productId}`);
     if (qtySpan) qtySpan.innerText = cart[productId];
@@ -252,7 +345,7 @@ function addToCart(productId) {
 
 function updateCartUI() {
     const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
-    
+
     let subtotal = 0;
     let totalTakeAwayCharges = 0;
 
@@ -275,7 +368,7 @@ function updateCartUI() {
 
     const cartBar = document.getElementById('cart-bar');
     if (cartBar) {
-        if (totalItems > 0) {
+        if (totalItems > 0 && isShopOpen) {
             cartBar.style.display = 'block';
             document.getElementById('cart-count').innerText = totalItems;
             document.getElementById('cart-total-price').innerText = `Rs. ${grandTotal.toFixed(2)}`;
@@ -318,6 +411,7 @@ function renderCartItemsList(takeawayCharges = 0) {
 }
 
 function toggleCart() {
+    if (!isShopOpen) return;
     const details = document.getElementById('cart-details');
     if (details) {
         details.style.display = details.style.display === 'block' ? 'none' : 'block';
@@ -329,16 +423,25 @@ function toggleCart() {
     }
 }
 
-function setOrderType(type) {
+function setOrderType(type, eventObj) {
     currentOrderType = type;
+
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
+    const targetBtn = eventObj || (window.event && window.event.target);
+    if (targetBtn) {
+        targetBtn.classList.add('active');
     }
+
+    updateTableBadgeUI(); 
     updateCartUI();
 }
 
 function openOrderModal() {
+    if (!isShopOpen) {
+        alert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් කළ නොහැක!');
+        return;
+    }
+
     if (Object.keys(cart).length === 0) {
         alert('කරුණාකර අවම වශයෙන් එක් ආහාරයක් හෝ තෝරන්න!');
         return;
@@ -346,7 +449,7 @@ function openOrderModal() {
 
     const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
-    
+
     if (!nameInput) {
         alert('කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!');
         document.getElementById('cust-name')?.focus();
@@ -434,6 +537,11 @@ function closeOrderModal() {
 }
 
 function submitOrder(sendWhatsApp) {
+    if (!isShopOpen) {
+        alert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් යැවිය නොහැක!');
+        return;
+    }
+
     const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
@@ -444,16 +552,16 @@ function submitOrder(sendWhatsApp) {
     }
 
     const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
-    
+
     const isTakeaway = (currentOrderType === 'takeaway');
     let finalTableType = '';
-    
+
     if (isTableQR) {
         finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
     } else {
         finalTableType = isTakeaway ? 'Takeaway' : 'Dine-in (Shop)';
     }
-    
+
     const finalOrderTypeStr = isTakeaway ? 'Takeaway' : 'Dine-in';
 
     let subtotal = 0;
@@ -499,8 +607,11 @@ function submitOrder(sendWhatsApp) {
     })
     .then(res => res.json())
     .then(data => {
-        localStorage.setItem('customerOrderId', orderId);
-        alert('🎉 ඔබගේ Order එක සාර්ථකව Kitchen එකට යැවුණා! Order ID: ' + orderId);
+        let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
+        myOrders.push(orderId);
+        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+
+        showToast(`🎉 ඔබගේ Order එක සාර්ථකව යැවුණා! `, 'success');
 
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
@@ -524,13 +635,248 @@ function submitOrder(sendWhatsApp) {
         if(document.getElementById('cust-name')) document.getElementById('cust-name').value = '';
         if(document.getElementById('cust-phone')) document.getElementById('cust-phone').value = '';
         if(document.getElementById('cust-time')) document.getElementById('cust-time').value = '';
-        
+
         updateCartUI();
         toggleCart();
         closeOrderModal();
+        checkMyOrderStatus();
     })
     .catch(err => {
         console.error(err);
-        alert('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.');
+        showToast('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.', 'error');
     });
+}
+
+async function checkMyOrderStatus() {
+    let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
+    const trackerContainer = document.getElementById('live-order-tracker');
+
+    if (myOrders.length === 0) {
+        if (trackerContainer) trackerContainer.style.display = 'none';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+            const allOrders = await res.json();
+            let paidTimestamps = JSON.parse(localStorage.getItem('cafePaidTimestamps') || '{}');
+            let currentTime = Date.now();
+
+            latestActiveOrders = allOrders.filter(o => {
+                if (!myOrders.includes(o.id)) return false;
+                let status = (o.status || '').toLowerCase();
+                let paymentStatus = (o.paymentStatus || '').toLowerCase();
+                
+                let isPaidOrCompleted = (status === 'paid' || status === 'completed' || paymentStatus === 'paid');
+
+                if (isPaidOrCompleted) {
+                    // ඇණවුම Paid වූ පළමු වතාව නම්, එම වේලාව (Timestamp) සටහන් කර ගනී
+                    if (!paidTimestamps[o.id]) {
+                        paidTimestamps[o.id] = currentTime;
+                        localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
+                    }
+
+                    // මිනිත්තුවක් (මිලි තත්පර 60,000ක්) ගත වී ඇත්දැයි පරීක්ෂා කරයි
+                    let elapsed = currentTime - paidTimestamps[o.id];
+                    if (elapsed >= 60000) { 
+                        // මිනිත්තුවක් පිරී ඇති නිසා ලැයිස්තුවෙන් සහ localStorage එකෙන් සම්පූර්ණයෙන්ම ඉවත් කරයි
+                        myOrders = myOrders.filter(id => id !== o.id);
+                        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+                        return false; 
+                    }
+                }
+
+                // ඇණවුම Cancel කර ඇත්නම් වහාම ඉවත් කරයි
+                if (status === 'cancelled') {
+                    myOrders = myOrders.filter(id => id !== o.id);
+                    localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (latestActiveOrders.length > 0) {
+                renderAllCustomerBadges(latestActiveOrders);
+                
+                const existingModal = document.getElementById('all-orders-popup-modal');
+                if (existingModal) {
+                    updateAllOrdersPopupContent(latestActiveOrders);
+                }
+            } else {
+                if (trackerContainer) trackerContainer.style.display = 'none';
+            }
+        }
+    } catch (e) {
+        console.error("Error checking customer orders status:", e);
+    }
+}
+
+function renderAllCustomerBadges(ordersList) {
+    const trackerContainer = document.getElementById('live-order-tracker');
+    if (!trackerContainer) return;
+
+    trackerContainer.style.display = 'block';
+    trackerContainer.style.margin = '10px auto';
+    trackerContainer.style.width = '95%';
+    trackerContainer.style.maxWidth = '600px';
+
+    const latestOrder = ordersList[ordersList.length - 1];
+    
+    let currentStatus = (latestOrder.status || 'pending').toLowerCase();
+    let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase(); // 👈 එකතු කරන ලදී
+    
+    let statusColor = '#fef08a';
+    let textColor = '#854d0e';
+    let statusText = 'Pending';
+
+    if (currentStatus === 'preparing') { 
+        statusColor = '#e0f2fe'; 
+        textColor = '#0284c7'; 
+        statusText = 'Preparing'; 
+    } else if (currentStatus === 'ready') { 
+        statusColor = '#dcfce7'; 
+        textColor = '#16a34a'; 
+        statusText = 'Ready!'; 
+    } else if (currentStatus === 'paid' || paymentStatus === 'paid') { // 👈 මෙහි status හෝ paymentStatus 'paid' නම් පරීක්ෂා කරයි
+        statusColor = '#ccfbf1'; 
+        textColor = '#0f766e'; 
+        statusText = 'Paid 💳'; 
+    } else if (currentStatus === 'completed') { 
+        statusColor = '#f1f5f9'; 
+        textColor = '#64748b'; 
+        statusText = 'Waiting for Payment'; 
+    } else if (currentStatus === 'cancelled') { 
+        statusColor = '#fee2e2'; 
+        textColor = '#ef4444'; 
+        statusText = 'Cancelled'; 
+    }
+
+    let otherOrdersHtml = '';
+    if (ordersList.length > 1) {
+        otherOrdersHtml = `
+            <button onclick="showAllOrdersPopup()" style="
+                background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;
+                padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #475569;
+                cursor: pointer; display: flex; align-items: center; gap: 4px;
+            ">
+                <span>📦 View All (${ordersList.length})</span>
+            </button>
+        `;
+    }
+
+    let html = `
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+                <span>🔔 Live Order Status</span>
+                ${otherOrdersHtml}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 8px;">
+                <div>
+                    <b style="font-size: 0.9rem; color: #0f172a;">${latestOrder.id}</b>
+                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 6px;">Rs. ${Number(latestOrder.total || 0).toFixed(0)}</span>
+                </div>
+                <span style="background: ${statusColor}; color: ${textColor}; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700;">${statusText}</span>
+            </div>
+        </div>
+    `;
+    trackerContainer.innerHTML = html;
+}
+
+function showAllOrdersPopup() {
+    const existingModal = document.getElementById('all-orders-popup-modal');
+    if (existingModal) existingModal.remove();
+
+    const modalHtml = `
+        <div id="all-orders-popup-modal" style="
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center;
+            align-items: center; z-index: 99999; backdrop-filter: blur(4px);
+        ">
+            <div style="
+                background: white; padding: 20px; border-radius: 12px;
+                width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #1e293b; font-size: 1.1rem;">📦 My Active Orders</h3>
+                    <button onclick="document.getElementById('all-orders-popup-modal').remove()" style="
+                        background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; font-weight: bold;
+                    ">✕</button>
+                </div>
+                <div id="all-orders-popup-body-content">Loading...</div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    if (latestActiveOrders.length > 0) {
+        updateAllOrdersPopupContent(latestActiveOrders);
+    } else {
+        checkMyOrderStatus().then(() => {
+            if (latestActiveOrders.length > 0) {
+                updateAllOrdersPopupContent(latestActiveOrders);
+            }
+        });
+    }
+}
+
+function updateAllOrdersPopupContent(activeCustomerOrders) {
+    const modalBodyContainer = document.getElementById('all-orders-popup-body-content');
+    if (!modalBodyContainer) return;
+
+    let ordersListHtml = activeCustomerOrders.map(order => {
+        let currentStatus = (order.status || 'pending').toLowerCase();
+        let paymentStatus = (order.paymentStatus || '').toLowerCase(); // 👈 එකතු කරන ලදී
+        
+        let statusColor = '#fef08a';
+        let textColor = '#854d0e';
+        let statusText = 'Pending';
+
+        if (currentStatus === 'preparing') { 
+            statusColor = '#e0f2fe'; 
+            textColor = '#0284c7'; 
+            statusText = 'Preparing'; 
+        } else if (currentStatus === 'ready') { 
+            statusColor = '#dcfce7'; 
+            textColor = '#16a34a'; 
+            statusText = 'Ready!'; 
+        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { // 👈 මෙහි ද එකතු කරන ලදී
+            statusColor = '#ccfbf1'; 
+            textColor = '#0f766e'; 
+            statusText = 'Paid 💳'; 
+        } else if (currentStatus === 'completed') { 
+            statusColor = '#f1f5f9'; 
+            textColor = '#64748b'; 
+            statusText = 'Completed'; 
+        } else if (currentStatus === 'cancelled') { 
+            statusColor = '#fee2e2'; 
+            textColor = '#ef4444'; 
+            statusText = 'Cancelled'; 
+        }
+
+        let itemsSummary = (order.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
+
+        return `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <b style="color: #1e293b; font-size: 0.9rem;">${order.id}</b>
+                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">Items: ${itemsSummary}</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #0f172a;">
+                    <span>Total: Rs. ${Number(order.total || 0).toFixed(2)}</span>
+                    <span style="font-weight: normal; color: #64748b;">${order.time}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    modalBodyContainer.innerHTML = ordersListHtml;
+}
+
+function showToast(message, type = 'success') {
+    const existingToast = document.getElementById('custom-toast-badge');
+    if (existingToast) existingToast.remove();
 }
