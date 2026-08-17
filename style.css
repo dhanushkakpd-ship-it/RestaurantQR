@@ -1,4 +1,4 @@
-/* --- CAFE DN Premium Sleek Horizontal Styles --- */
+/* --- CAFE DN Soft Strawberry & Cream Theme --- */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -7,36 +7,33 @@
 }
 
 body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: #fffafb; /* ඉතා මෘදු ස්ට්‍රෝබෙරි-ක්‍රීම් පසුබිමක් */
+    color: #4a5568;
     padding-bottom: 140px;
 }
 
-/* Header Design with Glassmorphism */
+/* Header Design */
 .header {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    padding: 5px 0px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.04);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 10px 8px;
+    box-shadow: 0 2px 10px rgba(244, 63, 94, 0.04);
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #fce7f3;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
-
-
 .brand h1 {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.3px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #db2777; /* Soft Strawberry Pink */
 }
 
 .status-badges {
@@ -47,54 +44,51 @@ body {
 
 .badge-table, .badge-status {
     font-size: 0.72rem;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
 }
 
 .badge-table {
-    background: #ede9fe;
-    color: #6d28d9;
+    background: #fdf2f8;
+    color: #db2777;
 }
 
 .badge-status {
-    background: #ecfdf5;
-    color: #047857;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    background: #f0fdf4;
+    color: #16a34a;
 }
 
 /* Order Type Switcher Tabs */
 .order-type-tabs {
     display: flex;
-    background: #e2e8f0;
-    margin: 5px;
+    background: #fdf2f8;
+    margin: 12px 16px;
     padding: 4px;
-    border-radius: 14px;
+    border-radius: 10px;
     gap: 4px;
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid #fce7f3;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 10px;
+    padding: 8px;
     border: none;
     background: transparent;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #64748b;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #9d174d;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .tab-btn.active {
     background: #ffffff;
-    color: #4f46e5;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    color: #be185d;
+    box-shadow: 0 2px 6px rgba(244, 63, 94, 0.08);
 }
 
 /* Menu Items Container */
@@ -105,48 +99,36 @@ body {
 }
 
 .section-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin-bottom: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
     color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-/* Horizontal List Container */
+/* Product Card Style */
 .product-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
-/* Premium Horizontal Card Style */
 .product-card {
     background: #ffffff;
-    border-radius: 16px;
-    padding: 12px;
+    border-radius: 12px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    border: 1px solid #f1f5f9;
-    transition: all 0.2s ease;
-}
-
-.product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.08);
-    border-color: #c7d2fe;
+    gap: 12px;
+    border: 1px solid #fce7f3;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.02);
 }
 
 .product-card img {
-    width: 88px;
-    height: 100px;
+    width: 80px;
+    height: 90px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 8px;
     flex-shrink: 0;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
 }
 
 .product-info {
@@ -158,49 +140,42 @@ body {
 }
 
 .product-info h3 {
-    font-size: 0.92rem;
-    font-weight: 800;
-    color: #0f172a;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
     margin-bottom: 2px;
-}
-
-.badge-box {
-    margin-bottom: 3px;
 }
 
 .badge {
     font-size: 0.6rem;
-    background: #fee2e2;
-    color: #dc2626;
+    background: #fdf2f8;
+    color: #db2777;
     padding: 2px 6px;
-    border-radius: 6px;
-    font-weight: 800;
+    border-radius: 4px;
+    font-weight: 600;
     display: inline-block;
 }
 
 .desc {
-    font-size: 0.73rem;
+    font-size: 0.72rem;
     color: #64748b;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .price-box {
     display: flex;
     align-items: center;
     gap: 6px;
-
-    flex-wrap: nowrap;     /* ලයින් මාරු වීම සම්පූර්ණයෙන්ම වළකී */
-    white-space: nowrap;   /* 'Rs.' සහ අංකය එකම පේළියක තබා ගනී */
 }
 
 .current-price {
-    font-size: 0.88rem;
-    font-weight: 800;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: #059669;
 }
 
 .old-price {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: #94a3b8;
     text-decoration: line-through;
 }
@@ -210,55 +185,47 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
 }
 
 .qty-control {
     display: flex;
     align-items: center;
-    background: #f8fafc;
-    border-radius: 8px;
+    background: #fdf2f8;
+    border-radius: 6px;
     padding: 2px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #fce7f3;
 }
 
 .qty-control button {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border: none;
     background: #ffffff;
-    border-radius: 6px;
-    font-weight: 800;
-    font-size: 0.85rem;
-    color: #4f46e5;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #db2777;
     cursor: pointer;
 }
 
 .qty-control span {
     padding: 0 6px;
-    font-weight: 800;
-    font-size: 0.8rem;
-    color: #0f172a;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #1e293b;
 }
 
 .add-btn {
-    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    background: #db2777;
     color: #ffffff;
     border: none;
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
     font-size: 0.75rem;
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);
-    transition: all 0.2s ease;
-   
-}
-
-.add-btn:active {
-    transform: scale(0.95);
 }
 
 /* Floating Bottom Cart Bar */
@@ -268,73 +235,68 @@ body {
     left: 0;
     right: 0;
     background: #ffffff;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
+    box-shadow: 0 -4px 20px rgba(244, 63, 94, 0.08);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
     z-index: 1000;
     max-width: 800px;
     margin: 0 auto;
-    overflow: hidden;
+    border-top: 1px solid #fce7f3;
 }
 
 .cart-summary {
-    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    background: #db2777;
     color: #ffffff;
-    padding: 16px 20px;
+    padding: 14px 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: 800;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 0.9rem;
     cursor: pointer;
 }
 
 /* Cart Dropdown Details */
 .cart-details {
-    padding: 16px 20px;
+    padding: 16px;
     background: #ffffff;
     max-height: 350px;
     overflow-y: auto;
-    border-top: 1px solid #f1f5f9;
 }
 
 .cart-details h3 {
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-    color: #0f172a;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: #1e293b;
 }
 
 .cart-items-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 14px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .cart-input-group {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .cart-input-group label {
-    font-size: 0.78rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: #475569;
 }
 
 .cart-input-group input {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    font-size: 0.9rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #fce7f3;
+    font-size: 0.85rem;
     outline: none;
-    transition: border-color 0.2s;
-}
-
-.cart-input-group input:focus {
-    border-color: #4f46e5;
+    background: #fffafb;
 }
 
 .checkout-btn {
@@ -342,24 +304,18 @@ body {
     background: #059669;
     color: #ffffff;
     border: none;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 800;
-    font-size: 0.95rem;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
-    margin-top: 4px;
 }
 
 /* Modal Popup Styles */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(30, 41, 59, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -370,68 +326,61 @@ body {
 .modal-content {
     background: #ffffff;
     width: 100%;
-    max-width: 420px;
-    border-radius: 20px;
+    max-width: 400px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    animation: modalPop 0.25s ease-out;
-}
-
-@keyframes modalPop {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    box-shadow: 0 10px 25px rgba(244, 63, 94, 0.12);
+    border: 1px solid #fce7f3;
 }
 
 .modal-header {
-    background: #f8fafc;
-    padding: 16px 20px;
+    background: #fdf2f8;
+    padding: 14px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #fce7f3;
 }
 
 .modal-header h3 {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
 }
 
 .close-modal {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #64748b;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #db2777;
     cursor: pointer;
 }
 
 .modal-body {
-    padding: 20px;
-    font-size: 0.88rem;
-    color: #334155;
-    max-height: 250px;
-    overflow-y: auto;
+    padding: 16px;
+    font-size: 0.85rem;
+    color: #475569;
 }
 
 .modal-actions {
-    padding: 16px 20px;
-    background: #f8fafc;
+    padding: 14px 16px;
+    background: #fdf2f8;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #fce7f3;
 }
 
 .btn-modal {
-    padding: 12px;
-    border-radius: 10px;
+    padding: 10px;
+    border-radius: 8px;
     border: none;
-    font-weight: 800;
-    font-size: 0.88rem;
+    font-weight: 700;
+    font-size: 0.85rem;
     cursor: pointer;
 }
 
 .btn-confirm {
-    background: #4f46e5;
+    background: #db2777;
     color: #ffffff;
 }
 
@@ -440,62 +389,65 @@ body {
     color: #ffffff;
 }
 
-html, body {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.category-tabs {
+/* Category Tabs */
+#categoryTabs {
     display: flex;
-    overflow-x: auto; /* ජංගම දුරකථන වලදී ස්වයිප් කළ හැකි වීමට */
-    gap: 10px;
-    padding: 10px 10px;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 16px;
+    scrollbar-width: none;
     background: #ffffff;
+    border-bottom: 1px solid #fce7f3;
     position: sticky;
-    top: 0;
+    top: 53px;
     z-index: 99;
-    border-bottom: 1px solid #e2e8f0;
-    scrollbar-width: none; /* Scrollbar එක පෙන්වන්නේ නැත */
 }
 
-.category-tabs::-webkit-scrollbar { display: none; }
+#categoryTabs::-webkit-scrollbar {
+    display: none; 
+}
 
 .cat-tab {
-    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fdf2f8;
+    border: 1px solid #fce7f3;
+    padding: 6px 14px;
     border-radius: 20px;
-    border: 1px solid #cbd5e1;
-    background: #f8fafc;
+    white-space: nowrap;
     cursor: pointer;
-    white-space: nowrap; /* අකුරු කැපීම වැළැක්වීමට */
-    font-weight: 500;
-    transition: 0.3s;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9d174d;
+    flex-shrink: 0;
+}
+
+.cat-tab img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .cat-tab.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    background: #db2777;
+    color: #ffffff;
+    border-color: #db2777;
 }
 
-/* smooth loard */ 
-/* --- Smooth Page Loader Styles --- */
+/* Smooth Page Loader */
 #app-loader {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #ffffff;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #fffafb;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 999999;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
+    transition: opacity 0.4s ease;
 }
 
 #app-loader.fade-out {
@@ -504,12 +456,12 @@ html, body {
 }
 
 .loader-spinner {
-    width: 55px;
-    height: 55px;
-    border: 5px solid #f1f5f9;
-    border-top: 5px solid #3b82f6; /* කැමති පාටක් (Primary color) දාන්න පුළුවන් */
+    width: 45px;
+    height: 45px;
+    border: 4px solid #fdf2f8;
+    border-top: 4px solid #db2777;
     border-radius: 50%;
-    animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -518,176 +470,22 @@ html, body {
 }
 
 .loader-text {
-    margin-top: 15px;
+    margin-top: 12px;
     color: #1e293b;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 600;
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
+    font-size: 1rem;
 }
 
 .loader-subtext {
-    margin-top: 5px;
-    color: #64748b;
-    font-size: 0.85rem;
-    font-family: sans-serif;
-}
-
-/* Logo රූපයේ ප්‍රමාණය සහ හැඩය */
-.logo img {
-    width: 100px;       /* ලෝගෝවේ පළල (අවශ්‍ය පරිදි වෙනස් කරන්න) */
-    height: 100px;      /* ලෝගෝවේ උස */
-    object-fit: cover; /* පින්තූරය විකෘති නොවේ */
-    border-radius: 50%;/* ලෝගෝව රවුම් කිරීමට (අවශ්‍ය නැතිනම් මෙය ඉවත් කරන්න) */
-    /* border: 2px solid #e2e8f0; /* කුඩා මායිමක් */
-    display: block;
-}
-
-/* Header එක තුළ අයිතම පෙළගැස්වීම (Flexbox) */
-.header .brand {
-    display: flex;
-    align-items: center; /* ලෝගෝව සහ text එක එක මට්ටමකට */
-    gap: 0px;           /* ලෝගෝව සහ text එක අතර පරතරය */
-}
-
-/* CAFE DN මාතෘකාවේ margin ඉවත් කිරීම */
-.header .brand h1 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-/* Status badges වල පරතරය සකස් කිරීම */
-.header .brand .status-badges {
     margin-top: 4px;
+    color: #64748b;
+    font-size: 0.8rem;
 }
 
-
-/* 🌟 Horizontal Scrollable Category Pills */
-.category-tabs {
-    display: flex;
-    overflow-x: auto;
-    gap: 10px;
-    padding: 12px 16px;
-    background: #ffffff;
-    white-space: nowrap;
-    scrollbar-width: none; /* Firefox සඳහා scrollbar එක සඟවයි */
-    -ms-overflow-style: none; /* IE සඳහා */
-    border-bottom: 1px solid #e2e8f0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-/* Chrome, Safari සහ Opera සඳහා scrollbar එක සඟවයි */
-.category-tabs::-webkit-scrollbar {
-    display: none; 
-}
-
-/* තනි Category Pill එකක මෝස්තරය */
-.cat-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 50px; /* රවුම් හැඩැති Pill එකක් ලෙස */
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #475569;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-/* Category එකක පින්තූරය (Icon) */
-.cat-tab img {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
+.logo img {
+    width: 65px;
+    height: 65px;
     object-fit: cover;
-}
-
-/* Hover කළ විට පෙනෙන ආකාරය */
-.cat-tab:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-}
-
-/* Active (තෝරාගත්) Category එක සඳහා */
-.cat-tab.active {
-    background: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-}
-
-/* --- Modern Horizontal Category Tabs Styling --- */
-
-#categoryTabs {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 5px 16px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox සඳහා scrollbar එක සඟවයි */
-    background: #ffffff;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-/* Chrome, Safari සහ Opera සඳහා scrollbar එක සඟවයි */
-#categoryTabs::-webkit-scrollbar {
-    display: none; 
-}
-
-/* සාමාන්‍ය (Inactive) කැටගරි ටැබ් එක */
-.cat-tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f8fafc;
-    border: 1.5px solid #e2e8f0;
-    padding: 8px 16px;
-    border-radius: 50px; /* ලස්සන රවුම් හැඩය (Pill) */
-    white-space: nowrap;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #475569;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* කැටගරි අයිකන්/පින්තූරය */
-.cat-tab img {
-    width: 26px;
-    height: 26px;
     border-radius: 50%;
-    object-fit: cover;
-    background: #e2e8f0;
-}
-
-/* මවුස් එක ගෙන ගිය විට (Hover effect) */
-.cat-tab:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #1e293b;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* තෝරාගත් (Active) කැටගරි ටැබ් එක - කැෆේ එකකට ගැළපෙන ලස්සන ඔරේಂජ්/රතු පැහැ ග්‍රේඩියන්ට් එකක් */
-.cat-tab.active {
-    background: linear-gradient(135deg, hwb(345 25% 6%), #f05ec4);
-    color: #ffffff;
-    border-color: transparent;
-    box-shadow: 0 6px 15px rgba(238, 55, 156, 0.35);
-    transform: translateY(-2px);
-}
-
-/* Active වූ විට පින්තූරය වටා සුදු පැහැ මායිමක් */
-.cat-tab.active img {
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    display: block;
 }

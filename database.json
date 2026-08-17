@@ -1142,6 +1142,72 @@
           "price": 250
         }
       ]
+    },
+    {
+      "id": "ORD-848",
+      "status": "closed",
+      "paymentStatus": "paid",
+      "createdAt": "2026-08-17T19:36:15.809Z",
+      "table": "Table 09",
+      "type": "Dine-in",
+      "customerName": "Hh",
+      "phone": "Not Provided",
+      "pickupTime": "ASAP",
+      "time": "01:04",
+      "subtotal": 250,
+      "takeawayCharge": 0,
+      "total": 250,
+      "items": [
+        {
+          "name": "Avacado Juice",
+          "qty": 1,
+          "price": 250
+        }
+      ]
+    },
+    {
+      "id": "ORD-800",
+      "status": "closed",
+      "paymentStatus": "paid",
+      "createdAt": "2026-08-17T20:10:42.086Z",
+      "table": "Table 09",
+      "type": "Dine-in",
+      "customerName": "Gg",
+      "phone": "Not Provided",
+      "pickupTime": "ASAP",
+      "time": "01:39",
+      "subtotal": 350,
+      "takeawayCharge": 0,
+      "total": 350,
+      "items": [
+        {
+          "name": "Chocolate Milkshake",
+          "qty": 1,
+          "price": 350
+        }
+      ]
+    },
+    {
+      "id": "ORD-462",
+      "status": "completed",
+      "paymentStatus": "unpaid",
+      "createdAt": "2026-08-17T20:27:45.038Z",
+      "table": "Table 09 (Takeaway)",
+      "type": "Takeaway",
+      "customerName": "H",
+      "phone": "Not Provided",
+      "pickupTime": "ASAP",
+      "time": "01:56",
+      "subtotal": 250,
+      "takeawayCharge": 20,
+      "total": 270,
+      "items": [
+        {
+          "name": "Avacado Juice",
+          "qty": 1,
+          "price": 250
+        }
+      ]
     }
   ],
   "shopStatus": {

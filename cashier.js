@@ -277,12 +277,8 @@ function closeBillModal() {
     document.getElementById('bill-modal').style.display = 'none';
 }
 
-// Confirm Payment and Mark Order as Paid
+// Confirm Payment and Mark Order as Paid (තහවුරු කිරීමකින් තොරව ඍජුව ක්‍රියාත්මක වේ)
 async function confirmPaymentAndFinish(orderId) {
-    if (!confirm(`Order #${orderId} සඳහා මුදල් ගෙවීම තහවුරු කර ඇණවුම අවසන් කිරීමට අවශ්‍යද?`)) {
-        return;
-    }
-
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
@@ -302,6 +298,6 @@ async function confirmPaymentAndFinish(orderId) {
 
     } catch (error) {
         console.error('Error completing order payment:', error.message);
-        alert("පේමන්ට් එක තහවුරු කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.");
+        showCustomAlert("පේමන්ට් එක තහවුරු කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.", "error");
     }
 }

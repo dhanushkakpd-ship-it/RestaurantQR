@@ -334,7 +334,7 @@ function changeQty(productId, change) {
 
 function addToCart(productId) {
     if (!isShopOpen) {
-        alert('කණගාටුයි, දැනට ආපන ශාලාව වසා ඇත. ඇණවුම් කළ නොහැක!');
+        showCustomAlert('කණගාටුයි, දැනට ආපන ශාලාව වසා ඇත. ඇණවුම් කළ නොහැක!');
         return;
     }
     if (!cart[productId]) cart[productId] = 1;
@@ -438,12 +438,12 @@ function setOrderType(type, eventObj) {
 
 function openOrderModal() {
     if (!isShopOpen) {
-        alert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් කළ නොහැක!');
+        showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් කළ නොහැක!');
         return;
     }
 
     if (Object.keys(cart).length === 0) {
-        alert('කරුණාකර අවම වශයෙන් එක් ආහාරයක් හෝ තෝරන්න!');
+        showCustomAlert('කරුණාකර අවම වශයෙන් එක් ආහාරයක් හෝ තෝරන්න!');
         return;
     }
 
@@ -451,20 +451,20 @@ function openOrderModal() {
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
 
     if (!nameInput) {
-        alert('කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!');
+        showCustomAlert('කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!');
         document.getElementById('cust-name')?.focus();
         return;
     }
 
     if (!isTableQR && !phoneInput) {
-        alert('පිටතින් කරන ඇණවුම් සඳහා දුරකථන අංකය අනිවාර්ය වේ!');
+        showCustomAlert('පිටතින් කරන ඇණවුම් සඳහා දුරකථන අංකය අනිවාර්ය වේ!');
         document.getElementById('cust-phone')?.focus();
         return;
     }
 
     const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
     if (!isTableQR && !timeInput) {
-        alert('කරුණාකර ඔබ ඇණවුම රැගෙන යාමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
+        showCustomAlert('කරුණාකර ඔබ ඇණවුම රැගෙන යාමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
         return;
     }
 
@@ -538,7 +538,7 @@ function closeOrderModal() {
 
 function submitOrder(sendWhatsApp) {
     if (!isShopOpen) {
-        alert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් යැවිය නොහැක!');
+        showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් යැවිය නොහැක!');
         return;
     }
 
@@ -547,7 +547,7 @@ function submitOrder(sendWhatsApp) {
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     if (!isTableQR && !pickupTimeInput) {
-        alert('කරුණාකර වේලාව තෝරන්න!');
+        showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
         return;
     }
 
@@ -879,4 +879,44 @@ function updateAllOrdersPopupContent(activeCustomerOrders) {
 function showToast(message, type = 'success') {
     const existingToast = document.getElementById('custom-toast-badge');
     if (existingToast) existingToast.remove();
+}
+
+function showCustomAlert(message, type = 'info') {
+    const existingModal = document.getElementById('custom-alert-modal');
+    if (existingModal) existingModal.remove();
+
+    let accentColor = '#3b82f6'; // Default Blue
+    if (type === 'success') accentColor = '#10b981'; // Green
+    else if (type === 'error') accentColor = '#ef4444'; // Red
+
+    const popupHtml = `
+        <div id="custom-alert-modal" style="
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.3); display: flex; justify-content: center;
+            align-items: center; z-index: 99999; backdrop-filter: blur(4px);
+            animation: fadeInOverlay 0.2s ease;
+        ">
+            <div style="
+                background: #ffffff; padding: 18px 20px; border-radius: 14px;
+                width: 85%; max-width: 270px; text-align: center;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+                border-left: 5px solid ${accentColor};
+                animation: popUpScale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            ">
+                <p style="color: #1e293b; font-size: 0.9rem; font-weight: 500; margin-bottom: 14px; line-height: 1.4;">${message}</p>
+                <button onclick="document.getElementById('custom-alert-modal').remove()" style="
+                    background: ${accentColor}; color: #ffffff; border: none; padding: 6px 18px;
+                    border-radius: 8px; font-weight: 600; cursor: pointer;
+                    font-size: 0.85rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                    transition: opacity 0.2s;
+                " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"> OK</button>
+            </div>
+        </div>
+        <style>
+            @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes popUpScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        </style>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', popupHtml);
 }
