@@ -5,10 +5,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
     const overlay = document.getElementById('loginOverlay');
     
-    if (isLoggedIn !== 'true') {
-        if (overlay) overlay.style.setProperty('display', 'flex', 'important');
-    } else {
-        if (overlay) overlay.style.setProperty('display', 'none', 'important');
+    if (isLoggedIn === 'true') {
+        if (overlay) overlay.remove(); // මීට පෙර ලොග් වී ඇත්නම් ෆෝම් එක ඉවත් කරන්න
     }
     fetchShopStatus();
 });
@@ -26,25 +24,23 @@ async function handleAdminLogin(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
+        
         const data = await response.json();
+        console.log("Server Response:", data); // සර්වර් එකෙන් එන දේ බලාගැනීමට (F12 -> Console එක බලන්න)
 
-        if (data.success) {
+        // සර්වර් එක සාර්ථකයි නම් (success: true හෝ response එක OK නම්)
+        if (response.ok && (data.success === true || data.success === undefined || data.token)) {
             localStorage.setItem('isAdminLoggedIn', 'true');
+            
             const overlay = document.getElementById('loginOverlay');
-            
-            // Login වූ වහාම ෆෝම් එක නිසැකවම යෙදීමට
             if (overlay) {
-                overlay.style.setProperty('display', 'none', 'important');
+                overlay.remove(); // සම්පූර්ණයෙන්ම තිරයෙන් ඉවත් කරයි (CSS ගැටලු මඟ හැරේ)
             }
-            
-            // Login වූ පසු ඉන්පුට් ෆීල්ඩ්ස් හිස් කිරීම
-            document.getElementById('adminUser').value = '';
-            document.getElementById('adminPass').value = '';
-            if (errorMsg) errorMsg.innerText = '';
         } else {
             if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
         }
     } catch (err) {
+        console.error("Login Error:", err);
         if (errorMsg) errorMsg.innerText = 'සර්වර් එක සමඟ සම්බන්ධ වීමේ දෝෂයක්!';
     }
 }
@@ -53,41 +49,26 @@ async function handleAdminLogin(event) {
 function adminLogout() {
     if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
         localStorage.removeItem('isAdminLoggedIn');
-        const overlay = document.getElementById('loginOverlay');
-        
-        if (overlay) {
-            overlay.style.setProperty('display', 'flex', 'important');
-        }
-        
-        // ඉන්පුට් ෆීල්ඩ්ස් සහ එරර් මැසේජ් ක්ලියර් කිරීම
-        const userInp = document.getElementById('adminUser');
-        const passInp = document.getElementById('adminPass');
-        const errInp = document.getElementById('loginError');
-        if (userInp) userInp.value = '';
-        if (passInp) passInp.value = '';
-        if (errInp) errInp.innerText = '';
+        // පිටුව රිෆ්‍රෙෂ් කළ විට නැවත ලොගින් ෆෝම් එක මතුවනු ඇත
+        window.location.reload(); 
     }
 }
 
 // Tab මාරු කිරීමේ ක්‍රමය
 function openTab(tabId, btnElement) {
-    // සියලුම tab contents සඟවන්න
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // සියලුම tab buttons වලින් active ඉවත් කරන්න
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    // අදාළ ටැබ් එක පෙන්වීම
     const targetTab = document.getElementById(tabId);
     if (targetTab) {
         targetTab.classList.add('active');
     }
     
-    // ක්ලික් කළ බොත්තමට active ලබාදීම
     if (btnElement) {
         btnElement.classList.add('active');
     }
@@ -108,7 +89,7 @@ async function fetchShopStatus() {
 async function toggleShopStatus() {
     const btn = document.getElementById('shopStatusBtn');
     const isOpen = btn.classList.contains('open');
-    const newStatus = !isOpen; // Switch state
+    const newStatus = !isOpen;
 
     try {
         const response = await fetch('/api/shop-status', {
@@ -119,7 +100,9 @@ async function toggleShopStatus() {
         const data = await response.json();
         updateShopStatusUI(data.isOpen);
     } catch (error) {
-        console.error('Error updating shop status:', error);
+        console.error('Error updating shop status:', error5 => {
+            console.error('Error updating shop status:', error);
+        });
     }
 }
 
