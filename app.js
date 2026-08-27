@@ -647,7 +647,42 @@ function submitOrder(sendWhatsApp) {
         myOrders.push(orderId);
         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
 
-        showToast(`🎉 ඔබගේ Order එක සාර්ථකව යැවුණා! `, 'success');
+        function showToast(message, type = 'success') {
+    let toast = document.getElementById('custom-toast');
+    
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'custom-toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '30px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)'; // තිරයේ හරස් අතට හරියටම මැදට ගැනීමට
+        toast.style.padding = '14px 24px';
+        toast.style.borderRadius = '30px'; // ලස්සන වටකුරු (Pill) හැඩයක් ලබා දීමට
+        toast.style.color = '#fff';
+        toast.style.fontSize = '14px';
+        toast.style.fontWeight = '600';
+        toast.style.textAlign = 'center'; // අකුරු මධ්‍යගත (Center) කිරීමට
+        toast.style.zIndex = '99999';
+        toast.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.whiteSpace = 'nowrap';
+        document.body.appendChild(toast);
+    }
+    
+    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+    toast.innerText = message;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+
+    // තත්පර 3 කින් පසු මැකී යාම
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { 
+            toast.style.display = 'none'; 
+        }, 300);
+    }, 3000);
+}
         
         // --- 👇 CSS හරස්වීම් මඟහරවා මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට ---
         const orderModal = document.getElementById('order-modal');
