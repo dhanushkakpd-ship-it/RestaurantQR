@@ -353,3 +353,25 @@ app.listen(PORT, () => {
     console.log(`📁 Category Images: ${categoryUploadDir}`);
     console.log(`📁 Product Images: ${productUploadDir}`);
 });
+
+// 🌟 Admin Model එක සැකසීම
+const Admin = mongoose.model('Admin', new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+}));
+
+// සර්වර් එක ඔන් වෙද්දී මුල්ම වතාවට default Admin කෙනෙක් සෑදීම (Username: admin, Password: 123)
+async function createDefaultAdmin() {
+    try {
+        const count = await Admin.countDocuments();
+        if (count === 0) {
+            await Admin.create({ username: 'admin', password: '123' });
+            console.log('👤 Default Admin Created: username -> admin | password -> 123');
+        }
+    } catch (err) {
+        console.error('Error creating default admin:', err);
+    }
+}
+
+// MongoDB Connection එක සාර්ථක වූ පසු මෙය ක්‍රියාත්මක කිරීමට mongoose.connect එකට පහතින් දමන්න:
+// (mongoose.connect(...).then(() => { createDefaultAdmin(); ... }))
