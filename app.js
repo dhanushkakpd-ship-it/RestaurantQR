@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Added 'Paid' Status Support) ---
+// --- CAFE DN - Customer App JavaScript (Cleaned & Fixed) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -549,7 +549,6 @@ function openOrderModal() {
 function closeOrderModal() {
     console.log("closeOrderModal function එක කෝල් වුණා!");
 
-    // විවිධ ID සහ Class වලින් මෝඩල් එක සෙවීම
     const modal = document.getElementById('order-modal') || 
                   document.getElementById('review-modal') || 
                   document.getElementById('orderModal') ||
@@ -557,14 +556,10 @@ function closeOrderModal() {
                   document.querySelector('.review-modal');
 
     if (modal) {
-        console.log("මෝඩල් එක හම්බුණා:", modal);
         modal.style.setProperty('display', 'none', 'important');
         modal.classList.remove('active', 'show', 'open', 'visible');
-    } else {
-        console.log("❌ මෝඩල් එක සොයාගත නොහැක! HTML එකේ ID එක වෙනස් වෙන්න පුළුවන්.");
     }
 
-    // මෝඩල් එක යටින් තිබෙන කළු පාට Background/Overlay එකක් ඇත්නම් එයද ඉවත් කිරීමට
     const backdrops = document.querySelectorAll('.modal-backdrop, .overlay, .backdrop, .popup-overlay');
     backdrops.forEach(b => {
         b.style.setProperty('display', 'none', 'important');
@@ -647,50 +642,15 @@ function submitOrder(sendWhatsApp) {
         myOrders.push(orderId);
         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
 
-        function showToast(message, type = 'success') {
-    let toast = document.getElementById('custom-toast');
-    
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'custom-toast';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '30px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)'; // තිරයේ හරස් අතට හරියටම මැදට ගැනීමට
-        toast.style.padding = '14px 24px';
-        toast.style.borderRadius = '30px'; // ලස්සන වටකුරු (Pill) හැඩයක් ලබා දීමට
-        toast.style.color = '#fff';
-        toast.style.fontSize = '14px';
-        toast.style.fontWeight = '600';
-        toast.style.textAlign = 'center'; // අකුරු මධ්‍යගත (Center) කිරීමට
-        toast.style.zIndex = '99999';
-        toast.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
-        toast.style.transition = 'all 0.3s ease';
-        toast.style.whiteSpace = 'nowrap';
-        document.body.appendChild(toast);
-    }
-    
-    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
-    toast.innerText = message;
-    toast.style.display = 'block';
-    toast.style.opacity = '1';
-
-    // තත්පර 3 කින් පසු මැකී යාම
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => { 
-            toast.style.display = 'none'; 
-        }, 300);
-    }, 3000);
-}
+        // Toast මැසේජ් එක පෙන්වීම
+        showToast('🎉 ඔබගේ Order එක සාර්ථකව යැවුණා!', 'success');
         
-        // --- 👇 CSS හරස්වීම් මඟහරවා මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට ---
+        // මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට
         const orderModal = document.getElementById('order-modal');
         if (orderModal) {
             orderModal.style.setProperty('display', 'none', 'important');
             orderModal.classList.remove('active', 'show', 'open', 'visible');
         }
-        // ---------------------------------------------------------
 
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
@@ -724,6 +684,7 @@ function submitOrder(sendWhatsApp) {
         showToast('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.', 'error');
     });
 }
+
 async function checkMyOrderStatus() {
     let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
     const trackerContainer = document.getElementById('live-order-tracker');
@@ -923,23 +884,27 @@ function updateAllOrdersPopupContent(ordersList) {
     }).join('');
 }
 
+// 🟢 ගෝලීයව ක්‍රියාත්මක වන ලස්සන Center Toast ෆන්ක්ෂන් එක
 function showToast(message, type = 'success') {
-    // ටෝස්ට් නොටිෆිකේෂන් එකක් ඩිස්ප්ලේ කිරීමට
     let toast = document.getElementById('custom-toast');
     
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'custom-toast';
         toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.right = '20px';
-        toast.style.padding = '12px 20px';
-        toast.style.borderRadius = '8px';
+        toast.style.bottom = '30px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)'; // තිරයේ හරස් අතට හරියටම මැදට ගැනීමට
+        toast.style.padding = '14px 24px';
+        toast.style.borderRadius = '30px'; // ලස්සන වටකුරු (Pill) හැඩයක් ලබා දීමට
         toast.style.color = '#fff';
-        toast.style.fontWeight = '500';
+        toast.style.fontSize = '14px';
+        toast.style.fontWeight = '600';
+        toast.style.textAlign = 'center'; // අකුරු මධ්‍යගත (Center) කිරීමට
         toast.style.zIndex = '99999';
-        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        toast.style.transition = 'opacity 0.3s ease';
+        toast.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.whiteSpace = 'nowrap';
         document.body.appendChild(toast);
     }
     
@@ -948,11 +913,10 @@ function showToast(message, type = 'success') {
     toast.style.display = 'block';
     toast.style.opacity = '1';
 
-    // තත්පර 3 කින් පසු එය වැසී යයි
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => { 
             toast.style.display = 'none'; 
         }, 300);
-    }, 1000);
+    }, 2000);
 }
