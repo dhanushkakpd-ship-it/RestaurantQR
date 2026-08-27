@@ -884,39 +884,157 @@ function updateAllOrdersPopupContent(ordersList) {
     }).join('');
 }
 
-// 🟢 ගෝලීයව ක්‍රියාත්මක වන ලස්සන Center Toast ෆන්ක්ෂන් එක
-function showToast(message, type = 'success') {
-    let toast = document.getElementById('custom-toast');
-    
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'custom-toast';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '30px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)'; // තිරයේ හරස් අතට හරියටම මැදට ගැනීමට
-        toast.style.padding = '14px 24px';
-        toast.style.borderRadius = '30px'; // ලස්සන වටකුරු (Pill) හැඩයක් ලබා දීමට
-        toast.style.color = '#fff';
-        toast.style.fontSize = '14px';
-        toast.style.fontWeight = '600';
-        toast.style.textAlign = 'center'; // අකුරු මධ්‍යගත (Center) කිරීමට
-        toast.style.zIndex = '99999';
-        toast.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
-        toast.style.transition = 'all 0.3s ease';
-        toast.style.whiteSpace = 'nowrap';
-        document.body.appendChild(toast);
+// --- 1. අවශ්‍යම කරන showCustomAlert ෆන්ක්ෂන් එක (මෙය නොතිබූ නිසා ලේබලය පෙන්වූයේ නැත) ---
+function showCustomAlert(message) {
+    let alertBox = document.getElementById('custom-alert-box');
+    if (!alertBox) {
+        alertBox = document.createElement('div');
+        alertBox.id = 'custom-alert-box';
+        alertBox.style.position = 'fixed';
+        alertBox.style.top = '50%';
+        alertBox.style.left = '50%';
+        alertBox.style.transform = 'translate(-50%, -50%)';
+        alertBox.style.backgroundColor = '#1e293b';
+        alertBox.style.color = '#fff';
+        alertBox.style.padding = '16px 24px';
+        alertBox.style.borderRadius = '10px';
+        alertBox.style.zIndex = '999999';
+        alertBox.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+        alertBox.style.fontSize = '15px';
+        alertBox.style.fontWeight = '600';
+        alertBox.style.textAlign = 'center';
+        alertBox.style.transition = 'all 0.3s ease';
+        document.body.appendChild(alertBox);
     }
-    
-    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
-    toast.innerText = message;
-    toast.style.display = 'block';
-    toast.style.opacity = '1';
+    alertBox.innerText = message;
+    alertBox.style.display = 'block';
+    alertBox.style.opacity = '1';
 
+    // තත්පර 3 කින් පසු ලේබලය ස්වයංක්‍රීයව අلاش වීම
     setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => { 
-            toast.style.display = 'none'; 
+        alertBox.style.opacity = '0';
+        setTimeout(() => {
+            alertBox.style.display = 'none';
         }, 300);
-    }, 2000);
+    }, 3000);
+}
+
+
+// --- 2. නිවැරදි කළ submitOrder ෆන්ක්ෂන් එක ---
+function submitOrder(sendWhatsApp) {
+    if (!isShopOpen) {
+        showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් යැවිය නොහැක!');
+        return;
+    }
+
+    const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
+    const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
+    const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
+
+    if (!isTableQR && !pickupTimeInput) {
+        showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
+        return;
+    }
+
+    const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
+
+    const isTakeaway = (currentOrderType === 'takeaway');
+    let finalTableType = '';
+
+    if (isTableQR) {
+        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
+    } else {
+        finalTableType = isTakeaway ? 'Takeaway' : 'Dine-in (Shop)';
+    }
+
+    const finalOrderTypeStr = isTakeaway ? 'Takeaway' : 'Dine-in';
+
+    let subtotal = 0;
+    let totalTakeAwayCharges = 0;
+
+    const orderItems = Object.keys(cart).map(id => {
+        const prod = systemData.products.find(p => p.id == id);
+        const qty = cart[id];
+        const price = prod ? prod.price : 0;
+        subtotal += (price * qty);
+
+        if (currentOrderType === 'takeaway') {
+            const cat = categories.find(c => (c.id === prod?.category || c.name === prod?.category));
+            if (cat && cat.takeawayCharge > 0) {
+                totalTakeAwayCharges += (Number(cat.takeawayCharge) * qty);
+            }
+        }
+
+        return { name: prod ? prod.name : 'Unknown', qty: qty, price: price };
+    });
+
+    const grandTotal = subtotal + totalTakeAwayCharges;
+
+    const newOrder = {
+        id: orderId,
+        table: finalTableType,
+        type: finalOrderTypeStr, 
+        customerName: nameInput,
+        phone: phoneInput || 'Not Provided',
+        pickupTime: pickupTimeInput || 'ASAP',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'pending',
+        subtotal: subtotal,
+        takeawayCharge: totalTakeAwayCharges,
+        total: grandTotal,
+        items: orderItems
+    };
+
+    fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
+    })
+    .then(res => res.json())
+    .then(data => {
+        let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
+        myOrders.push(orderId);
+        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+
+        // 🟢 දැන් මෙම ලේබලය (Alert එක) තිරයේ මැදින් ඉතා පැහැදිලිව පෙනෙනු ඇත
+        showCustomAlert('🎉 ඔබගේ ඇණවුම සාර්ථකව යැවුණා!');
+        
+        // මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට
+        const orderModal = document.getElementById('order-modal');
+        if (orderModal) {
+            orderModal.style.setProperty('display', 'none', 'important');
+            orderModal.classList.remove('active', 'show', 'open', 'visible');
+        }
+
+        if (sendWhatsApp) {
+            let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
+            if (totalTakeAwayCharges > 0) {
+                itemText += `\n▫️ Take Away Charges - Rs. ${totalTakeAwayCharges.toFixed(2)}`;
+            }
+
+            let waMessage = `🧾 *NEW ORDER - ${orderId}*\n` +
+                            `📍 *Type:* ${finalTableType}\n` +
+                            `👤 *Name:* ${nameInput}\n` +
+                            `📱 *Phone:* ${phoneInput || 'N/A'}\n` +
+                            `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` +
+                            `🛒 *Items:*\n${itemText}\n\n` +
+                            `💰 *Total Amount:* Rs. ${grandTotal.toFixed(2)}`;
+
+            const waUrl = `https://wa.me/${RESTAURANT_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        cart = {};
+        if(document.getElementById('cust-name')) document.getElementById('cust-name').value = '';
+        if(document.getElementById('cust-phone')) document.getElementById('cust-phone').value = '';
+        if(document.getElementById('cust-time')) document.getElementById('cust-time').value = '';
+
+        updateCartUI();
+        toggleCart();
+        checkMyOrderStatus();
+    })
+    .catch(err => {
+        console.error(err);
+        showCustomAlert('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.');
+    });
 }
