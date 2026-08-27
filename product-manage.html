@@ -85,6 +85,9 @@
     let categories = [];
     let products = [];
 
+    // Local SVG Fallback එක වෙනුවට භාවිතය සඳහා
+    const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23cbd5e1'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='10'>IMG</text></svg>";
+
     // 1. සර්වර් API එකෙන් Categories ලබා ගැනීම
     async function fetchCategories() {
         try {
@@ -153,7 +156,7 @@
             return `
                 <tr>
                     <td>
-                        <img src="${p.image || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover; border-radius:4px;" onerror="this.src='https://via.placeholder.com/40'">
+                        <img src="${p.image || fallbackSvg}" width="40" height="40" style="object-fit:cover; border-radius:4px;" onerror="this.src='${fallbackSvg}'">
                     </td>
                     <td>
                         <b>${p.name}</b><br>

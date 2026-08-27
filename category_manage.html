@@ -52,6 +52,9 @@
 <script>
     let categories = [];
 
+    // Local SVG Fallback එක අර්ථ දැක්වීම
+    const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23cbd5e1'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='10'>IMG</text></svg>";
+
     // 1. සර්වර් එකෙන් categories ලබා ගැනීම
     async function fetchCategories() {
         try {
@@ -80,7 +83,7 @@
         tbody.innerHTML = categories.map(c => `
             <tr>
                 <td>
-                    <img src="${c.image || 'https://via.placeholder.com/40'}" alt="${c.name}" class="cat-icon-img" onerror="this.src='https://via.placeholder.com/40'">
+                    <img src="${c.image || fallbackSvg}" alt="${c.name}" class="cat-icon-img" onerror="this.src='${fallbackSvg}'">
                 </td>
                 <td style="font-weight: 600; color: #1e293b;">${c.name}</td>
                 <td style="color: #64748b; font-weight: 500;">Rs. ${Number(c.takeawayCharge || 0).toFixed(2)}</td>
@@ -119,13 +122,13 @@
         try {
             const response = await fetch('/api/categories', {
                 method: 'POST',
-                body: formData // Content-Type සඳහන් කිරීම අවශ්‍ය නැත, FormData මඟින් ස්වයංක්‍රීයව සකසයි
+                body: formData 
             });
 
             const result = await response.json();
             if (result.success) {
                 clearForm();
-                fetchCategories(); // ලැයිස්තුව නැවත සර්වර් එකෙන් ලබා ගෙන අප්ඩේට් කිරීම
+                fetchCategories(); 
             } else {
                 alert("දෝෂයක් සිදු විය: " + (result.message || "Unknown error"));
             }
