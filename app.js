@@ -881,3 +881,37 @@ function updateAllOrdersPopupContent(ordersList) {
         `;
     }).join('');
 }
+
+function showToast(message, type = 'success') {
+    // ටෝස්ට් නොටිෆිකේෂන් එකක් ඩිස්ප්ලේ කිරීමට
+    let toast = document.getElementById('custom-toast');
+    
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'custom-toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.padding = '12px 20px';
+        toast.style.borderRadius = '8px';
+        toast.style.color = '#fff';
+        toast.style.fontWeight = '500';
+        toast.style.zIndex = '99999';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+    
+    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+    toast.innerText = message;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+
+    // තත්පර 3 කින් පසු එය වැසී යයි
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { 
+            toast.style.display = 'none'; 
+        }, 300);
+    }, 3000);
+}
