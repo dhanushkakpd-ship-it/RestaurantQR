@@ -547,14 +547,29 @@ function openOrderModal() {
 }
 
 function closeOrderModal() {
-    const orderModal = document.getElementById('order-modal');
-    if (orderModal) {
-        // CSS වල ඇති !important බලය පවා කඩමින් මෝඩල් එක සම්පූර්ණයෙන්ම වසා දැමීමට
-        orderModal.style.setProperty('display', 'none', 'important');
-        
-        // මෝඩල් එක පෙන්වීමට යොදා ගන්නා CSS classes ඇත්නම් ඒවා ඉවත් කිරීමට
-        orderModal.classList.remove('active', 'show', 'open', 'visible');
+    console.log("closeOrderModal function එක කෝල් වුණා!");
+
+    // විවිධ ID සහ Class වලින් මෝඩල් එක සෙවීම
+    const modal = document.getElementById('order-modal') || 
+                  document.getElementById('review-modal') || 
+                  document.getElementById('orderModal') ||
+                  document.querySelector('.order-modal') ||
+                  document.querySelector('.review-modal');
+
+    if (modal) {
+        console.log("මෝඩල් එක හම්බුණා:", modal);
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active', 'show', 'open', 'visible');
+    } else {
+        console.log("❌ මෝඩල් එක සොයාගත නොහැක! HTML එකේ ID එක වෙනස් වෙන්න පුළුවන්.");
     }
+
+    // මෝඩල් එක යටින් තිබෙන කළු පාට Background/Overlay එකක් ඇත්නම් එයද ඉවත් කිරීමට
+    const backdrops = document.querySelectorAll('.modal-backdrop, .overlay, .backdrop, .popup-overlay');
+    backdrops.forEach(b => {
+        b.style.setProperty('display', 'none', 'important');
+        b.remove();
+    });
 }
 
 function submitOrder(sendWhatsApp) {
