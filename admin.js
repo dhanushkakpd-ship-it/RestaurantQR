@@ -6,9 +6,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('loginOverlay');
     
     if (isLoggedIn !== 'true') {
-        if (overlay) overlay.style.display = 'flex';
+        if (overlay) overlay.style.setProperty('display', 'flex', 'important');
     } else {
-        if (overlay) overlay.style.display = 'none';
+        if (overlay) overlay.style.setProperty('display', 'none', 'important');
     }
     fetchShopStatus();
 });
@@ -31,7 +31,11 @@ async function handleAdminLogin(event) {
         if (data.success) {
             localStorage.setItem('isAdminLoggedIn', 'true');
             const overlay = document.getElementById('loginOverlay');
-            if (overlay) overlay.style.display = 'none';
+            
+            // Login වූ වහාම ෆෝම් එක නිසැකවම යෙදීමට
+            if (overlay) {
+                overlay.style.setProperty('display', 'none', 'important');
+            }
             
             // Login වූ පසු ඉන්පුට් ෆීල්ඩ්ස් හිස් කිරීම
             document.getElementById('adminUser').value = '';
@@ -50,9 +54,11 @@ function adminLogout() {
     if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
         localStorage.removeItem('isAdminLoggedIn');
         const overlay = document.getElementById('loginOverlay');
+        
         if (overlay) {
-            overlay.style.display = 'flex';
+            overlay.style.setProperty('display', 'flex', 'important');
         }
+        
         // ඉන්පුට් ෆීල්ඩ්ස් සහ එරර් මැසේජ් ක්ලියර් කිරීම
         const userInp = document.getElementById('adminUser');
         const passInp = document.getElementById('adminPass');
