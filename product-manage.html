@@ -85,8 +85,8 @@
     let categories = [];
     let products = [];
 
-    // SVG Fallback (Double quotes භාවිත කර ඇති බැවින් quote ගැටලු මඟහරවා ගත හැක)
-    const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\"><rect width=\"40\" height=\"40\" fill=\"%23cbd5e1\"/><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" fill=\"%2364748b\" font-size=\"10\">IMG</text></svg>";
+    // Base64 මඟින් සකස් කළ ආරක්ෂිත Fallback SVG එක (දෝෂ මඟහරවා ගැනීමට)
+    const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgZmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
 
     async function fetchCategories() {
         try {
