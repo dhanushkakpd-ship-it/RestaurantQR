@@ -627,7 +627,8 @@ function submitOrder(sendWhatsApp) {
         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
 
         showToast(`🎉 ඔබගේ Order එක සාර්ථකව යැවුණා! `, 'success');
-
+        closeOrderModal();
+        
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
             if (totalTakeAwayCharges > 0) {
