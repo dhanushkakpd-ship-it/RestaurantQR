@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const multer = require('multer'); // පින්තූර අප්ලෝඩ් කිරීමට
-const mongoose = require('mongoose'); // 👈 MongoDB සඳහා Mongoose එකතු කරන ලදී
+const multer = require('multer'); 
+const mongoose = require('mongoose'); 
 
 const app = express();
 
@@ -60,13 +60,7 @@ const uploadProduct = multer({ storage: productStorage });
 // 🌐 MONGODB CONNECTION & SCHEMAS SETUP
 // ==========================================
 
-
-// Render එකේ දෙන Environment Variable එක හෝ, නැතිනම් Local වැඩ කරද්දී පාවිච්චි කිරීමට
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dhanushkakpd_db_user:8qagi82&imRKVhC@cluster0.xgi1etr.mongodb.net/cafe_dn?retryWrites=true&w=majority&appName=Cluster0';
-
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ MongoDB Database Connected Successfully!'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // Mongoose Models නිර්මාණය කිරීම
 const Product = mongoose.model('Product', new mongoose.Schema({
@@ -100,6 +94,24 @@ const ShopStatus = mongoose.model('ShopStatus', new mongoose.Schema({
     isOpen: { type: Boolean, default: true }
 }));
 
+const Admin = mongoose.model('Admin', new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+}));
+
+// Default Admin කෙනෙක් සෑදීමේ פונקციය (Username: admin, Password: 123)
+async function createDefaultAdmin() {
+    try {
+        const count = await Admin.countDocuments();
+        if (count === 0) {
+            await Admin.create({ username: 'admin', password: '123' });
+            console.log('👤 Default Admin Created: username -> admin | password -> 123');
+        }
+    } catch (err) {
+        console.error('Error creating default admin:', err);
+    }
+}
+
 
 // ==========================================
 // --- Products APIs ---
@@ -116,7 +128,6 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', uploadProduct.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
-            // මුළු array එකම save කිරීමට අවශ්‍ය නම්
             await Product.deleteMany({});
             const savedProducts = await Product.insertMany(req.body);
             return res.json({ success: true, message: 'Products saved successfully', products: savedProducts });
@@ -345,33 +356,41 @@ app.post('/api/shop-status', async (req, res) => {
 
 
 // ==========================================
-// --- Start Server ---
+// --- Admin Login API --- (අලුතින් එකතු කරන ලදී)
 // ==========================================
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 CAFE DN Server running on port ${PORT}`);
-    console.log(`📁 Category Images: ${categoryUploadDir}`);
-    console.log(`📁 Product Images: ${productUploadDir}`);
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const admin = await Admin.findOne({ username, password });
+        if (admin) {
+            res.json({ success: true, message: 'Login successful' });
+        } else {
+            res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-// 🌟 Admin Model එක සැකසීම
-const Admin = mongoose.model('Admin', new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
-}));
 
-// සර්වර් එක ඔන් වෙද්දී මුල්ම වතාවට default Admin කෙනෙක් සෑදීම (Username: admin, Password: 123)
-async function createDefaultAdmin() {
-    try {
-        const count = await Admin.countDocuments();
-        if (count === 0) {
-            await Admin.create({ username: 'admin', password: '123' });
-            console.log('👤 Default Admin Created: username -> admin | password -> 123');
-        }
-    } catch (err) {
-        console.error('Error creating default admin:', err);
-    }
-}
+// ==========================================
+// --- Start Server & DB Connection ---
+// ==========================================
+const PORT = process.env.PORT || 5000;
 
-// MongoDB Connection එක සාර්ථක වූ පසු මෙය ක්‍රියාත්මක කිරීමට mongoose.connect එකට පහතින් දමන්න:
-// (mongoose.connect(...).then(() => { createDefaultAdmin(); ... }))
+mongoose.connect(MONGO_URI)
+    .then(async () => {
+        console.log('✅ MongoDB Database Connected Successfully!');
+        
+        // ඩේටාබේස් එක සම්බන්ධ වූ පසු Default Admin සෑදීම
+        await createDefaultAdmin();
+
+        app.listen(PORT, () => {
+            console.log(`🚀 CAFE DN Server running on port ${PORT}`);
+            console.log(`📁 Category Images: ${categoryUploadDir}`);
+            console.log(`📁 Product Images: ${productUploadDir}`);
+        });
+    })
+    .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err);
+    });
