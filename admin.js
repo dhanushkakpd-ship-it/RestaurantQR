@@ -32,11 +32,34 @@ async function handleAdminLogin(event) {
             localStorage.setItem('isAdminLoggedIn', 'true');
             const overlay = document.getElementById('loginOverlay');
             if (overlay) overlay.style.display = 'none';
+            
+            // Login වූ පසු ඉන්පුට් ෆීල්ඩ්ස් හිස් කිරීම
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+            if (errorMsg) errorMsg.innerText = '';
         } else {
             if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
         }
     } catch (err) {
         if (errorMsg) errorMsg.innerText = 'සර්වර් එක සමඟ සම්බන්ධ වීමේ දෝෂයක්!';
+    }
+}
+
+// 🚪 Admin Logout Function (ඇඩ්මින් පැනල් එකෙන් ඉවත් වීම)
+function adminLogout() {
+    if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        const overlay = document.getElementById('loginOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+        // ඉන්පුට් ෆීල්ඩ්ස් සහ එරර් මැසේජ් ක්ලියර් කිරීම
+        const userInp = document.getElementById('adminUser');
+        const passInp = document.getElementById('adminPass');
+        const errInp = document.getElementById('loginError');
+        if (userInp) userInp.value = '';
+        if (passInp) passInp.value = '';
+        if (errInp) errInp.innerText = '';
     }
 }
 

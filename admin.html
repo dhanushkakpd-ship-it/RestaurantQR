@@ -117,6 +117,11 @@
         <button id="shopStatusBtn" class="shop-status-btn open" onclick="toggleShopStatus()">
             <span id="shopStatusDot">🟢</span> <span id="shopStatusText">Shop Open</span>
         </button>
+
+        <!-- Logout Button -->
+        <button class="tab-btn" onclick="adminLogout()" style="background: #ef4444; color: white; display: flex; align-items: center; gap: 5px;">
+            🚪 Logout
+        </button>
     </div>
 
     <!-- Content Sections -->
@@ -147,7 +152,7 @@
         </div>
     </div>
 
-    <!-- Script for Tab Navigation, Login, and Shop Status -->
+    <!-- Script for Tab Navigation, Login, Shop Status, and Logout -->
     <script>
         // පිටුව ලෝඩ් වූ වහාම ලොග් වී ඇත්දැයි පරීක්ෂා කිරීම
         window.addEventListener('DOMContentLoaded', () => {
@@ -181,11 +186,26 @@
                     localStorage.setItem('isAdminLoggedIn', 'true');
                     const overlay = document.getElementById('loginOverlay');
                     if (overlay) overlay.style.display = 'none';
+                    // Clear inputs
+                    document.getElementById('adminUser').value = '';
+                    document.getElementById('adminPass').value = '';
+                    if (errorMsg) errorMsg.innerText = '';
                 } else {
                     if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
                 }
             } catch (err) {
                 if (errorMsg) errorMsg.innerText = 'සර්වර් එක සමඟ සම්බන්ධ වීමේ දෝෂයක්!';
+            }
+        }
+
+        // Admin Logout Function
+        function adminLogout() {
+            if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
+                localStorage.removeItem('isAdminLoggedIn');
+                const overlay = document.getElementById('loginOverlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
             }
         }
 
