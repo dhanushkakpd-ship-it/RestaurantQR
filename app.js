@@ -293,15 +293,12 @@ function renderProducts() {
             <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
-                    <!-- මෙහි h3 ටැගයට margin-bottom එකක් ලබා දී ඇත -->
                     <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
                     
                     ${badgeHtml}
                     
-                    <!-- description එකට ඉහළින් හෝ නමට පහළින් ස්ථිර ඉඩක් පවත්වා ගනී -->
                     <p class="desc" style="margin-top: ${hasValidBadge ? '0' : '4px'};">${product.desc || ''}</p>
                     
-                    <!-- 👈 white-space: nowrap; එකතු කිරීම මඟින් Rs. සහ මිල එකම පේළියක පෙන්වයි -->
                     <div class="price-box" style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
                         <span class="current-price" style="white-space: nowrap;">Rs. ${Number(product.price).toFixed(0)}</span>
                         ${product.oldPrice ? `<span class="old-price" style="white-space: nowrap;">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
@@ -471,7 +468,6 @@ function openOrderModal() {
         return;
     }
 
-    // 👈 දුරකථන අංකය ඉලක්කම් 10 ක් සහ අකුරු නොමැති බව පරීක්ෂා කිරීම
     if (phoneInput) {
         const phoneRegex = /^\d{10}$/;
         if (!phoneRegex.test(phoneInput)) {
@@ -690,23 +686,19 @@ async function checkMyOrderStatus() {
                 let isPaidOrCompleted = (status === 'paid' || status === 'completed' || paymentStatus === 'paid');
 
                 if (isPaidOrCompleted) {
-                    // ඇණවුම Paid වූ පළමු වතාව නම්, එම වේලාව (Timestamp) සටහන් කර ගනී
                     if (!paidTimestamps[o.id]) {
                         paidTimestamps[o.id] = currentTime;
                         localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
                     }
 
-                    // මිනිත්තුවක් (මිලි තත්පර 60,000ක්) ගත වී ඇත්දැයි පරීක්ෂා කරයි
                     let elapsed = currentTime - paidTimestamps[o.id];
                     if (elapsed >= 60000) { 
-                        // මිනිත්තුවක් පිරී ඇති නිසා ලැයිස්තුවෙන් සහ localStorage එකෙන් සම්පූර්ණයෙන්ම ඉවත් කරයි
                         myOrders = myOrders.filter(id => id !== o.id);
                         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
                         return false; 
                     }
                 }
 
-                // ඇණවුම Cancel කර ඇත්නම් වහාම ඉවත් කරයි
                 if (status === 'cancelled') {
                     myOrders = myOrders.filter(id => id !== o.id);
                     localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
@@ -744,7 +736,7 @@ function renderAllCustomerBadges(ordersList) {
     const latestOrder = ordersList[ordersList.length - 1];
     
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
-    let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase(); // 👈 එකතු කරන ලදී
+    let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase();
     
     let statusColor = '#fef08a';
     let textColor = '#854d0e';
@@ -758,7 +750,7 @@ function renderAllCustomerBadges(ordersList) {
         statusColor = '#dcfce7'; 
         textColor = '#16a34a'; 
         statusText = 'Ready!'; 
-    } else if (currentStatus === 'paid' || paymentStatus === 'paid') { // 👈 මෙහි status හෝ paymentStatus 'paid' නම් පරීක්ෂා කරයි
+    } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
         statusColor = '#ccfbf1'; 
         textColor = '#0f766e'; 
         statusText = 'Paid 💳'; 
@@ -824,118 +816,47 @@ function showAllOrdersPopup() {
                         background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; font-weight: bold;
                     ">✕</button>
                 </div>
-                <div id="all-orders-popup-body-content">Loading...</div>
+                <div id="all-orders-list-container"></div>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-    if (latestActiveOrders.length > 0) {
-        updateAllOrdersPopupContent(latestActiveOrders);
-    } else {
-        checkMyOrderStatus().then(() => {
-            if (latestActiveOrders.length > 0) {
-                updateAllOrdersPopupContent(latestActiveOrders);
-            }
-        });
-    }
+    updateAllOrdersPopupContent(latestActiveOrders);
 }
 
-function updateAllOrdersPopupContent(activeCustomerOrders) {
-    const modalBodyContainer = document.getElementById('all-orders-popup-body-content');
-    if (!modalBodyContainer) return;
+function updateAllOrdersPopupContent(ordersList) {
+    const container = document.getElementById('all-orders-list-container');
+    if (!container) return;
 
-    let ordersListHtml = activeCustomerOrders.map(order => {
+    container.innerHTML = ordersList.map(order => {
         let currentStatus = (order.status || 'pending').toLowerCase();
-        let paymentStatus = (order.paymentStatus || '').toLowerCase(); // 👈 එකතු කරන ලදී
+        let paymentStatus = (order.paymentStatus || '').toLowerCase();
         
         let statusColor = '#fef08a';
         let textColor = '#854d0e';
         let statusText = 'Pending';
 
         if (currentStatus === 'preparing') { 
-            statusColor = '#e0f2fe'; 
-            textColor = '#0284c7'; 
-            statusText = 'Preparing'; 
+            statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
         } else if (currentStatus === 'ready') { 
-            statusColor = '#dcfce7'; 
-            textColor = '#16a34a'; 
-            statusText = 'Ready!'; 
-        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { // 👈 මෙහි ද එකතු කරන ලදී
-            statusColor = '#ccfbf1'; 
-            textColor = '#0f766e'; 
-            statusText = 'Paid 💳'; 
+            statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
+        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
+            statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
         } else if (currentStatus === 'completed') { 
-            statusColor = '#f1f5f9'; 
-            textColor = '#64748b'; 
-            statusText = 'Completed'; 
+            statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
         } else if (currentStatus === 'cancelled') { 
-            statusColor = '#fee2e2'; 
-            textColor = '#ef4444'; 
-            statusText = 'Cancelled'; 
+            statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
         }
 
-        let itemsSummary = (order.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
-
         return `
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <b style="color: #1e293b; font-size: 0.9rem;">${order.id}</b>
-                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+                    <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
+                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
                 </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">Items: ${itemsSummary}</div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #0f172a;">
-                    <span>Total: Rs. ${Number(order.total || 0).toFixed(2)}</span>
-                    <span style="font-weight: normal; color: #64748b;">${order.time}</span>
-                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
             </div>
         `;
     }).join('');
-
-    modalBodyContainer.innerHTML = ordersListHtml;
-}
-
-function showToast(message, type = 'success') {
-    const existingToast = document.getElementById('custom-toast-badge');
-    if (existingToast) existingToast.remove();
-}
-
-function showCustomAlert(message, type = 'info') {
-    const existingModal = document.getElementById('custom-alert-modal');
-    if (existingModal) existingModal.remove();
-
-    let accentColor = '#3b82f6'; // Default Blue
-    if (type === 'success') accentColor = '#10b981'; // Green
-    else if (type === 'error') accentColor = '#ef4444'; // Red
-
-    const popupHtml = `
-        <div id="custom-alert-modal" style="
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.3); display: flex; justify-content: center;
-            align-items: center; z-index: 99999; backdrop-filter: blur(4px);
-            animation: fadeInOverlay 0.2s ease;
-        ">
-            <div style="
-                background: #ffffff; padding: 18px 20px; border-radius: 14px;
-                width: 85%; max-width: 270px; text-align: center;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-                border-left: 5px solid ${accentColor};
-                animation: popUpScale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            ">
-                <p style="color: #1e293b; font-size: 0.9rem; font-weight: 500; margin-bottom: 14px; line-height: 1.4;">${message}</p>
-                <button onclick="document.getElementById('custom-alert-modal').remove()" style="
-                    background: ${accentColor}; color: #ffffff; border: none; padding: 6px 18px;
-                    border-radius: 8px; font-weight: 600; cursor: pointer;
-                    font-size: 0.85rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-                    transition: opacity 0.2s;
-                " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'"> OK</button>
-            </div>
-        </div>
-        <style>
-            @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes popUpScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        </style>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', popupHtml);
 }
