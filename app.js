@@ -280,22 +280,31 @@ function renderProducts() {
         return;
     }
 
-    container.innerHTML = visibleProducts.map(product => {
+   container.innerHTML = visibleProducts.map(product => {
         const isProductUnavailable = (product.available === false || product.available === "false");
         const isDisabled = !isShopOpen || isProductUnavailable;
 
+        const hasValidBadge = product.badge && product.badge !== "0" && product.badge.trim() !== "" && product.badge.toLowerCase() !== "none";
+        const badgeHtml = hasValidBadge 
+            ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
+            : '';
+
         return `
-            <div class="product-card" style="${isDisabled ? 'opacity: 0.75; background: #fdf2f2;' : ''}">
+            <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <div class="badge-box">
-                        ${product.badge ? `<span class="badge">${product.badge}</span>` : ''}
-                    </div>
-                    <p class="desc">${product.desc || ''}</p>
-                    <div class="price-box">
-                        <span class="current-price">Rs. ${Number(product.price).toFixed(0)}</span>
-                        ${product.oldPrice ? `<span class="old-price">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
+                    <!-- මෙහි h3 ටැගයට margin-bottom එකක් ලබා දී ඇත -->
+                    <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
+                    
+                    ${badgeHtml}
+                    
+                    <!-- description එකට ඉහළින් හෝ නමට පහළින් ස්ථිර ඉඩක් පවත්වා ගනී -->
+                    <p class="desc" style="margin-top: ${hasValidBadge ? '0' : '4px'};">${product.desc || ''}</p>
+                    
+                    <!-- 👈 white-space: nowrap; එකතු කිරීම මඟින් Rs. සහ මිල එකම පේළියක පෙන්වයි -->
+                    <div class="price-box" style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+                        <span class="current-price" style="white-space: nowrap;">Rs. ${Number(product.price).toFixed(0)}</span>
+                        ${product.oldPrice ? `<span class="old-price" style="white-space: nowrap;">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
                     </div>
                 </div>
                 <div class="product-action">
@@ -462,9 +471,19 @@ function openOrderModal() {
         return;
     }
 
+    // 👈 දුරකථන අංකය ඉලක්කම් 10 ක් සහ අකුරු නොමැති බව පරීක්ෂා කිරීම
+    if (phoneInput) {
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(phoneInput)) {
+            showCustomAlert('නිවැරදිව ඔබගේ දුරකථන අංකය ලබා දෙන්න!');
+            document.getElementById('cust-phone')?.focus();
+            return;
+        }
+    }
+
     const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
     if (!isTableQR && !timeInput) {
-        showCustomAlert('කරුණාකර ඔබ ඇණවුම රැගෙන යාමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
+        showCustomAlert('කරුණාකර ඔබ ඇණවුම ලබා ගැනීමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
         return;
     }
 

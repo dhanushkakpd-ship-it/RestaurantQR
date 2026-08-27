@@ -8,9 +8,9 @@
       "description": "",
       "image": "/images/Product_img/prod-1786787896632-337325011.jfif",
       "oldPrice": "300",
-      "badge": "5%",
+      "badge": "0",
       "desc": "good fruits fresh avocado",
-      "visible": true,
+      "visible": "true",
       "available": true
     },
     {
@@ -21,9 +21,9 @@
       "description": "",
       "image": "/images/Product_img/prod-1786789362369-833171330.jfif",
       "oldPrice": "500",
-      "badge": "5%",
+      "badge": "5% OFF",
       "desc": "Chocolate and milk",
-      "visible": true,
+      "visible": "true",
       "available": true
     },
     {
@@ -37,7 +37,7 @@
       "badge": "5%",
       "desc": "good fruits fresh Salad with ice cream",
       "visible": "true",
-      "available": "true"
+      "available": true
     }
   ],
   "categories": [
