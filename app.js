@@ -648,7 +648,15 @@ function submitOrder(sendWhatsApp) {
         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
 
         showToast(`🎉 ඔබගේ Order එක සාර්ථකව යැවුණා! `, 'success');
-        closeOrderModal();
+        
+        // --- 👇 CSS හරස්වීම් මඟහරවා මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට ---
+        const orderModal = document.getElementById('order-modal');
+        if (orderModal) {
+            orderModal.style.setProperty('display', 'none', 'important');
+            orderModal.classList.remove('active', 'show', 'open', 'visible');
+        }
+        // ---------------------------------------------------------
+
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
             if (totalTakeAwayCharges > 0) {
@@ -674,7 +682,6 @@ function submitOrder(sendWhatsApp) {
 
         updateCartUI();
         toggleCart();
-        closeOrderModal();
         checkMyOrderStatus();
     })
     .catch(err => {
@@ -682,7 +689,6 @@ function submitOrder(sendWhatsApp) {
         showToast('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.', 'error');
     });
 }
-
 async function checkMyOrderStatus() {
     let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
     const trackerContainer = document.getElementById('live-order-tracker');
@@ -913,5 +919,5 @@ function showToast(message, type = 'success') {
         setTimeout(() => { 
             toast.style.display = 'none'; 
         }, 300);
-    }, 3000);
+    }, 1000);
 }
