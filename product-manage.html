@@ -85,10 +85,9 @@
     let categories = [];
     let products = [];
 
-    // Local SVG Fallback එක වෙනුවට භාවිතය සඳහා
+    // Local SVG Fallback එක (Placeholder වෙනුවට)
     const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23cbd5e1'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='10'>IMG</text></svg>";
 
-    // 1. සර්වර් API එකෙන් Categories ලබා ගැනීම
     async function fetchCategories() {
         try {
             const res = await fetch('/api/categories');
@@ -111,7 +110,6 @@
         populateCategoryDropdown();
     }
 
-    // 2. Modal එකේ Dropdown එකට Categories පුරවා ගැනීම
     function populateCategoryDropdown(selectedCatId = '') {
         const selectEl = document.getElementById('pCategory');
         if (!selectEl) return;
@@ -121,7 +119,6 @@
         `).join('');
     }
 
-    // 3. ඇප් එක ක්‍රියාත්මක කිරීම සහ සර්වර් එකෙන් Products ලබා ගැනීම
     async function initApp() {
         await fetchCategories();
 
@@ -188,7 +185,6 @@
         }).join('');
     }
 
-    // 4. FormData හරහා පින්තූරය සහ නිෂ්පාදනය සර්වර් එකට යැවීම
     async function save() {
         let i = document.getElementById('eIdx').value;
         let productId = document.getElementById('pId').value;
@@ -267,20 +263,12 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataArray)
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.error("සර්වර් එකට දත්ත යැවීමේදී දෝෂයක් ඇති විය.");
-            }
-        })
-        .catch(err => console.error("Sync error:", err));
+        }).catch(err => console.error("Sync error:", err));
     }
 
     function del(id) {
         if (confirm('Are you sure you want to delete this product?')) {
-            fetch(`/api/products/${id}`, {
-                method: 'DELETE'
-            })
+            fetch(`/api/products/${id}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
@@ -306,7 +294,6 @@
         document.getElementById('pExistingImage').value = products[i].image || "";
         document.getElementById('pImageFile').value = "";
         document.getElementById('pDesc').value = products[i].desc || "";
-        
         document.getElementById('modal').style.display = 'flex';
     }
 
@@ -328,7 +315,6 @@
         document.getElementById('modal').style.display = 'none';
     }
 
-    // ඇප් එක ක්‍රියාත්මක කිරීම
     initApp();
 </script>
 </body>

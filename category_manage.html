@@ -52,10 +52,9 @@
 <script>
     let categories = [];
 
-    // Local SVG Fallback එක අර්ථ දැක්වීම
+    // Local SVG Fallback එක (Placeholder වෙනුවට)
     const fallbackSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23cbd5e1'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-size='10'>IMG</text></svg>";
 
-    // 1. සර්වර් එකෙන් categories ලබා ගැනීම
     async function fetchCategories() {
         try {
             const res = await fetch('/api/categories');
@@ -95,7 +94,6 @@
         `).join('');
     }
 
-    // 2. FormData භාවිතයෙන් සර්වර් එකට පින්තූරය සහ දත්ත යැවීම
     async function saveCategory() {
         const idInput = document.getElementById('edit-id').value;
         const name = document.getElementById('cat-name').value.trim();
@@ -114,9 +112,9 @@
         }
         
         if (fileInput.files && fileInput.files[0]) {
-            formData.append('image', fileInput.files[0]); // අලුත් පින්තූරය
+            formData.append('image', fileInput.files[0]);
         } else {
-            formData.append('existingImage', existingImage); // කලින් තිබූ පින්තූරයේ පාත් එක
+            formData.append('existingImage', existingImage);
         }
 
         try {
@@ -152,9 +150,7 @@
 
     function deleteCat(id) {
         if(confirm("Delete this category?")) {
-            fetch(`/api/categories/${id}`, {
-                method: 'DELETE'
-            })
+            fetch(`/api/categories/${id}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
