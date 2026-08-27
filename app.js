@@ -548,7 +548,13 @@ function openOrderModal() {
 
 function closeOrderModal() {
     const orderModal = document.getElementById('order-modal');
-    if (orderModal) orderModal.style.display = 'none';
+    if (orderModal) {
+        // CSS වල ඇති !important බලය පවා කඩමින් මෝඩල් එක සම්පූර්ණයෙන්ම වසා දැමීමට
+        orderModal.style.setProperty('display', 'none', 'important');
+        
+        // මෝඩල් එක පෙන්වීමට යොදා ගන්නා CSS classes ඇත්නම් ඒවා ඉවත් කිරීමට
+        orderModal.classList.remove('active', 'show', 'open', 'visible');
+    }
 }
 
 function submitOrder(sendWhatsApp) {
@@ -628,7 +634,6 @@ function submitOrder(sendWhatsApp) {
 
         showToast(`🎉 ඔබගේ Order එක සාර්ථකව යැවුණා! `, 'success');
         closeOrderModal();
-        
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
             if (totalTakeAwayCharges > 0) {
