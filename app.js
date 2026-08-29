@@ -45,18 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateTableBadgeUI();
     updateCartUI();
-    hideAppLoader();
 });
-
-function hideAppLoader() {
-    const loader = document.getElementById('app-loader');
-    if (loader) {
-        loader.classList.add('fade-out');
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 600);
-    }
-}
 
 async function fetchShopStatus() {
     try {
@@ -913,17 +902,16 @@ function updateAllOrdersPopupContent(ordersList) {
     }).join('');
 }
 
+// Split Curtain Loader Handler (අවසානයට එකතු කර ඇත)
 window.addEventListener('load', () => {
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
         if (loader) {
-            // CSS class එක එකතු කිරීමෙන් තිරය මැදින් දෙකට කැඩී යයි
             loader.classList.add('split');
             
-            // ඇනිමේෂන් එක අවසන් වූ පසු (තත්පර 0.8 කින්) HTML එකෙන් සම්පූර්ණයෙන්ම ඉවත් කරයි
             setTimeout(() => {
                 loader.style.display = 'none';
             }, 800);
         }
-    }, 1000); // අවශ්‍ය නම් මෙහි කාලය වෙනස් කරගත හැක (1000ms = තත්පර 1යි)
+    }, 1000); 
 });
