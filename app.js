@@ -280,7 +280,7 @@ function renderProducts() {
         return;
     }
 
-   container.innerHTML = visibleProducts.map(product => {
+    container.innerHTML = visibleProducts.map(product => {
         const isProductUnavailable = (product.available === false || product.available === "false");
         const isDisabled = !isShopOpen || isProductUnavailable;
 
@@ -547,8 +547,6 @@ function openOrderModal() {
 }
 
 function closeOrderModal() {
-    console.log("closeOrderModal function එක කෝල් වුණා!");
-
     const modal = document.getElementById('order-modal') || 
                   document.getElementById('review-modal') || 
                   document.getElementById('orderModal') ||
@@ -565,6 +563,39 @@ function closeOrderModal() {
         b.style.setProperty('display', 'none', 'important');
         b.remove();
     });
+}
+
+function showCustomAlert(message) {
+    let alertBox = document.getElementById('custom-alert-box');
+    if (!alertBox) {
+        alertBox = document.createElement('div');
+        alertBox.id = 'custom-alert-box';
+        alertBox.style.position = 'fixed';
+        alertBox.style.top = '50%';
+        alertBox.style.left = '50%';
+        alertBox.style.transform = 'translate(-50%, -50%)';
+        alertBox.style.backgroundColor = '#1e293b';
+        alertBox.style.color = '#fff';
+        alertBox.style.padding = '16px 24px';
+        alertBox.style.borderRadius = '10px';
+        alertBox.style.zIndex = '999999';
+        alertBox.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+        alertBox.style.fontSize = '15px';
+        alertBox.style.fontWeight = '600';
+        alertBox.style.textAlign = 'center';
+        alertBox.style.transition = 'all 0.3s ease';
+        document.body.appendChild(alertBox);
+    }
+    alertBox.innerText = message;
+    alertBox.style.display = 'block';
+    alertBox.style.opacity = '1';
+
+    setTimeout(() => {
+        alertBox.style.opacity = '0';
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 300);
+    }, 3000);
 }
 
 function submitOrder(sendWhatsApp) {
@@ -642,10 +673,8 @@ function submitOrder(sendWhatsApp) {
         myOrders.push(orderId);
         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
 
-        // Toast මැසේජ් එක පෙන්වීම
-        showToast('🎉 ඔබගේ Order එක සාර්ථකව යැවුණා!', 'success');
+        showCustomAlert('🎉 ඔබගේ ඇණවුම සාර්ථකව යැවුණා!');
         
-        // මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට
         const orderModal = document.getElementById('order-modal');
         if (orderModal) {
             orderModal.style.setProperty('display', 'none', 'important');
@@ -681,7 +710,7 @@ function submitOrder(sendWhatsApp) {
     })
     .catch(err => {
         console.error(err);
-        showToast('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.', 'error');
+        showCustomAlert('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.');
     });
 }
 
@@ -883,167 +912,3 @@ function updateAllOrdersPopupContent(ordersList) {
         `;
     }).join('');
 }
-
-// --- 1. අවශ්‍යම කරන showCustomAlert ෆන්ක්ෂන් එක (මෙය නොතිබූ නිසා ලේබලය පෙන්වූයේ නැත) ---
-function showCustomAlert(message) {
-    let alertBox = document.getElementById('custom-alert-box');
-    if (!alertBox) {
-        alertBox = document.createElement('div');
-        alertBox.id = 'custom-alert-box';
-        alertBox.style.position = 'fixed';
-        alertBox.style.top = '50%';
-        alertBox.style.left = '50%';
-        alertBox.style.transform = 'translate(-50%, -50%)';
-        alertBox.style.backgroundColor = '#1e293b';
-        alertBox.style.color = '#fff';
-        alertBox.style.padding = '16px 24px';
-        alertBox.style.borderRadius = '10px';
-        alertBox.style.zIndex = '999999';
-        alertBox.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
-        alertBox.style.fontSize = '15px';
-        alertBox.style.fontWeight = '600';
-        alertBox.style.textAlign = 'center';
-        alertBox.style.transition = 'all 0.3s ease';
-        document.body.appendChild(alertBox);
-    }
-    alertBox.innerText = message;
-    alertBox.style.display = 'block';
-    alertBox.style.opacity = '1';
-
-    // තත්පර 3 කින් පසු ලේබලය ස්වයංක්‍රීයව අلاش වීම
-    setTimeout(() => {
-        alertBox.style.opacity = '0';
-        setTimeout(() => {
-            alertBox.style.display = 'none';
-        }, 300);
-    }, 3000);
-}
-
-
-// --- 2. නිවැරදි කළ submitOrder ෆන්ක්ෂන් එක ---
-function submitOrder(sendWhatsApp) {
-    if (!isShopOpen) {
-        showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් යැවිය නොහැක!');
-        return;
-    }
-
-    const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
-    const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
-    const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
-
-    if (!isTableQR && !pickupTimeInput) {
-        showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
-        return;
-    }
-
-    const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
-
-    const isTakeaway = (currentOrderType === 'takeaway');
-    let finalTableType = '';
-
-    if (isTableQR) {
-        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
-    } else {
-        finalTableType = isTakeaway ? 'Takeaway' : 'Dine-in (Shop)';
-    }
-
-    const finalOrderTypeStr = isTakeaway ? 'Takeaway' : 'Dine-in';
-
-    let subtotal = 0;
-    let totalTakeAwayCharges = 0;
-
-    const orderItems = Object.keys(cart).map(id => {
-        const prod = systemData.products.find(p => p.id == id);
-        const qty = cart[id];
-        const price = prod ? prod.price : 0;
-        subtotal += (price * qty);
-
-        if (currentOrderType === 'takeaway') {
-            const cat = categories.find(c => (c.id === prod?.category || c.name === prod?.category));
-            if (cat && cat.takeawayCharge > 0) {
-                totalTakeAwayCharges += (Number(cat.takeawayCharge) * qty);
-            }
-        }
-
-        return { name: prod ? prod.name : 'Unknown', qty: qty, price: price };
-    });
-
-    const grandTotal = subtotal + totalTakeAwayCharges;
-
-    const newOrder = {
-        id: orderId,
-        table: finalTableType,
-        type: finalOrderTypeStr, 
-        customerName: nameInput,
-        phone: phoneInput || 'Not Provided',
-        pickupTime: pickupTimeInput || 'ASAP',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'pending',
-        subtotal: subtotal,
-        takeawayCharge: totalTakeAwayCharges,
-        total: grandTotal,
-        items: orderItems
-    };
-
-    fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder)
-    })
-    .then(res => res.json())
-    .then(data => {
-        let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
-        myOrders.push(orderId);
-        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
-
-        // 🟢 දැන් මෙම ලේබලය (Alert එක) තිරයේ මැදින් ඉතා පැහැදිලිව පෙනෙනු ඇත
-        showCustomAlert('🎉 ඔබගේ ඇණවුම සාර්ථකව යැවුණා!');
-        
-        // මෝඩල් එක සම්පූර්ණයෙන්ම වැසීමට
-        const orderModal = document.getElementById('order-modal');
-        if (orderModal) {
-            orderModal.style.setProperty('display', 'none', 'important');
-            orderModal.classList.remove('active', 'show', 'open', 'visible');
-        }
-
-        if (sendWhatsApp) {
-            let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
-            if (totalTakeAwayCharges > 0) {
-                itemText += `\n▫️ Take Away Charges - Rs. ${totalTakeAwayCharges.toFixed(2)}`;
-            }
-
-            let waMessage = `🧾 *NEW ORDER - ${orderId}*\n` +
-                            `📍 *Type:* ${finalTableType}\n` +
-                            `👤 *Name:* ${nameInput}\n` +
-                            `📱 *Phone:* ${phoneInput || 'N/A'}\n` +
-                            `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` +
-                            `🛒 *Items:*\n${itemText}\n\n` +
-                            `💰 *Total Amount:* Rs. ${grandTotal.toFixed(2)}`;
-
-            const waUrl = `https://wa.me/${RESTAURANT_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
-            window.open(waUrl, '_blank');
-        }
-
-        cart = {};
-        if(document.getElementById('cust-name')) document.getElementById('cust-name').value = '';
-        if(document.getElementById('cust-phone')) document.getElementById('cust-phone').value = '';
-        if(document.getElementById('cust-time')) document.getElementById('cust-time').value = '';
-
-        updateCartUI();
-        toggleCart();
-        checkMyOrderStatus();
-    })
-    .catch(err => {
-        console.error(err);
-        showCustomAlert('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.');
-    });
-}
-
-window.addEventListener('load', function() {
-    const appLoader = document.getElementById('app-loader');
-    if (appLoader) {
-        setTimeout(() => {
-            appLoader.classList.add('fade-out');
-        }, 600); // තත්පර 0.6 කින් පසු සුමටව මැකී යයි
-    }
-});
