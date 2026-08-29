@@ -13,6 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchShopStatus();
 });
 
+
 // Admin Login වීම පරීක්ෂා කිරීම සහ සර්වර් එකට යැවීම
 async function handleAdminLogin(event) {
     event.preventDefault();
@@ -28,16 +29,15 @@ async function handleAdminLogin(event) {
         });
         
         const data = await response.json();
-        console.log("Server Response:", data); // සර්වර් එකෙන් එන දේ බලාගැනීමට (F12 -> Console එක බලන්න)
+        console.log("Server Response:", data);
 
-        // සර්වර් එක සාර්ථකයි නම් (success: true හෝ response එක OK නම්)
+        // සර්වර් එක සාර්ථකයි නම්
         if (response.ok && (data.success === true || data.success === undefined || data.token)) {
+            // 1. ලොග් වූ බව localStorage හි සටහන් කරන්න
             localStorage.setItem('isAdminLoggedIn', 'true');
             
-            const overlay = document.getElementById('loginOverlay');
-            if (overlay) {
-                overlay.remove(); // සම්පූර්ණයෙන්ම තිරයෙන් ඉවත් කරයි (CSS ගැටලු මඟ හැරේ)
-            }
+            // 2. වහාම පිටුව ස්වයංක්‍රීයව රිෆ්‍රෙෂ් කරන්න (මෙය මඟින් ලොගින් ෆෝම් එක තනියම අപ്രത്യక్ష වී ඩෑෂ්බෝඩ් එක පෙන්වයි)
+            window.location.reload();
         } else {
             if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
         }
