@@ -1038,3 +1038,13 @@ function submitOrder(sendWhatsApp) {
         showCustomAlert('Order එක යැවීමට නොහැකි වුණා. කරුණාකර නැවත උත්සාහ කරන්න.');
     });
 }
+
+window.addEventListener('load', function() {
+    const appLoader = document.getElementById('app-loader');
+    if (appLoader) {
+        // තත්පර 0.5 ක කුඩා ප්‍රමාදයකින් පසු සුමටව මැකී යාම
+        setTimeout(() => {
+            appLoader.classList.add('fade-out');
+        }, 500);
+    }
+});
