@@ -322,7 +322,7 @@ function renderProducts() {
                                 </div>
                                 <button class="add-btn" onclick="addToCart('${product.id}')" style="width: 100%;">Add to Cart</button>
                             ` : `
-                                <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Today unavailable</span>
+                                <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Today <br> unavailable</span>
                             `}
                         ` : `
                             <span style="color: #dc2626; font-weight: 800; font-size: 0.75rem; background: #fee2e2; padding: 6px 10px; border-radius: 8px; display: block; text-align: center;">Shop Closed</span>
