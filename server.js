@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 const multer = require('multer'); 
 const mongoose = require('mongoose'); 
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 
@@ -13,48 +13,35 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors());
 
-// Current directory එක static ලෙස Serve කිරීම
+// Current directory එක static ලෙස Serve කිරීම (Frontend එක සඳහා)
 app.use(express.static(__dirname));
 
-// 🌟 1. Categories සහ Products සඳහා වෙනම ෆෝල්ඩර් සැකසීම
-const uploadBaseDir = path.join(__dirname, 'images');
-
-const categoryUploadDir = path.join(uploadBaseDir, 'Category_img');
-if (!fs.existsSync(categoryUploadDir)) {
-    fs.mkdirSync(categoryUploadDir, { recursive: true });
-}
-
-const productUploadDir = path.join(uploadBaseDir, 'Product_img');
-if (!fs.existsSync(productUploadDir)) {
-    fs.mkdirSync(productUploadDir, { recursive: true });
-}
-
-// 🌟 2. මෙම ෆෝල්ඩර් Static ලෙස බ්‍රවුසරයට ලබා දීම
-app.use('/images', express.static(uploadBaseDir));
-
-// 🌟 3. Multer Storage Setup (Categories සඳහා)
-const categoryStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, categoryUploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'cat-' + uniqueSuffix + path.extname(file.originalname));
-    }
+// ==========================================
+// ☁️ CLOUDINARY CONFIGURATION
+// ==========================================
+cloudinary.config({
+    cloud_name: 'euc8lhe4',
+    api_key: '954832384958133',
+    api_secret: '_ZDWlH2YPmv_l6H__UulHDpv2Yk'
 });
-const uploadCategory = multer({ storage: categoryStorage });
 
-// 🌟 4. Multer Storage Setup (Products සඳහා)
-const productStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, productUploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'prod-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-const uploadProduct = multer({ storage: productStorage });
+// Multer Memory Storage සැකසීම (ෆයිල් ලෝකල් ඩිස්ක් එකේ සේව් නොකර බෆර් එක හරහා Cloudinary යැවීමට)
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Cloudinary වෙත ඉමේජ් අප්ලෝඩ් කිරීම සඳහා වන Helper Function එක
+const uploadToCloudinary = (buffer, folderName) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: folderName },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        stream.end(buffer);
+    });
+};
+
 
 // ==========================================
 // 🌐 MONGODB CONNECTION & SCHEMAS SETUP
@@ -99,7 +86,7 @@ const Admin = mongoose.model('Admin', new mongoose.Schema({
     password: { type: String, required: true }
 }));
 
-// Default Admin කෙනෙක් සෑදීමේ פונקციය (Username: admin, Password: 123)
+// Default Admin කෙනෙක් සෑදීමේ ෆන්ක්ෂන් එක (Username: admin, Password: 123)
 async function createDefaultAdmin() {
     try {
         const count = await Admin.countDocuments();
@@ -125,7 +112,7 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-app.post('/api/products', uploadProduct.single('image'), async (req, res) => {
+app.post('/api/products', upload.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
             await Product.deleteMany({});
@@ -137,7 +124,9 @@ app.post('/api/products', uploadProduct.single('image'), async (req, res) => {
 
         let imagePath = existingImage || '';
         if (req.file) {
-            imagePath = `/images/Product_img/${req.file.filename}`;
+            // Cloudinary වෙත Product Image එක Upload කිරීම
+            const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/products');
+            imagePath = uploadResult.secure_url;
         }
 
         const productId = id && id !== '' ? id : 'PROD-' + Date.now();
@@ -152,17 +141,13 @@ app.post('/api/products', uploadProduct.single('image'), async (req, res) => {
             ...otherFields
         };
 
-        if (req.file) {
-            productData.image = imagePath;
-        }
-
         const updatedProduct = await Product.findOneAndUpdate(
             { id: productId },
             productData,
             { upsert: true, new: true }
         );
 
-        console.log('Product saved to DB:', updatedProduct.name);
+        console.log('Product saved to DB with Cloudinary Image:', updatedProduct.name);
         res.json({ success: true, message: 'Product saved successfully', product: updatedProduct });
     } catch (error) {
         console.error("Error saving product:", error);
@@ -195,7 +180,7 @@ app.get('/api/categories', async (req, res) => {
     }
 });
 
-app.post('/api/categories', uploadCategory.single('image'), async (req, res) => {
+app.post('/api/categories', upload.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
             await Category.deleteMany({});
@@ -207,7 +192,9 @@ app.post('/api/categories', uploadCategory.single('image'), async (req, res) => 
 
         let imagePath = existingImage || '';
         if (req.file) {
-            imagePath = `/images/Category_img/${req.file.filename}`;
+            // Cloudinary වෙත Category Image එක Upload කිරීම
+            const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
+            imagePath = uploadResult.secure_url;
         }
 
         const categoryId = id && id !== '' ? id : 'CAT-' + Date.now();
@@ -219,17 +206,13 @@ app.post('/api/categories', uploadCategory.single('image'), async (req, res) => 
             image: imagePath
         };
 
-        if (req.file) {
-            categoryData.image = imagePath;
-        }
-
         const updatedCategory = await Category.findOneAndUpdate(
             { id: categoryId },
             categoryData,
             { upsert: true, new: true }
         );
 
-        console.log('Category saved to DB:', updatedCategory.name);
+        console.log('Category saved to DB with Cloudinary Image:', updatedCategory.name);
         res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -356,7 +339,7 @@ app.post('/api/shop-status', async (req, res) => {
 
 
 // ==========================================
-// --- Admin Login API --- (අලුතින් එකතු කරන ලදී)
+// --- Admin Login API ---
 // ==========================================
 app.post('/api/admin/login', async (req, res) => {
     try {
@@ -387,8 +370,7 @@ mongoose.connect(MONGO_URI)
 
         app.listen(PORT, () => {
             console.log(`🚀 CAFE DN Server running on port ${PORT}`);
-            console.log(`📁 Category Images: ${categoryUploadDir}`);
-            console.log(`📁 Product Images: ${productUploadDir}`);
+            console.log(`☁️ Cloudinary Connected Successfully!`);
         });
     })
     .catch(err => {
