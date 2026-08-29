@@ -14,7 +14,7 @@ body {
 
 /* Header Design */
 .header {
-    background: rgba(255, 255, 255, 0.95);
+    background: #f5dae0;
     backdrop-filter: blur(8px);
     padding: 10px 8px;
     box-shadow: 0 2px 10px rgba(244, 63, 94, 0.04);
