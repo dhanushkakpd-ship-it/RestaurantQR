@@ -7,6 +7,8 @@ window.addEventListener('DOMContentLoaded', () => {
     
     if (isLoggedIn === 'true') {
         if (overlay) overlay.remove(); // මීට පෙර ලොග් වී ඇත්නම් ෆෝම් එක ඉවත් කරන්න
+    } else {
+        if (overlay) overlay.style.display = 'flex'; // ලොග් වී නැත්නම් ලොගින් ෆෝම් එක පෙන්වන්න
     }
     fetchShopStatus();
 });
@@ -100,9 +102,7 @@ async function toggleShopStatus() {
         const data = await response.json();
         updateShopStatusUI(data.isOpen);
     } catch (error) {
-        console.error('Error updating shop status:', error5 => {
-            console.error('Error updating shop status:', error);
-        });
+        console.error('Error updating shop status:', error); // දෝෂය මෙතැනදී නිවැරදි කර ඇත
     }
 }
 
