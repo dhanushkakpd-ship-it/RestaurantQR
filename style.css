@@ -491,42 +491,76 @@ body {
 }
 
 
-/* --- App Loader / Splash Screen Styles --- */
+/* --- App Loader with Background Image Styles --- */
 #app-loader {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #ffffff; /* පසුබිම් පාට (අවශ්‍ය නම් වෙනස් කළ හැක) */
+    /* මෙහි images/background.jpg යන්න වෙනුවට ඔබ කැමති background image එකක පාත් එක හෝ Cloudinary URL එක දෙන්න */
+    background-image: url('images/background.jpg'); 
+    background-size: cover;
+    background-position: center;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 99999;
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
+/* Background එක මතට දමන අඳුරු ආවරණය (Overlay) - ලෝගෝ එක කැපී පෙනීමට */
+.loader-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.75); /* අඳුරු පැහැය (අවශ්‍ය නම් වෙනස් කළ හැක) */
+}
+
+/* මැද ඇති Box එක */
+.loader-content-box {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 30px 25px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95); /* සුදු පැහැති මෘදු පසුබිමක් */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 300px;
+    backdrop-filter: blur(10px);
+}
+
+.loader-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 12px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
 .loader-spinner {
-    width: 45px;
-    height: 45px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #ff4757; /* CAFE DN එකට ගැළපෙන ආකර්ෂණීය පාටක් */
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #ff4757; /* CAFE DN පාටට ගැළපෙන ලෙස */
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-bottom: 15px;
+    margin: 0 auto 12px auto;
 }
 
 .loader-text {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
     color: #1e293b;
     font-family: 'Poppins', sans-serif;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .loader-subtext {
-    font-size: 14px;
+    font-size: 13px;
     color: #64748b;
     font-family: 'Poppins', sans-serif;
 }
@@ -535,6 +569,12 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
 }
 
 /* ෆේඩ් අව්ට් වී මැකී යාම සඳහා */

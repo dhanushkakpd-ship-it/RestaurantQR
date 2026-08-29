@@ -1042,9 +1042,8 @@ function submitOrder(sendWhatsApp) {
 window.addEventListener('load', function() {
     const appLoader = document.getElementById('app-loader');
     if (appLoader) {
-        // තත්පර 0.5 ක කුඩා ප්‍රමාදයකින් පසු සුමටව මැකී යාම
         setTimeout(() => {
             appLoader.classList.add('fade-out');
-        }, 500);
+        }, 600); // තත්පර 0.6 කින් පසු සුමටව මැකී යයි
     }
 });
