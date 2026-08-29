@@ -515,8 +515,8 @@ body {
 
 /* ලාංඡනයේ (Logo) මෝස්තර සහ Pulse ඇනිමේෂන් එක */
 .loader-logo {
-    width: 85px;
-    height: 85px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 12px;
