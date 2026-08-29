@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Cleaned & Fixed) ---
+// --- CAFE DN - Customer App JavaScript (Cleaned, Fixed & Smart Updated) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -15,6 +15,7 @@ let isTableQR = false;
 let tableNumber = "";
 let isShopOpen = true; 
 let latestActiveOrders = []; 
+let lastProductDataJson = ""; // ප්‍රොඩක්ට් ඩේටා වෙනස්වීම් පරීක්ෂා කිරීමට
 
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchShopStatus();
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(async () => {
         await fetchShopStatus();
         await loadCategoriesForCart();
-        await loadProductsFromServer();
+        await loadProductsFromServer(); // ඩේටා වෙනස් වී ඇත්නම් පමණක් මෙහිදී රෙන්ඩර් වේ
         checkMyOrderStatus();
     }, 3000);
 
@@ -136,17 +137,25 @@ async function loadProductsFromServer() {
         if (response.ok) {
             const data = await response.json();
             if (data && data.length > 0) {
-                systemData.products = data;
-                localStorage.setItem('cafe_dn_products', JSON.stringify(data));
+                const currentDataJson = JSON.stringify(data);
+                
+                // සර්වර් එකේ ඩේටා සහ දැනට පෙන්වන ඩේටා වෙනස් වී නම් පමණක් රෙන්ඩර් කරන්න
+                if (currentDataJson !== lastProductDataJson) {
+                    lastProductDataJson = currentDataJson;
+                    systemData.products = data;
+                    localStorage.setItem('cafe_dn_products', JSON.stringify(data));
+                    renderProducts();
+                }
             }
-            renderProducts();
         }
     } catch (e) {
         let storedProducts = localStorage.getItem('cafe_dn_products');
-        if (storedProducts) {
-            try { systemData.products = JSON.parse(storedProducts); } catch (err) {}
+        if (storedProducts && systemData.products.length === 0) {
+            try { 
+                systemData.products = JSON.parse(storedProducts); 
+                renderProducts();
+            } catch (err) {}
         }
-        renderProducts();
     }
 }
 
@@ -907,11 +916,9 @@ window.addEventListener('load', () => {
         const loader = document.getElementById('app-loader');
         if (loader) {
             loader.classList.add('fade-out');
-            
-            // ඇනිමේෂන් එක අවසන් වූ පසු DOM එකෙන් සම්පූර්ණයෙන්ම ඉවත් කරයි
             setTimeout(() => {
                 loader.style.display = 'none';
             }, 500);
         }
-    }, 800); // අවශ්‍ය නම් කාලය (milliseconds වලින්) වෙනස් කරගත හැක
+    }, 800);
 });
