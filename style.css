@@ -7,14 +7,9 @@
 }
 
 body {
-    background-color: #f8fafc; /* ඉතා පිරිසිදු, නූතන ප්‍රොෆෙෂනල් ඩිජිටල් ඇප් පසුබිමක් (Soft Slate/Gray) */
-    color: #1e293b; /* වඩාත් පැහැදිලි, තද අළු පැහැති අකුරු වර්ණයක් (Professional Text Color) */
-    font-family: 'Poppins', 'Segoe UI', sans-serif, -apple-system; /* සිනිඳු නවීන ෆොන්ට් එකක් */
+    background-color: #f5dae0; /* ඉතා මෘදු ස්ට්‍රෝබෙරි-ක්‍රීම් පසුබිමක් */
+    color: #4a5568;
     padding-bottom: 140px;
-    margin: 0;
-    padding-top: 0;
-    -webkit-font-smoothing: antialiased; /* අකුරු ඉතා සුමටව (Smooth) පෙන්වීමට */
-    scroll-behavior: smooth; /* පිටුව පහළට/ඉහළට මාරු වීමේදී සුමට වීමට */
 }
 
 /* Header Design */
