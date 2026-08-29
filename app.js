@@ -902,16 +902,16 @@ function updateAllOrdersPopupContent(ordersList) {
     }).join('');
 }
 
-// Split Curtain Loader Handler (අවසානයට එකතු කර ඇත)
 window.addEventListener('load', () => {
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
         if (loader) {
-            loader.classList.add('split');
+            loader.classList.add('fade-out');
             
+            // ඇනිමේෂන් එක අවසන් වූ පසු DOM එකෙන් සම්පූර්ණයෙන්ම ඉවත් කරයි
             setTimeout(() => {
                 loader.style.display = 'none';
-            }, 800);
+            }, 500);
         }
-    }, 1000); 
+    }, 800); // අවශ්‍ය නම් කාලය (milliseconds වලින්) වෙනස් කරගත හැක
 });
