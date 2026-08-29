@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(async () => {
         await fetchShopStatus();
         await loadCategoriesForCart();
-        await loadProductsFromServer(); // ඩේටා වෙනස් වී ඇත්නම් පමණක් මෙහිදී රෙන්ඩර් වේ
+        await loadProductsFromServer(); 
         checkMyOrderStatus();
     }, 3000);
 
@@ -53,9 +53,19 @@ async function fetchShopStatus() {
         const res = await fetch('/api/shop-status');
         if (res.ok) {
             const data = await res.json();
-            isShopOpen = (typeof data.isOpen === 'boolean') ? data.isOpen : true;
-            systemData.business.isOpen = isShopOpen;
-            updateStatusBadge();
+            const newIsOpen = (typeof data.isOpen === 'boolean') ? data.isOpen : true;
+            
+            // Shop Status එක වෙනස් වී ඇත්නම් පමණක් badge එක සහ products එකවර අප්ඩේට් කරන්න
+            if (isShopOpen !== newIsOpen) {
+                isShopOpen = newIsOpen;
+                systemData.business.isOpen = isShopOpen;
+                updateStatusBadge();
+                renderProducts(); // තත්ත්වය වෙනස් වූ වහාම ප්‍රොඩක්ට් බටන්ස් අප්ඩේට් වේ
+            } else {
+                isShopOpen = newIsOpen;
+                systemData.business.isOpen = isShopOpen;
+                updateStatusBadge();
+            }
         }
     } catch (e) {
         console.error("Error fetching shop status:", e);
@@ -139,7 +149,6 @@ async function loadProductsFromServer() {
             if (data && data.length > 0) {
                 const currentDataJson = JSON.stringify(data);
                 
-                // සර්වර් එකේ ඩේටා සහ දැනට පෙන්වන ඩේටා වෙනස් වී නම් පමණක් රෙන්ඩර් කරන්න
                 if (currentDataJson !== lastProductDataJson) {
                     lastProductDataJson = currentDataJson;
                     systemData.products = data;
