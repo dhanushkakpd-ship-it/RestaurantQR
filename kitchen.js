@@ -5,6 +5,10 @@ let lastOrdersJson = ''; // දත්ත වෙනස් වී ඇත්දැ�
 let soundEnabled = true;
 let currentFilter = 'all';
 
+// අලුත් ඇණවුම් හඳුනා ගැනීම සඳහා ට්‍රැක් කිරීම
+let previousOrderIds = new Set();
+let isInitialFetch = true;
+
 document.addEventListener('DOMContentLoaded', () => {
     startClock();
     fetchOrdersFromServer();
@@ -18,16 +22,74 @@ function fetchOrdersFromServer() {
     fetch('/api/orders')
         .then(res => res.json())
         .then(data => {
-            orders = data || [];
+            const newOrders = data || [];
+            const newIds = new Set(newOrders.map(o => o.id));
+            
+            let hasNewOrder = false;
+            if (!isInitialFetch) {
+                for (let id of newIds) {
+                    if (!previousOrderIds.has(id)) {
+                        hasNewOrder = true;
+                        break;
+                    }
+                }
+            }
+
+            orders = newOrders;
+            previousOrderIds = newIds;
+            
             const currentOrdersJson = JSON.stringify(orders);
             
             // දත්තවල කිසියම් වෙනසක් වී ඇත්නම් පමණක් renderTickets() ක්‍රියාත්මක කිරීම
             if (currentOrdersJson !== lastOrdersJson) {
                 lastOrdersJson = currentOrdersJson;
                 renderTickets();
+                
+                // මුල් ලෝඩ් වීම නොවන සහ අලුත් Order එකක් පැමිණ තිබේ නම් ශබ්දය නගන්න
+                if (!isInitialFetch && hasNewOrder && soundEnabled) {
+                    playAlertSound();
+                }
             }
+            
+            isInitialFetch = false;
         })
         .catch(err => console.error("Error fetching orders:", err));
+}
+
+// 🔊 අලුත් Order එකක් ආවිට ශබ්දය නගන ක්‍රමය (Web Audio API - File අවශ්‍ය නොවේ)
+function playAlertSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // පළමු බීප් හඬ
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 note
+        gain1.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.3);
+
+        // දෙවන බීප් හඬ (ටිකක් උස් හඬකින්)
+        setTimeout(() => {
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+            gain2.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.4);
+        }, 200);
+
+    } catch (e) {
+        console.error("Audio playback error:", e);
+    }
 }
 
 // Live Digital Clock
@@ -312,11 +374,9 @@ async function handleSpecificDelete() {
         return; 
     }
     
-    // "ORD-" හෝ "ord-" යන්න මුලින් නොමැති නම්, එය ස්වයංක්‍රීයව එකතු කිරීම
     if (!orderId.toUpperCase().startsWith("ORD-")) {
         orderId = "ORD-" + orderId;
     } else {
-        // අකුරු uppercase (ORD-) බවට පත් කරගැනීම
         orderId = orderId.toUpperCase();
     }
     
