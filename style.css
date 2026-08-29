@@ -550,3 +550,28 @@ body {
     opacity: 0;
     visibility: hidden;
 }
+
+/* --- Product Cards Smooth Entrance Animation --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-card {
+    animation: fadeInUp 0.45s ease forwards;
+    opacity: 0; /* ලෝඩ් වීමට පෙර සැඟවී තිබී ඇනිමේෂන් එක ක්‍රියාත්මක වේ */
+}
+
+/* Product Grid එක නිසි පරිදි සහ පිළිවෙළට සකස් කර ගැනීමට */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 10px 0;
+}
