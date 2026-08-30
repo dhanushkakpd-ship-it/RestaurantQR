@@ -50,23 +50,31 @@
         <div class="form-group row-group">
             <div class="col">
                 <label>Current Price (Rs.)</label>
-                <input type="number" id="pPrice" placeholder="900">
+                <input type="number" id="pPrice" placeholder="900" oninput="calculateBadge()">
             </div>
             <div class="col">
                 <label>Old Price (Optional)</label>
-                <input type="number" id="pOldPrice" placeholder="1000">
+                <input type="number" id="pOldPrice" placeholder="1000" oninput="calculateBadge()">
             </div>
         </div>
 
         <div class="form-group row-group">
             <div class="col">
-                <label>Badge (e.g. 10% OFF)</label>
-                <input type="text" id="pBadge" placeholder="10% OFF">
+                <label>Discount Type</label>
+                <select id="pDiscountType" onchange="calculateBadge()" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <option value="percent">Percentage (%)</option>
+                    <option value="amount">Amount (Rs.)</option>
+                </select>
             </div>
             <div class="col">
-                <label>Select Image File</label>
-                <input type="file" id="pImageFile" accept="image/*">
+                <label>Badge (Auto-calculated)</label>
+                <input type="text" id="pBadge" placeholder="10% OFF">
             </div>
+        </div>
+
+        <div class="form-group">
+            <label>Select Image File</label>
+            <input type="file" id="pImageFile" accept="image/*">
         </div>
 
         <div class="form-group">
@@ -140,6 +148,26 @@
         }
 
         render();
+    }
+
+    // 🆕 වට්ටම ස්වයංක්‍රීයව ගණනය කර Badge එක සකස් කිරීමේ פונקצי එක
+    function calculateBadge() {
+        let price = parseFloat(document.getElementById('pPrice').value) || 0;
+        let oldPrice = parseFloat(document.getElementById('pOldPrice').value) || 0;
+        let discountType = document.getElementById('pDiscountType').value;
+        let badgeInput = document.getElementById('pBadge');
+
+        if (oldPrice > price && price > 0) {
+            let diff = oldPrice - price;
+            if (discountType === 'percent') {
+                let percent = Math.round((diff / oldPrice) * 100);
+                badgeInput.value = percent + '% OFF';
+            } else {
+                badgeInput.value = 'Rs. ' + diff + ' OFF';
+            }
+        } else {
+            badgeInput.value = '';
+        }
     }
 
     function render() {
@@ -290,7 +318,17 @@
         populateCategoryDropdown(products[i].category || "");
         document.getElementById('pPrice').value = products[i].price || "";
         document.getElementById('pOldPrice').value = products[i].oldPrice || "";
-        document.getElementById('pBadge').value = products[i].badge || "";
+        
+        let badge = products[i].badge || "";
+        document.getElementById('pBadge').value = badge;
+        
+        // Badge එකේ ඇති අගය මත පදනම්ව Discount Type එක තෝරා ගැනීම
+        if (badge.includes('%')) {
+            document.getElementById('pDiscountType').value = 'percent';
+        } else {
+            document.getElementById('pDiscountType').value = 'amount';
+        }
+
         document.getElementById('pExistingImage').value = products[i].image || "";
         document.getElementById('pImageFile').value = "";
         document.getElementById('pDesc').value = products[i].desc || "";
@@ -304,6 +342,7 @@
         populateCategoryDropdown();
         document.getElementById('pPrice').value = "";
         document.getElementById('pOldPrice').value = "";
+        document.getElementById('pDiscountType').value = 'percent';
         document.getElementById('pBadge').value = "";
         document.getElementById('pExistingImage').value = "";
         document.getElementById('pImageFile').value = "";
