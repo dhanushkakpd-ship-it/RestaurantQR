@@ -282,6 +282,28 @@
         document.getElementById('fromDate').value = fromStr;
     }
 
+    // අයිතමයන් (Items Array/Object) කියවිය හැකි ස්ට්‍රින් එකක් බවට හැරවීම
+    function parseItems(itemsData) {
+        if (!itemsData) return '-';
+        if (typeof itemsData === 'string') return itemsData;
+        
+        if (Array.isArray(itemsData)) {
+            return itemsData.map(i => {
+                let name = i.name || i.title || i.item || 'Item';
+                let qty = i.qty || i.quantity || 1;
+                return `${name} (x${qty})`;
+            }).join(', ');
+        }
+        
+        if (typeof itemsData === 'object') {
+            let name = itemsData.name || itemsData.title || itemsData.item || 'Item';
+            let qty = itemsData.qty || itemsData.quantity || 1;
+            return `${name} (x${qty})`;
+        }
+        
+        return String(itemsData);
+    }
+
     async function initReport() {
         setDefaultDates();
         
@@ -292,7 +314,7 @@
                 allPaidOrders = data.map(ord => ({
                     id: ord.id || ord._id || 'N/A',
                     customer: ord.customer || ord.customerName || ord.name || 'Guest',
-                    items: ord.items || ord.itemDetails || '-',
+                    items: parseItems(ord.items || ord.itemDetails || ord.products),
                     total: parseFloat(ord.total || ord.totalAmount || ord.amount || 0),
                     date: ord.date || ord.createdAt || ord.orderDate || ''
                 }));
@@ -434,7 +456,7 @@
         let csv = 'Order ID,Customer Name,Items,Total Amount,Date\n';
         currentFilteredOrders.forEach(ord => {
             let cust = (ord.customer || 'Guest').replace(/,/g, '');
-            let items = (ord.items || '').replace(/,/g, ' ');
+            let items = (ord.items || '').replace(/,/g, ' '); // දැන් items නිවැරදිව string එකක් ලෙස export වේ
             let date = ord.date ? ord.date.replace('T', ' ') : '';
             csv += `"${ord.id}","${cust}","${items}",${ord.total},"${date}"\n`;
         });
