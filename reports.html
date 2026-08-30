@@ -43,6 +43,8 @@
             border: 1px solid #e2e8f0;
             margin-bottom: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+            height: 350px;
         }
         @media print {
             .btn, .filter-section, .header button, .chart-container { display: none; }
@@ -83,7 +85,7 @@
     <!-- Graphical Chart Section -->
     <div class="chart-container">
         <h3 style="margin-top: 0; margin-bottom: 15px; color: #334155; font-size: 16px;">📈 Daily Sales Performance (Fluctuations)</h3>
-        <canvas id="salesChart" height="90"></canvas>
+        <canvas id="salesChart"></canvas>
     </div>
 
     <!-- Orders Table -->
@@ -106,7 +108,6 @@
     let currentFilteredOrders = [];
     let salesChartInstance = null;
 
-    // 1. පිටුව Open වන විට දින මසකට පෙර සිට අද දක්වා Set කිරීම
     function setDefaultDates() {
         let today = new Date();
         let toStr = today.toISOString().split('T')[0];
@@ -125,23 +126,26 @@
         try {
             const res = await fetch('/api/orders?status=paid');
             if (res.ok) {
-                allPaidOrders = await res.json();
+                let data = await res.json();
+                // Backend එකෙන් එන දත්ත වල property නාමයන් වෙනස් වුවහොත් ඒවා සකස් කරගැනීම
+                allPaidOrders = data.map(ord => ({
+                    id: ord.id || ord._id || 'N/A',
+                    customer: ord.customer || ord.customerName || ord.name || 'Guest',
+                    items: ord.items || ord.itemDetails || '-',
+                    total: parseFloat(ord.total || ord.totalAmount || ord.amount || 0),
+                    date: ord.date || ord.createdAt || ord.orderDate || ''
+                }));
             } else {
-                // සර්වර් එක නැති අවස්ථාවක Test කිරීම සඳහා ඩිෆෝල්ට් දත්ත
-                allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [
-                    { id: 'ORD-101', customer: 'Kamal Perera', items: 'Chicken Fried Rice (x1)', total: 900, date: '2026-08-01T10:30:00' },
-                    { id: 'ORD-102', customer: 'Nimal Silva', items: 'Cheese Kottu (x2)', total: 2100, date: '2026-08-10T12:15:00' },
-                    { id: 'ORD-103', customer: 'Sunil Shantha', items: 'Mojito (x3)', total: 1200, date: '2026-08-25T15:45:00' }
-                ];
+                allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [];
             }
         } catch (e) {
             console.error("Error loading reports:", e);
+            allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [];
         }
 
-        filterReports(); // ඩේටා Load වූ වහාම ඩිෆෝල්ට් දින පරාසයට ෆිල්ටර් කිරීම
+        filterReports();
     }
 
-    // දින පරාසය අතර ඇති සියලුම දින ලැයිස්තුවක් සාදා ගැනීම (X-Axis එක සඳහා)
     function getDatesInRange(startDate, endDate) {
         let dateArray = [];
         let currentDate = new Date(startDate);
@@ -185,9 +189,9 @@
             return `
                 <tr>
                     <td><b>${ord.id}</b></td>
-                    <td>${ord.customer || 'Guest'}</td>
-                    <td>${ord.items || '-'}</td>
-                    <td>Rs. ${ord.total}</td>
+                    <td>${ord.customer}</td>
+                    <td>${ord.items}</td>
+                    <td>Rs. ${ord.total.toLocaleString()}</td>
                     <td>${ord.date ? ord.date.replace('T', ' ') : '-'}</td>
                 </tr>
             `;
@@ -196,7 +200,6 @@
         document.getElementById('totalOrders').innerText = orders.length;
         document.getElementById('totalRevenue').innerText = 'Rs. ' + totalRev.toLocaleString();
         
-        // ග්‍රැෆ් එක යාවත්කාලීන කිරීම (සියලුම දින අනුක්‍රමිකව පෙන්වීමට)
         updateChart(orders, fromDate, toDate);
     }
 
@@ -209,9 +212,8 @@
             }
         });
 
-        // Select කර ඇති මුල් දිනයේ සිට අග දිනය දක්වා ඇති සියලුම දින ගොනු කරගැනීම
         let allDates = (fromDate && toDate) ? getDatesInRange(fromDate, toDate) : Object.keys(dateMap).sort();
-        let dataValues = allDates.map(d => dateMap[d] || 0); // සේල්ස් නැති දිනවලට 0 වැටේ
+        let dataValues = allDates.map(d => dateMap[d] || 0);
 
         const ctx = document.getElementById('salesChart').getContext('2d');
         
@@ -220,7 +222,7 @@
         }
 
         salesChartInstance = new Chart(ctx, {
-            type: 'line', // දින අනුව වෙනස් වීම බලාගන්න 'line' chart එකක් වඩාත් ගැළපේ
+            type: 'line',
             data: {
                 labels: allDates,
                 datasets: [{
@@ -236,11 +238,18 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: true, position: 'top' }
                 },
                 scales: {
-                    y: { beginAtZero: true },
+                    y: { 
+                        beginAtZero: true,
+                        ticks: {
+                            // සේල්ස් ප්‍රමාණයන් අනුව Y-Axis එක ස්වයංක්‍රීයව නිවැරදි ඉලක්කම් පෙන්වීමට
+                            precision: 0 
+                        }
+                    },
                     x: { 
                         ticks: { 
                             maxRotation: 45, 
@@ -257,7 +266,6 @@
         filterReports();
     }
 
-    // Excel (CSV) ලෙස Download කරගැනීම
     function exportToExcel() {
         if (!currentFilteredOrders || currentFilteredOrders.length === 0) {
             alert('Export කිරීමට දත්ත නොමැත!');
