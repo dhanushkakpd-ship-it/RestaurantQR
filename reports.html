@@ -46,9 +46,10 @@
         .btn-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .btn {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 600;
@@ -72,6 +73,20 @@
         }
         .btn-print:hover {
             background: #4338ca;
+        }
+        .btn-backup {
+            background: #0ea5e9;
+            color: white;
+        }
+        .btn-backup:hover {
+            background: #0284c7;
+        }
+        .btn-restore {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-restore:hover {
+            background: #d97706;
         }
         .btn-reset {
             background: #e2e8f0;
@@ -233,8 +248,11 @@
     <div class="header">
         <h2>Sales Reports & Analytics</h2>
         <div class="btn-group">
-            <button class="btn btn-excel" onclick="exportToExcel()">📊 Export to Excel</button>
-            <button class="btn btn-print" onclick="window.print()">🖨️ Print Report</button>
+            <button class="btn btn-backup" onclick="backupData()">💾 Backup</button>
+            <button class="btn btn-restore" onclick="triggerRestore()">📂 Restore</button>
+            <input type="file" id="restoreFile" accept=".json" style="display: none;" onchange="restoreData(event)">
+            <button class="btn btn-excel" onclick="exportToExcel()">📊 Excel</button>
+            <button class="btn btn-print" onclick="window.print()">🖨️ Print</button>
         </div>
     </div>
 
@@ -299,7 +317,6 @@
         document.getElementById('fromDate').value = fromStr;
     }
 
-    // අයිතමයන් (Items Array/Object) කියවිය හැකි ස්ට්‍රින් එකක් බවට හැරවීම
     function parseItems(itemsData) {
         if (!itemsData) return '-';
         if (typeof itemsData === 'string') return itemsData;
@@ -469,6 +486,78 @@
     function resetFilter() {
         setDefaultDates();
         filterReports();
+    }
+
+    // Backup Function including Orders, Products, and Categories
+    function backupData() {
+        try {
+            let backupObj = {
+                appName: "CAFE DN",
+                backupDate: new Date().toISOString(),
+                orders: allPaidOrders,
+                products: JSON.parse(localStorage.getItem('products') || '[]'),
+                categories: JSON.parse(localStorage.getItem('categories') || '[]'),
+                localStorageData: {
+                    paidOrders: localStorage.getItem('paidOrders'),
+                    products: localStorage.getItem('products'),
+                    categories: localStorage.getItem('categories'),
+                    isAdminLoggedIn: localStorage.getItem('isAdminLoggedIn')
+                }
+            };
+            let blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `cafe_dn_full_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+        } catch (e) {
+            alert('Backup කිරීමේදී දෝෂයක් ඇති විය: ' + e.message);
+        }
+    }
+
+    // Trigger Restore File Input
+    function triggerRestore() {
+        document.getElementById('restoreFile').click();
+    }
+
+    // Restore Function including Orders, Products, and Categories
+    function restoreData(event) {
+        let file = event.target.files[0];
+        if (!file) return;
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let parsed = JSON.parse(e.target.result);
+                if (!parsed.orders && !parsed.products && !parsed.categories && !parsed.localStorageData) {
+                    alert('අවලංගු Backup ෆයිල් එකකි! දත්ත සොයාගත නොහැක.');
+                    return;
+                }
+                if (confirm('මෙම Backup ෆයිල් එක මඟින් සියලුම Orders, Products සහ Categories දත්ත නැවත පිහිටුවීමට (Restore කිරීමට) ඔබට විශ්වාසද?')) {
+                    if (parsed.orders) {
+                        localStorage.setItem('paidOrders', JSON.stringify(parsed.orders));
+                    }
+                    if (parsed.products) {
+                        let prodStr = typeof parsed.products === 'string' ? parsed.products : JSON.stringify(parsed.products);
+                        localStorage.setItem('products', prodStr);
+                    }
+                    if (parsed.categories) {
+                        let catStr = typeof parsed.categories === 'string' ? parsed.categories : JSON.stringify(parsed.categories);
+                        localStorage.setItem('categories', catStr);
+                    }
+                    if (parsed.localStorageData) {
+                        if (parsed.localStorageData.paidOrders) localStorage.setItem('paidOrders', parsed.localStorageData.paidOrders);
+                        if (parsed.localStorageData.products) localStorage.setItem('products', parsed.localStorageData.products);
+                        if (parsed.localStorageData.categories) localStorage.setItem('categories', parsed.localStorageData.categories);
+                        if (parsed.localStorageData.isAdminLoggedIn) localStorage.setItem('isAdminLoggedIn', parsed.localStorageData.isAdminLoggedIn);
+                    }
+                    alert('දත්ත සියල්ල (Orders, Products, Categories) සාර්ථකව Restore විය! පිටුව නැවුම් (Refresh) වේ.');
+                    location.reload();
+                }
+            } catch (err) {
+                alert('JSON ෆයිල් එක කියවීමේ දෝෂයක්: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
     }
 
     function exportToExcel() {
