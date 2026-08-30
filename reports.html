@@ -304,6 +304,8 @@
     let allPaidOrders = [];
     let currentFilteredOrders = [];
     let salesChartInstance = null;
+    let liveProducts = [];
+    let liveCategories = [];
 
     function setDefaultDates() {
         let today = new Date();
@@ -342,10 +344,13 @@
         setDefaultDates();
         
         try {
-            const res = await fetch('/api/orders?status=paid');
-            if (res.ok) {
-                let data = await res.json();
-                allPaidOrders = data.map(ord => ({
+            // Fetch Orders
+            const resOrders = await fetch('/api/orders');
+            if (resOrders.ok) {
+                let data = await resOrders.json();
+                // Filter only paid orders for reports
+                let paidData = data.filter(ord => (ord.status === 'paid' || ord.paymentStatus === 'paid' || ord.status === 'Completed' || ord.paymentStatus === 'Paid'));
+                allPaidOrders = paidData.map(ord => ({
                     id: ord.id || ord._id || 'N/A',
                     customer: ord.customer || ord.customerName || ord.name || 'Guest',
                     phone: ord.phone || ord.phoneNumber || ord.customerPhone || '-',
@@ -354,11 +359,22 @@
                     total: parseFloat(ord.total || ord.totalAmount || ord.amount || 0),
                     date: ord.date || ord.createdAt || ord.orderDate || ''
                 }));
-            } else {
-                allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [];
             }
+
+            // Fetch Products from MongoDB
+            const resProd = await fetch('/api/products');
+            if (resProd.ok) {
+                liveProducts = await resProd.json();
+            }
+
+            // Fetch Categories from MongoDB
+            const resCat = await fetch('/api/categories');
+            if (resCat.ok) {
+                liveCategories = await resCat.json();
+            }
+
         } catch (e) {
-            console.error("Error loading reports:", e);
+            console.error("Error loading data from server:", e);
             allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [];
         }
 
@@ -488,26 +504,37 @@
         filterReports();
     }
 
-    // Backup Function including Orders, Products, and Categories
-    function backupData() {
+    // Backup Function: Pulls live products and categories from database server
+    async function backupData() {
         try {
+            let backupOrders = allPaidOrders;
+            let backupProducts = liveProducts;
+            let backupCategories = liveCategories;
+
+            // Fetch latest direct from server if available
+            try {
+                const resOrd = await fetch('/api/orders');
+                if(resOrd.ok) backupOrders = await resOrd.json();
+                const resPr = await fetch('/api/products');
+                if(resPr.ok) backupProducts = await resPr.json();
+                const resCat = await fetch('/api/categories');
+                if(resCat.ok) backupCategories = await resCat.json();
+            } catch(err) {
+                console.warn("Using cached live arrays for backup");
+            }
+
             let backupObj = {
                 appName: "CAFE DN",
                 backupDate: new Date().toISOString(),
-                orders: allPaidOrders,
-                products: JSON.parse(localStorage.getItem('products') || '[]'),
-                categories: JSON.parse(localStorage.getItem('categories') || '[]'),
-                localStorageData: {
-                    paidOrders: localStorage.getItem('paidOrders'),
-                    products: localStorage.getItem('products'),
-                    categories: localStorage.getItem('categories'),
-                    isAdminLoggedIn: localStorage.getItem('isAdminLoggedIn')
-                }
+                orders: backupOrders,
+                products: backupProducts,
+                categories: backupCategories
             };
+
             let blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `cafe_dn_full_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `cafe_dn_mongodb_backup_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
         } catch (e) {
             alert('Backup කිරීමේදී දෝෂයක් ඇති විය: ' + e.message);
@@ -519,42 +546,64 @@
         document.getElementById('restoreFile').click();
     }
 
-    // Restore Function including Orders, Products, and Categories
-    function restoreData(event) {
+    // Restore Function: Sends backup data back to MongoDB via Backend APIs
+    async function restoreData(event) {
         let file = event.target.files[0];
         if (!file) return;
 
         let reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             try {
                 let parsed = JSON.parse(e.target.result);
-                if (!parsed.orders && !parsed.products && !parsed.categories && !parsed.localStorageData) {
+                if (!parsed.orders && !parsed.products && !parsed.categories) {
                     alert('අවලංගු Backup ෆයිල් එකකි! දත්ත සොයාගත නොහැක.');
                     return;
                 }
-                if (confirm('මෙම Backup ෆයිල් එක මඟින් සියලුම Orders, Products සහ Categories දත්ත නැවත පිහිටුවීමට (Restore කිරීමට) ඔබට විශ්වාසද?')) {
-                    if (parsed.orders) {
+
+                if (confirm('මෙම Backup ෆයිල් එක මඟින් MongoDB ඩේටාබේස් එකේ ඇති Products, Categories සහ Orders දත්ත නැවත පිහිටුවීමට (Restore කිරීමට) ඔබට විශ්වාසද?')) {
+                    
+                    let successCount = 0;
+
+                    // 1. Restore Products to MongoDB via POST endpoint
+                    if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
+                        try {
+                            const prodRes = await fetch('/api/products', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(parsed.products)
+                            });
+                            if (prodRes.ok) successCount++;
+                        } catch(err) {
+                            console.error("Product restore error:", err);
+                        }
+                    }
+
+                    // 2. Restore Categories to MongoDB via POST endpoint
+                    if (parsed.categories && Array.isArray(parsed.categories) && parsed.categories.length > 0) {
+                        try {
+                            // First clear or post directly based on backend logic (backend deletes all if array is posted)
+                            const catRes = await fetch('/api/categories', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(parsed.categories)
+                            });
+                            if (catRes.ok) successCount++;
+                        } catch(err) {
+                            console.error("Category restore error:", err);
+                        }
+                    }
+
+                    // 3. Restore Orders if present
+                    if (parsed.orders && Array.isArray(parsed.orders) && parsed.orders.length > 0) {
+                        // Optional: Clear existing and re-add or leave orders. Usually orders can stay or be kept.
                         localStorage.setItem('paidOrders', JSON.stringify(parsed.orders));
                     }
-                    if (parsed.products) {
-                        let prodStr = typeof parsed.products === 'string' ? parsed.products : JSON.stringify(parsed.products);
-                        localStorage.setItem('products', prodStr);
-                    }
-                    if (parsed.categories) {
-                        let catStr = typeof parsed.categories === 'string' ? parsed.categories : JSON.stringify(parsed.categories);
-                        localStorage.setItem('categories', catStr);
-                    }
-                    if (parsed.localStorageData) {
-                        if (parsed.localStorageData.paidOrders) localStorage.setItem('paidOrders', parsed.localStorageData.paidOrders);
-                        if (parsed.localStorageData.products) localStorage.setItem('products', parsed.localStorageData.products);
-                        if (parsed.localStorageData.categories) localStorage.setItem('categories', parsed.localStorageData.categories);
-                        if (parsed.localStorageData.isAdminLoggedIn) localStorage.setItem('isAdminLoggedIn', parsed.localStorageData.isAdminLoggedIn);
-                    }
-                    alert('දත්ත සියල්ල (Orders, Products, Categories) සාර්ථකව Restore විය! පිටුව නැවුම් (Refresh) වේ.');
+
+                    alert('දත්ත MongoDB ඩේටාබේස් එක වෙත සාර්ථකව Restore විය! පිටුව නැවුම් (Refresh) වේ.');
                     location.reload();
                 }
             } catch (err) {
-                alert('JSON ෆයිල් එක කියවීමේ දෝෂයක්: ' + err.message);
+                alert('JSON ෆයිල් එක කියවීමේ හෝ ඩේටාබේස් වෙත යැවීමේ දෝෂයක්: ' + err.message);
             }
         };
         reader.readAsText(file);
