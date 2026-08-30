@@ -20,7 +20,7 @@
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 0 auto;
             background: #ffffff;
             padding: 30px;
@@ -205,6 +205,21 @@
         tr:hover td {
             background: #f8fafc;
         }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-dine {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .badge-takeaway {
+            background: #fef3c7;
+            color: #d97706;
+        }
 
         @media print {
             .btn, .filter-section, .header button, .chart-container { display: none; }
@@ -256,6 +271,8 @@
             <tr>
                 <th>Order ID</th>
                 <th>Customer Name</th>
+                <th>Phone Number</th>
+                <th>Order Type</th>
                 <th>Items & Details</th>
                 <th>Total Amount</th>
                 <th>Date / Time</th>
@@ -314,6 +331,8 @@
                 allPaidOrders = data.map(ord => ({
                     id: ord.id || ord._id || 'N/A',
                     customer: ord.customer || ord.customerName || ord.name || 'Guest',
+                    phone: ord.phone || ord.phoneNumber || ord.customerPhone || '-',
+                    orderType: ord.orderType || ord.type || ord.dineOrTakeaway || 'Dine In',
                     items: parseItems(ord.items || ord.itemDetails || ord.products),
                     total: parseFloat(ord.total || ord.totalAmount || ord.amount || 0),
                     date: ord.date || ord.createdAt || ord.orderDate || ''
@@ -360,7 +379,7 @@
         let totalRev = 0;
 
         if (!orders || orders.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: #94a3b8; font-style: italic;">No paid orders found for this period.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 30px; color: #94a3b8; font-style: italic;">No paid orders found for this period.</td></tr>`;
             document.getElementById('totalOrders').innerText = '0';
             document.getElementById('totalRevenue').innerText = 'Rs. 0';
             updateChart([], fromDate, toDate);
@@ -369,10 +388,15 @@
 
         tbody.innerHTML = orders.map(ord => {
             totalRev += parseFloat(ord.total) || 0;
+            let typeLower = String(ord.orderType).toLowerCase();
+            let badgeClass = typeLower.includes('take') ? 'badge-takeaway' : 'badge-dine';
+            
             return `
                 <tr>
                     <td><b>${ord.id}</b></td>
                     <td>${ord.customer}</td>
+                    <td>${ord.phone}</td>
+                    <td><span class="badge ${badgeClass}">${ord.orderType}</span></td>
                     <td>${ord.items}</td>
                     <td><b>Rs. ${ord.total.toLocaleString()}</b></td>
                     <td>${ord.date ? ord.date.replace('T', ' ') : '-'}</td>
@@ -453,12 +477,14 @@
             return;
         }
 
-        let csv = 'Order ID,Customer Name,Items,Total Amount,Date\n';
+        let csv = 'Order ID,Customer Name,Phone Number,Order Type,Items,Total Amount,Date\n';
         currentFilteredOrders.forEach(ord => {
             let cust = (ord.customer || 'Guest').replace(/,/g, '');
-            let items = (ord.items || '').replace(/,/g, ' '); // දැන් items නිවැරදිව string එකක් ලෙස export වේ
+            let phone = (ord.phone || '').replace(/,/g, '');
+            let type = (ord.orderType || '').replace(/,/g, '');
+            let items = (ord.items || '').replace(/,/g, ' ');
             let date = ord.date ? ord.date.replace('T', ' ') : '';
-            csv += `"${ord.id}","${cust}","${items}",${ord.total},"${date}"\n`;
+            csv += `"${ord.id}","${cust}","${phone}","${type}","${items}",${ord.total},"${date}"\n`;
         });
 
         let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
