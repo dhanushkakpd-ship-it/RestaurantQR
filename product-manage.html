@@ -94,7 +94,7 @@
     let categories = [];
     let products = [];
 
-    // Base64 මඟින් සකස් කළ ආරක්ෂිත Fallback SVG එක (දෝෂ මඟහරවා ගැනීමට)
+    // Base64 මඟින් සකස් කළ ආරක්ෂිත Fallback SVG එක
     const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgZmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
 
     async function fetchCategories() {
@@ -136,14 +136,6 @@
             if (res.ok) {
                 products = await res.json();
             }
-            
-            if (!products || products.length === 0) {
-                products = [
-                    { id: 'PROD-1', name: "Chicken Fried Rice", category: "foods", price: 900, oldPrice: 1000, desc: "Spiced rice with chicken", badge: "10% OFF", image: "", visible: true, available: true },
-                    { id: 'PROD-2', name: "Cheese Kottu", category: "foods", price: 1050, oldPrice: 1200, desc: "Spicy shredded rotti with loads", badge: "Rs. 150 OFF", image: "", visible: true, available: true }
-                ];
-                syncServerProducts(products);
-            }
         } catch (e) {
             console.error("Error loading products:", e);
         }
@@ -174,6 +166,11 @@
     function render() {
         const tbody = document.getElementById('tbody');
         if (!tbody) return;
+
+        if (!products || products.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #64748b;">No products found. Click '+ Add Product' to add one.</td></tr>`;
+            return;
+        }
 
         tbody.innerHTML = products.map((p, i) => {
             const catObj = categories.find(c => c.id === p.category);
@@ -254,7 +251,7 @@
 
         if (fileInput.files && fileInput.files[0]) {
             formData.append('image', fileInput.files[0]);
-        } else {
+        } else if (existingImage) {
             formData.append('existingImage', existingImage);
         }
 
@@ -339,7 +336,7 @@
     }
 
     function openModal() {
-        document.getElementById('eIdx'.value) = "";
+        document.getElementById('eIdx').value = "";
         document.getElementById('pId').value = "";
         document.getElementById('pName').value = "";
         populateCategoryDropdown();
@@ -363,7 +360,7 @@
 <script>
     // පරිශීලකයා ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
     if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "admin.html"; // ලොගින් පිටුවට හරවා යැවීම
+        window.location.href = "admin.html";
     }
 </script>
 
