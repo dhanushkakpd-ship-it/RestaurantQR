@@ -19,6 +19,7 @@
                 <th>Name & Details</th>
                 <th>Category</th>
                 <th>Price</th>
+                <th>Promotion</th>
                 <th>Status Options</th>
                 <th>Actions</th>
             </tr>
@@ -150,7 +151,7 @@
         render();
     }
 
-    // 🆕 වට්ටම ස්වයංක්‍රීයව ගණනය කර Badge එක සකස් කිරීමේ פונקצי එක
+    // වට්ටම ස්වයංක්‍රීයව ගණනය කර Badge එක සකස් කිරීම
     function calculateBadge() {
         let price = parseFloat(document.getElementById('pPrice').value) || 0;
         let oldPrice = parseFloat(document.getElementById('pOldPrice').value) || 0;
@@ -193,6 +194,9 @@
                     <td>
                         Rs. ${p.price} 
                         ${p.oldPrice ? `<br><small style="text-decoration:line-through; color:red;">Rs. ${p.oldPrice}</small>` : ''}
+                    </td>
+                    <td>
+                        ${p.badge ? `<span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block;">🔥 ${p.badge}</span>` : '<span style="color: #94a3b8; font-size: 12px;">No Promo</span>'}
                     </td>
                     <td>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -322,7 +326,6 @@
         let badge = products[i].badge || "";
         document.getElementById('pBadge').value = badge;
         
-        // Badge එකේ ඇති අගය මත පදනම්ව Discount Type එක තෝරා ගැනීම
         if (badge.includes('%')) {
             document.getElementById('pDiscountType').value = 'percent';
         } else {
@@ -336,7 +339,7 @@
     }
 
     function openModal() {
-        document.getElementById('eIdx').value = "";
+        document.getElementById('eIdx'.value) = "";
         document.getElementById('pId').value = "";
         document.getElementById('pName').value = "";
         populateCategoryDropdown();
