@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Reports & Analytics - CAFE DN</title>
     <link rel="stylesheet" href="product-manage.css">
-    <!-- Chart.js CDN for Graphical Representation -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .report-summary {
@@ -25,11 +25,10 @@
         .card-box p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #0f172a; }
         .filter-section {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             margin-bottom: 20px;
             align-items: center;
             flex-wrap: wrap;
-            justify-content: space-between;
         }
         .filter-group {
             display: flex;
@@ -72,19 +71,19 @@
         </div>
     </div>
 
-    <!-- Graphical Chart Section -->
-    <div class="chart-container">
-        <h3 style="margin-top: 0; margin-bottom: 15px; color: #334155; font-size: 16px;">📈 Sales Performance Chart</h3>
-        <canvas id="salesChart" height="90"></canvas>
-    </div>
-
     <!-- Filters -->
     <div class="filter-section">
         <div class="filter-group">
             <label>From: <input type="date" id="fromDate" onchange="filterReports()"></label>
             <label>To: <input type="date" id="toDate" onchange="filterReports()"></label>
-            <button class="btn" style="background: #cbd5e1; color: #334155; border:none; padding: 8px 12px; border-radius: 6px; cursor: pointer;" onclick="resetFilter()">Reset</button>
+            <button class="btn" style="background: #cbd5e1; color: #334155; border:none; padding: 8px 12px; border-radius: 6px; cursor: pointer;" onclick="resetFilter()">Reset to Default (1 Month)</button>
         </div>
+    </div>
+
+    <!-- Graphical Chart Section -->
+    <div class="chart-container">
+        <h3 style="margin-top: 0; margin-bottom: 15px; color: #334155; font-size: 16px;">📈 Daily Sales Performance (Fluctuations)</h3>
+        <canvas id="salesChart" height="90"></canvas>
     </div>
 
     <!-- Orders Table -->
@@ -107,27 +106,69 @@
     let currentFilteredOrders = [];
     let salesChartInstance = null;
 
-    async function loadPaidOrders() {
+    // 1. පිටුව Open වන විට දින මසකට පෙර සිට අද දක්වා Set කිරීම
+    function setDefaultDates() {
+        let today = new Date();
+        let toStr = today.toISOString().split('T')[0];
+
+        let pastDate = new Date();
+        pastDate.setMonth(pastDate.getMonth() - 1);
+        let fromStr = pastDate.toISOString().split('T')[0];
+
+        document.getElementById('toDate').value = toStr;
+        document.getElementById('fromDate').value = fromStr;
+    }
+
+    async function initReport() {
+        setDefaultDates();
+        
         try {
             const res = await fetch('/api/orders?status=paid');
             if (res.ok) {
                 allPaidOrders = await res.json();
             } else {
-                // Test කිරීම සඳහා ඩිෆෝල්ට් දත්ත (Server එක නැති අවස්ථාවක)
+                // සර්වර් එක නැති අවස්ථාවක Test කිරීම සඳහා ඩිෆෝල්ට් දත්ත
                 allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [
-                    { id: 'ORD-101', customer: 'Kamal Perera', items: 'Chicken Fried Rice (x1)', total: 900, date: '2026-06-01' },
-                    { id: 'ORD-102', customer: 'Nimal Silva', items: 'Cheese Kottu (x2)', total: 2100, date: '2026-06-02' },
-                    { id: 'ORD-103', customer: 'Sunil Shantha', items: 'Mojito (x3)', total: 1200, date: '2026-06-05' }
+                    { id: 'ORD-101', customer: 'Kamal Perera', items: 'Chicken Fried Rice (x1)', total: 900, date: '2026-08-01T10:30:00' },
+                    { id: 'ORD-102', customer: 'Nimal Silva', items: 'Cheese Kottu (x2)', total: 2100, date: '2026-08-10T12:15:00' },
+                    { id: 'ORD-103', customer: 'Sunil Shantha', items: 'Mojito (x3)', total: 1200, date: '2026-08-25T15:45:00' }
                 ];
             }
-            currentFilteredOrders = [...allPaidOrders];
-            renderReports(currentFilteredOrders);
         } catch (e) {
             console.error("Error loading reports:", e);
         }
+
+        filterReports(); // ඩේටා Load වූ වහාම ඩිෆෝල්ට් දින පරාසයට ෆිල්ටර් කිරීම
     }
 
-    function renderReports(orders) {
+    // දින පරාසය අතර ඇති සියලුම දින ලැයිස්තුවක් සාදා ගැනීම (X-Axis එක සඳහා)
+    function getDatesInRange(startDate, endDate) {
+        let dateArray = [];
+        let currentDate = new Date(startDate);
+        let stopDate = new Date(endDate);
+        
+        while (currentDate <= stopDate) {
+            dateArray.push(currentDate.toISOString().split('T')[0]);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        return dateArray;
+    }
+
+    function filterReports() {
+        let from = document.getElementById('fromDate').value;
+        let to = document.getElementById('toDate').value;
+
+        currentFilteredOrders = allPaidOrders.filter(ord => {
+            let ordDate = ord.date ? ord.date.split('T')[0] : '';
+            if (from && ordDate < from) return false;
+            if (to && ordDate > to) return false;
+            return true;
+        });
+
+        renderReports(currentFilteredOrders, from, to);
+    }
+
+    function renderReports(orders, fromDate, toDate) {
         const tbody = document.getElementById('reportTbody');
         let totalRev = 0;
 
@@ -135,7 +176,7 @@
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No paid orders found for this period.</td></tr>`;
             document.getElementById('totalOrders').innerText = '0';
             document.getElementById('totalRevenue').innerText = 'Rs. 0';
-            updateChart([]);
+            updateChart([], fromDate, toDate);
             return;
         }
 
@@ -155,20 +196,22 @@
         document.getElementById('totalOrders').innerText = orders.length;
         document.getElementById('totalRevenue').innerText = 'Rs. ' + totalRev.toLocaleString();
         
-        // ග්‍රැෆ් එක යාවත්කාලීන කිරීම
-        updateChart(orders);
+        // ග්‍රැෆ් එක යාවත්කාලීන කිරීම (සියලුම දින අනුක්‍රමිකව පෙන්වීමට)
+        updateChart(orders, fromDate, toDate);
     }
 
-    function updateChart(orders) {
-        // දින අනුව සේල්ස් එකතු කිරීම (Group by date)
+    function updateChart(orders, fromDate, toDate) {
         let dateMap = {};
         orders.forEach(ord => {
-            let d = ord.date ? ord.date.split('T')[0] : 'Unknown';
-            dateMap[d] = (dateMap[d] || 0) + (parseFloat(ord.total) || 0);
+            let d = ord.date ? ord.date.split('T')[0] : '';
+            if (d) {
+                dateMap[d] = (dateMap[d] || 0) + (parseFloat(ord.total) || 0);
+            }
         });
 
-        let labels = Object.keys(dateMap).sort();
-        let dataValues = labels.map(date => dateMap[date]);
+        // Select කර ඇති මුල් දිනයේ සිට අග දිනය දක්වා ඇති සියලුම දින ගොනු කරගැනීම
+        let allDates = (fromDate && toDate) ? getDatesInRange(fromDate, toDate) : Object.keys(dateMap).sort();
+        let dataValues = allDates.map(d => dateMap[d] || 0); // සේල්ස් නැති දිනවලට 0 වැටේ
 
         const ctx = document.getElementById('salesChart').getContext('2d');
         
@@ -177,16 +220,18 @@
         }
 
         salesChartInstance = new Chart(ctx, {
-            type: 'bar', // ඔබට 'line' ලෙසද වෙනස් කළ හැක
+            type: 'line', // දින අනුව වෙනස් වීම බලාගන්න 'line' chart එකක් වඩාත් ගැළපේ
             data: {
-                labels: labels,
+                labels: allDates,
                 datasets: [{
                     label: 'Daily Revenue (Rs.)',
                     data: dataValues,
-                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
                     borderColor: 'rgba(79, 70, 229, 1)',
-                    borderWidth: 1,
-                    borderRadius: 6
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                    fill: true,
+                    tension: 0.1
                 }]
             },
             options: {
@@ -195,31 +240,21 @@
                     legend: { display: true, position: 'top' }
                 },
                 scales: {
-                    y: { beginAtZero: true }
+                    y: { beginAtZero: true },
+                    x: { 
+                        ticks: { 
+                            maxRotation: 45, 
+                            minRotation: 45 
+                        } 
+                    }
                 }
             }
         });
     }
 
-    function filterReports() {
-        let from = document.getElementById('fromDate').value;
-        let to = document.getElementById('toDate').value;
-
-        currentFilteredOrders = allPaidOrders.filter(ord => {
-            let ordDate = ord.date ? ord.date.split('T')[0] : '';
-            if (from && ordDate < from) return false;
-            if (to && ordDate > to) return false;
-            return true;
-        });
-
-        renderReports(currentFilteredOrders);
-    }
-
     function resetFilter() {
-        document.getElementById('fromDate').value = '';
-        document.getElementById('toDate').value = '';
-        currentFilteredOrders = [...allPaidOrders];
-        renderReports(currentFilteredOrders);
+        setDefaultDates();
+        filterReports();
     }
 
     // Excel (CSV) ලෙස Download කරගැනීම
@@ -247,7 +282,7 @@
         document.body.removeChild(link);
     }
 
-    loadPaidOrders();
+    initReport();
 </script>
 
 <script>
