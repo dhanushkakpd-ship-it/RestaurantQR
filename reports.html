@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Reports & Analytics - CAFE DN</title>
+    <link rel="stylesheet" href="product-manage.css">
+    <!-- Chart.js CDN for Graphical Representation -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .card-box h3 { margin: 0; color: #64748b; font-size: 14px; }
+        .card-box p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #0f172a; }
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .chart-container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        @media print {
+            .btn, .filter-section, .header button, .chart-container { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Sales Reports & Analytics (Paid Orders)</h2>
+        <div>
+            <button class="btn" style="background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 8px;" onclick="exportToExcel()">📊 Export to Excel</button>
+            <button class="btn btn-add" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="report-summary">
+        <div class="card-box">
+            <h3>Total Paid Orders</h3>
+            <p id="totalOrders">0</p>
+        </div>
+        <div class="card-box">
+            <h3>Total Revenue</h3>
+            <p id="totalRevenue">Rs. 0</p>
+        </div>
+    </div>
+
+    <!-- Graphical Chart Section -->
+    <div class="chart-container">
+        <h3 style="margin-top: 0; margin-bottom: 15px; color: #334155; font-size: 16px;">📈 Sales Performance Chart</h3>
+        <canvas id="salesChart" height="90"></canvas>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label>From: <input type="date" id="fromDate" onchange="filterReports()"></label>
+            <label>To: <input type="date" id="toDate" onchange="filterReports()"></label>
+            <button class="btn" style="background: #cbd5e1; color: #334155; border:none; padding: 8px 12px; border-radius: 6px; cursor: pointer;" onclick="resetFilter()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer Name</th>
+                <th>Items & Details</th>
+                <th>Total Amount</th>
+                <th>Date / Time</th>
+            </tr>
+        </thead>
+        <tbody id="reportTbody"></tbody>
+    </table>
+</div>
+
+<script>
+    let allPaidOrders = [];
+    let currentFilteredOrders = [];
+    let salesChartInstance = null;
+
+    async function loadPaidOrders() {
+        try {
+            const res = await fetch('/api/orders?status=paid');
+            if (res.ok) {
+                allPaidOrders = await res.json();
+            } else {
+                // Test කිරීම සඳහා ඩිෆෝල්ට් දත්ත (Server එක නැති අවස්ථාවක)
+                allPaidOrders = JSON.parse(localStorage.getItem('paidOrders')) || [
+                    { id: 'ORD-101', customer: 'Kamal Perera', items: 'Chicken Fried Rice (x1)', total: 900, date: '2026-06-01' },
+                    { id: 'ORD-102', customer: 'Nimal Silva', items: 'Cheese Kottu (x2)', total: 2100, date: '2026-06-02' },
+                    { id: 'ORD-103', customer: 'Sunil Shantha', items: 'Mojito (x3)', total: 1200, date: '2026-06-05' }
+                ];
+            }
+            currentFilteredOrders = [...allPaidOrders];
+            renderReports(currentFilteredOrders);
+        } catch (e) {
+            console.error("Error loading reports:", e);
+        }
+    }
+
+    function renderReports(orders) {
+        const tbody = document.getElementById('reportTbody');
+        let totalRev = 0;
+
+        if (!orders || orders.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No paid orders found for this period.</td></tr>`;
+            document.getElementById('totalOrders').innerText = '0';
+            document.getElementById('totalRevenue').innerText = 'Rs. 0';
+            updateChart([]);
+            return;
+        }
+
+        tbody.innerHTML = orders.map(ord => {
+            totalRev += parseFloat(ord.total) || 0;
+            return `
+                <tr>
+                    <td><b>${ord.id}</b></td>
+                    <td>${ord.customer || 'Guest'}</td>
+                    <td>${ord.items || '-'}</td>
+                    <td>Rs. ${ord.total}</td>
+                    <td>${ord.date ? ord.date.replace('T', ' ') : '-'}</td>
+                </tr>
+            `;
+        }).join('');
+
+        document.getElementById('totalOrders').innerText = orders.length;
+        document.getElementById('totalRevenue').innerText = 'Rs. ' + totalRev.toLocaleString();
+        
+        // ග්‍රැෆ් එක යාවත්කාලීන කිරීම
+        updateChart(orders);
+    }
+
+    function updateChart(orders) {
+        // දින අනුව සේල්ස් එකතු කිරීම (Group by date)
+        let dateMap = {};
+        orders.forEach(ord => {
+            let d = ord.date ? ord.date.split('T')[0] : 'Unknown';
+            dateMap[d] = (dateMap[d] || 0) + (parseFloat(ord.total) || 0);
+        });
+
+        let labels = Object.keys(dateMap).sort();
+        let dataValues = labels.map(date => dateMap[date]);
+
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+
+        salesChartInstance = new Chart(ctx, {
+            type: 'bar', // ඔබට 'line' ලෙසද වෙනස් කළ හැක
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily Revenue (Rs.)',
+                    data: dataValues,
+                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function filterReports() {
+        let from = document.getElementById('fromDate').value;
+        let to = document.getElementById('toDate').value;
+
+        currentFilteredOrders = allPaidOrders.filter(ord => {
+            let ordDate = ord.date ? ord.date.split('T')[0] : '';
+            if (from && ordDate < from) return false;
+            if (to && ordDate > to) return false;
+            return true;
+        });
+
+        renderReports(currentFilteredOrders);
+    }
+
+    function resetFilter() {
+        document.getElementById('fromDate').value = '';
+        document.getElementById('toDate').value = '';
+        currentFilteredOrders = [...allPaidOrders];
+        renderReports(currentFilteredOrders);
+    }
+
+    // Excel (CSV) ලෙස Download කරගැනීම
+    function exportToExcel() {
+        if (!currentFilteredOrders || currentFilteredOrders.length === 0) {
+            alert('Export කිරීමට දත්ත නොමැත!');
+            return;
+        }
+
+        let csv = 'Order ID,Customer Name,Items,Total Amount,Date\n';
+        currentFilteredOrders.forEach(ord => {
+            let cust = (ord.customer || 'Guest').replace(/,/g, '');
+            let items = (ord.items || '').replace(/,/g, ' ');
+            let date = ord.date ? ord.date.replace('T', ' ') : '';
+            csv += `"${ord.id}","${cust}","${items}",${ord.total},"${date}"\n`;
+        });
+
+        let blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        let url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    loadPaidOrders();
+</script>
+
+<script>
+    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
+        window.location.href = "admin.html";
+    }
+</script>
+</body>
+</html>
