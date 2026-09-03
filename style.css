@@ -576,10 +576,34 @@ body {
     padding: 10px 0;
 }
 
-/* Header සහ Order Type tabs එකත් Sticky කිරීම සඳහා */
+/* 1. Header එක සාමාන්‍ය පරිදි ඉහළට ගොස් වැසී යාමට ඉඩ හැරීම (Sticky ඉවත් කිරීම) */
 header.header {
-    position: sticky;
-    top: 0;
-    z-index: 998;
-    background: #fff5f7; /* Background පාට එකම වීමට */
+    position: relative !important;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 98;
+}
+
+/* 2. Order Type Tabs සාමාන්‍ය පරිදි තැබීම */
+.order-type-tabs {
+    position: relative;
+    z-index: 98;
+}
+
+/* 3. Category Tabs පමණක් screen එකේ ඉහළම (top: 0) ස්ථාවරව (Sticky ව) තබා ගැනීම */
+#categoryTabs {
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    padding: 10px 16px !important;
+    scrollbar-width: none !important;
+    background: #ffffff !important; /* පසුබිම සම්පූර්ණ සුදු පාට වීමෙන් යටින් යන මෙනු නොපෙනී යයි */
+    border-bottom: 1px solid #fce7f3 !important;
+    position: sticky !important;
+    top: 0 !important; /* 🌟 හරියටම screen එකේ උඩම රඳවා ගැනීමට */
+    z-index: 999 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
+}
+
+#categoryTabs::-webkit-scrollbar {
+    display: none; 
 }
