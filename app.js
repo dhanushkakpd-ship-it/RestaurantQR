@@ -55,12 +55,11 @@ async function fetchShopStatus() {
             const data = await res.json();
             const newIsOpen = (typeof data.isOpen === 'boolean') ? data.isOpen : true;
             
-            // Shop Status එක වෙනස් වී ඇත්නම් පමණක් badge එක සහ products එකවර අප්ඩේට් කරන්න
             if (isShopOpen !== newIsOpen) {
                 isShopOpen = newIsOpen;
                 systemData.business.isOpen = isShopOpen;
                 updateStatusBadge();
-                renderProducts(); // තත්ත්වය වෙනස් වූ වහාම ප්‍රොඩක්ට් බටන්ස් අප්ඩේට් වේ
+                renderProducts(); 
             } else {
                 isShopOpen = newIsOpen;
                 systemData.business.isOpen = isShopOpen;
@@ -134,7 +133,9 @@ async function loadCategoriesForCart() {
     try {
         const res = await fetch('/api/categories');
         if (res.ok) {
-            categories = await res.json();
+            const data = await res.json();
+            // 🛠️ FIX: Category sortOrder අනුව පිළිවෙළට සකස් කිරීම (ascending)
+            categories = data.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
         }
     } catch (e) {
         console.error("Error loading categories for cart:", e);
@@ -278,7 +279,18 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
-    if (currentCategory !== 'all') {
+    // 🛠️ FIX: "All" select කර ඇති විට, Category වල sortOrder පිළිවෙළට අනුව products ත් පිළිවෙළට සකස් කිරීම
+    if (currentCategory === 'all') {
+        visibleProducts.sort((a, b) => {
+            const catA = categories.find(c => c.id === a.category || c.name === a.category);
+            const catB = categories.find(c => c.id === b.category || c.name === b.category);
+            
+            const orderA = catA && catA.sortOrder !== undefined ? Number(catA.sortOrder) : 9999;
+            const orderB = catB && catB.sortOrder !== undefined ? Number(catB.sortOrder) : 9999;
+            
+            return orderA - orderB;
+        });
+    } else {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
     }
 
