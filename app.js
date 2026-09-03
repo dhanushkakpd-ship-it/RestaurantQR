@@ -227,10 +227,7 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    // 🛠️ FIX: Category section එක sticky කර ඉහළින්ම පෙනෙන සේ සැකසීම
-    container.style.position = 'sticky';
-    container.style.top = '0';
-    container.style.zIndex = '999';
+      
     container.style.background = '#fff5f7'; // Background එක සකස් කිරීම
     container.style.padding = '8px 0';
     container.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
