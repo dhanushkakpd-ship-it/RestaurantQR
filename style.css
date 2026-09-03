@@ -576,31 +576,36 @@ body {
     padding: 10px 0;
 }
 
-/* 1. Header එක සාමාන්‍ය පරිදි ඉහළට ගොස් වැසී යාමට ඉඩ හැරීම (Sticky ඉවත් කිරීම) */
+/* 1. Shop details (Header එක) Screen එකේ උඩම ස්ථාවරව තබා ගැනීම */
 header.header {
-    position: relative !important;
-    background: rgba(255, 255, 255, 0.95);
-    z-index: 98;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #fce7f3;
 }
 
-/* 2. Order Type Tabs සාමාන්‍ය පරිදි තැබීම */
+/* 2. Order Type Tabs - පහළට scroll කරන විට උඩට ගොස් නොපෙනී යාමට සැලැස්වීම */
 .order-type-tabs {
-    position: relative;
-    z-index: 98;
+    position: relative !important;
+    background: #fdf2f8;
+    z-index: 97;
 }
 
-/* 3. Category Tabs පමණක් screen එකේ ඉහළම (top: 0) ස්ථාවරව (Sticky ව) තබා ගැනීම */
+/* 3. Category Tabs - Shop details වලට හරියටම පහළින් (top: 75px) ස්ථාවරව තබා ගැනීම */
 #categoryTabs {
     display: flex !important;
     gap: 6px !important;
     overflow-x: auto !important;
     padding: 10px 16px !important;
     scrollbar-width: none !important;
-    background: #ffffff !important; /* පසුබිම සම්පූර්ණ සුදු පාට වීමෙන් යටින් යන මෙනු නොපෙනී යයි */
+    background: #ffffff !important;
     border-bottom: 1px solid #fce7f3 !important;
+    
+    /* 🌟 වැදගත්ම කොටස: Header එකට පහළින් ස්ථාවර වීම */
     position: sticky !important;
-    top: 0 !important; /* 🌟 හරියටම screen එකේ උඩම රඳවා ගැනීමට */
-    z-index: 999 !important;
+    top: 75px !important; /* Header එකේ උස අනුව මෙය 70px හෝ 80px ලෙස අවශ්‍ය නම් වෙනස් කළ හැක */
+    z-index: 99 !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
 }
 
