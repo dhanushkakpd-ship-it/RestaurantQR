@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCategoriesForCart();
     await loadProductsFromServer();
     checkMyOrderStatus();
-    initScrollSpy(); // Scroll spy එක ආරම්භ කිරීම
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -135,6 +134,7 @@ async function loadCategoriesForCart() {
         const res = await fetch('/api/categories');
         if (res.ok) {
             const data = await res.json();
+            // 🛠️ FIX: Category sortOrder අනුව පිළිවෙළට සකස් කිරීම (ascending)
             categories = data.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
         }
     } catch (e) {
@@ -227,11 +227,6 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    // 🛠️ FIX: Sticky ඉවත් කර සාමාන්‍ය පරිදි shop details වලට පහළින් දිස්වන සේ සකසා ඇත
-    container.style.position = 'static';
-    container.style.background = 'transparent';
-    container.style.boxShadow = 'none';
-
     let categoriesList = categories;
 
     if (!categoriesList || categoriesList.length === 0) {
@@ -284,6 +279,7 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
+    // 🛠️ FIX: "All" select කර ඇති විට, Category වල sortOrder පිළිවෙළට අනුව products ත් පිළිවෙළට සකස් කිරීම
     if (currentCategory === 'all') {
         visibleProducts.sort((a, b) => {
             const catA = categories.find(c => c.id === a.category || c.name === a.category);
@@ -313,7 +309,7 @@ function renderProducts() {
             : '';
 
         return `
-            <div class="product-card" data-category="${product.category || 'General'}" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
+            <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
                     <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
@@ -348,40 +344,6 @@ function renderProducts() {
             </div>
         `;
     }).join('');
-}
-
-function initScrollSpy() {
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (currentCategory !== 'all') return; 
-
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            const cards = document.querySelectorAll('.product-card');
-            let activeCat = null;
-
-            for (let card of cards) {
-                const rect = card.getBoundingClientRect();
-                if (rect.top <= 200 && rect.bottom >= 100) {
-                    activeCat = card.getAttribute('data-category');
-                    break;
-                }
-            }
-
-            if (activeCat) {
-                const tabButtons = document.querySelectorAll('.cat-tab');
-                tabButtons.forEach(btn => {
-                    const onclickAttr = btn.getAttribute('onclick') || '';
-                    if (onclickAttr.includes(`'${activeCat}'`)) {
-                        btn.classList.add('active');
-                        btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-            }
-        }, 100);
-    });
 }
 
 function changeQty(productId, change) {
