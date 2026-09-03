@@ -595,9 +595,9 @@ header.header {
 /* 3. Category Tabs - Shop details වලට හරියටම පහළින් (top: 75px) ස්ථාවරව තබා ගැනීම */
 #categoryTabs {
     display: flex !important;
-    gap: 6px !important;
+    gap: 0px !important;
     overflow-x: auto !important;
-    padding: 100px 16px !important;
+    padding: 10px 16px !important;
     scrollbar-width: none !important;
     background: #ffffff !important;
     border-bottom: 1px solid #fce7f3 !important;
