@@ -227,8 +227,7 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-   
-    container.style.background = '#fff5f7'; // Background එක සකස් කිරීම
+    container.style.background = '#fff5f7'; 
     container.style.padding = '8px 0';
     container.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
 
@@ -356,7 +355,6 @@ function initScrollSpy() {
     window.addEventListener('scroll', () => {
         if (currentCategory !== 'all') return; 
 
-        // 🌟 1. පාරිභෝගිකයා උඩටම (Top එකට) වේගයෙන් පැමිණි විට ක්ෂණිකව පළමු ටැබ් එක Select වීම
         if (window.scrollY < 50) {
             const tabButtons = document.querySelectorAll('.cat-tab');
             tabButtons.forEach((btn, index) => {
@@ -367,10 +365,9 @@ function initScrollSpy() {
                     btn.classList.remove('active');
                 }
             });
-            return; // උඩටම පැමිණ ඇති නිසා පහළ timeout එක ක්‍රියාත්මක වීම අවශ්‍ය නැත
+            return; 
         }
 
-        // 2. සාමාන්‍ය පරිදි පහළට scroll කරන විට ක්‍රියාත්මක වන කොටස (Debounce සමඟ)
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             const cards = document.querySelectorAll('.product-card');
@@ -445,6 +442,26 @@ function updateCartUI() {
 
     const grandTotal = subtotal + totalTakeAwayCharges;
 
+    // 🌟 View Order ඇතුළේ Order Type එක සහ Pick-up time පෙන්නුම් කිරීම යාවත්කාලීන කිරීම
+    const displaySpan = document.getElementById('selected-order-type-display');
+    const timeContainer = document.getElementById('pickup-time-container');
+
+    if (displaySpan) {
+        if (currentOrderType === 'takeaway') {
+            displaySpan.textContent = '🛍️ Takeaway';
+        } else {
+            displaySpan.textContent = '♨ Dine-in';
+        }
+    }
+
+    if (timeContainer) {
+        if (currentOrderType === 'takeaway') {
+            timeContainer.style.display = 'block';
+        } else {
+            timeContainer.style.display = isTableQR ? 'none' : 'block';
+        }
+    }
+
     const cartBar = document.getElementById('cart-bar');
     if (cartBar) {
         if (totalItems > 0 && isShopOpen) {
@@ -495,11 +512,7 @@ function toggleCart() {
     if (details) {
         details.style.display = details.style.display === 'block' ? 'none' : 'block';
     }
-
-    const timeContainer = document.getElementById('pickup-time-container');
-    if (timeContainer) {
-        timeContainer.style.display = isTableQR ? 'none' : 'block';
-    }
+    updateCartUI(); // කාට් එක විවෘත වන විට Order Type සහ අනෙකුත් විස්තර නිවැරදිව පෙන්වීමට
 }
 
 function setOrderType(type, eventObj) {
@@ -551,15 +564,16 @@ function openOrderModal() {
     }
 
     const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
-    if (!isTableQR && !timeInput) {
+    const isTakeaway = (currentOrderType === 'takeaway');
+
+    if (isTakeaway && !isTableQR && !timeInput) {
         showCustomAlert('කරුණාකර ඔබ ඇණවුම ලබා ගැනීමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
         return;
     }
 
-    const isTakeaway = (currentOrderType === 'takeaway');
     let displayTableType = '';
     if (isTableQR) {
-        displayTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
+        displayTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber} (Dine-in)`;
     } else {
         displayTableType = isTakeaway ? 'Takeaway (Shop)' : 'Dine-in (Shop)';
     }
@@ -681,20 +695,19 @@ function submitOrder(sendWhatsApp) {
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
-    if (!isTableQR && !pickupTimeInput) {
+    const isTakeaway = (currentOrderType === 'takeaway');
+    if (isTakeaway && !isTableQR && !pickupTimeInput) {
         showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
         return;
     }
 
     const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
 
-    const isTakeaway = (currentOrderType === 'takeaway');
     let finalTableType = '';
-
     if (isTableQR) {
-        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
+        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber} (Dine-in)`;
     } else {
-        finalTableType = isTakeaway ? 'Takeaway' : 'Dine-in (Shop)';
+        finalTableType = isTakeaway ? 'Takeaway (Shop)' : 'Dine-in (Shop)';
     }
 
     const finalOrderTypeStr = isTakeaway ? 'Takeaway' : 'Dine-in';
