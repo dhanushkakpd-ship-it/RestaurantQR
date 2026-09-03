@@ -63,7 +63,7 @@ body {
 .order-type-tabs {
     display: flex;
     background: #fdf2f8;
-    margin: 0px 16px;
+    margin: 2px 16px;
     padding: 4px;
     border-radius: 10px;
     gap: 4px;
