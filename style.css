@@ -597,7 +597,7 @@ header.header {
     display: flex !important;
     gap: 6px !important;
     overflow-x: auto !important;
-    padding: 10px 16px !important;
+    padding: 4px 16px !important;
     scrollbar-width: none !important;
     background: #ffffff !important;
     border-bottom: 1px solid #fce7f3 !important;
