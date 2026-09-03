@@ -350,12 +350,27 @@ function renderProducts() {
     }).join('');
 }
 
-// 🛠️ Scroll Spy Function: පාරිභෝගිකයා පහළට scroll කරන විට අදාළ category එක auto select වීම
+// 🛠️ Scroll Spy Function: පාරිභෝගිකයා පහළට/ඉහළට scroll කරන විට අදාළ category එක auto select වීම
 function initScrollSpy() {
     let scrollTimeout;
     window.addEventListener('scroll', () => {
         if (currentCategory !== 'all') return; 
 
+        // 🌟 1. පාරිභෝගිකයා උඩටම (Top එකට) වේගයෙන් පැමිණි විට ක්ෂණිකව පළමු ටැබ් එක Select වීම
+        if (window.scrollY < 50) {
+            const tabButtons = document.querySelectorAll('.cat-tab');
+            tabButtons.forEach((btn, index) => {
+                if (index === 0) {
+                    btn.classList.add('active');
+                    btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            return; // උඩටම පැමිණ ඇති නිසා පහළ timeout එක ක්‍රියාත්මක වීම අවශ්‍ය නැත
+        }
+
+        // 2. සාමාන්‍ය පරිදි පහළට scroll කරන විට ක්‍රියාත්මක වන කොටස (Debounce සමඟ)
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             const cards = document.querySelectorAll('.product-card');
