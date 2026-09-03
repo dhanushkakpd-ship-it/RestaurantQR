@@ -6,7 +6,7 @@
     <title>Category Management - Admin</title>
     <style>
         body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .container { max-width: 750px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .container { max-width: 850px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         h2 { color: #1e293b; margin-bottom: 20px; }
         .form-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
         input[type="text"], input[type="number"], input[type="file"] { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; }
@@ -22,14 +22,15 @@
 <body>
 
 <div class="container">
-    <h2>📂 Category Management & Take Away Charges</h2>
+    <h2>📂 Category Management & Display Order</h2>
     
     <!-- Form -->
     <div class="form-group">
         <input type="hidden" id="edit-id">
         <input type="hidden" id="existing-image">
         <input type="text" id="cat-name" placeholder="Category Name (e.g., Juice)" style="flex: 2;">
-        <input type="number" id="cat-charge" placeholder="Take Away Charge (Rs.)" style="flex: 1; min-width: 130px;" step="0.01">
+        <input type="number" id="cat-charge" placeholder="Take Away Charge (Rs.)" style="flex: 1; min-width: 120px;" step="0.01">
+        <input type="number" id="cat-order" placeholder="Display Order (e.g., 1)" style="flex: 1; min-width: 110px;">
         <input type="file" id="cat-file" accept="image/*" style="flex: 2;">
         <button id="add-btn" onclick="saveCategory()">Add</button>
         <button id="cancel-btn" onclick="clearForm()" style="display:none; background:#94a3b8; color:white;">Cancel</button>
@@ -42,6 +43,7 @@
                 <th style="width: 60px;">Image</th>
                 <th>Name</th>
                 <th>Take Away Charge</th>
+                <th style="width: 80px;">Order</th>
                 <th style="text-align: right;">Actions</th>
             </tr>
         </thead>
@@ -52,7 +54,7 @@
 <script>
     let categories = [];
 
-    // Base64 Fallback Image (Quote ගැටලු මඟහරවා ගැනීමට)
+    // Base64 Fallback Image
     const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
 
     async function fetchCategories() {
@@ -67,9 +69,9 @@
 
         if (!categories || categories.length === 0) {
             categories = [
-                { id: 'juice', name: 'Juice', image: '', takeawayCharge: 0 },
-                { id: 'milkshake', name: 'Milkshake', image: '', takeawayCharge: 0 },
-                { id: 'rice', name: 'Rice', image: '', takeawayCharge: 0 }
+                { id: 'juice', name: 'Juice', image: '', takeawayCharge: 0, sortOrder: 1 },
+                { id: 'milkshake', name: 'Milkshake', image: '', takeawayCharge: 0, sortOrder: 2 },
+                { id: 'rice', name: 'Rice', image: '', takeawayCharge: 0, sortOrder: 3 }
             ];
         }
 
@@ -79,6 +81,14 @@
     function render() {
         const tbody = document.getElementById('cat-table');
         if(!tbody) return;
+
+        // sortOrder එක අනුව පිළිවෙළට සකස් කිරීම (ascending order)
+        categories.sort((a, b) => {
+            let orderA = (a.sortOrder !== undefined && a.sortOrder !== null && a.sortOrder !== "") ? Number(a.sortOrder) : 999;
+            let orderB = (b.sortOrder !== undefined && b.sortOrder !== null && b.sortOrder !== "") ? Number(b.sortOrder) : 999;
+            return orderA - orderB;
+        });
+
         tbody.innerHTML = categories.map(c => `
             <tr>
                 <td>
@@ -86,6 +96,7 @@
                 </td>
                 <td style="font-weight: 600; color: #1e293b;">${c.name}</td>
                 <td style="color: #64748b; font-weight: 500;">Rs. ${Number(c.takeawayCharge || 0).toFixed(2)}</td>
+                <td style="color: #475569; font-weight: 600;">${c.sortOrder !== undefined && c.sortOrder !== null ? c.sortOrder : '-'}</td>
                 <td style="text-align: right;">
                     <button class="edit-btn" onclick="editCat('${c.id}')">Edit</button>
                     <button class="del-btn" onclick="deleteCat('${c.id}')">Delete</button>
@@ -98,6 +109,7 @@
         const idInput = document.getElementById('edit-id').value;
         const name = document.getElementById('cat-name').value.trim();
         const charge = parseFloat(document.getElementById('cat-charge').value) || 0;
+        const sortOrder = document.getElementById('cat-order').value;
         const fileInput = document.getElementById('cat-file');
         const existingImage = document.getElementById('existing-image').value;
         
@@ -106,6 +118,7 @@
         const formData = new FormData();
         formData.append('name', name);
         formData.append('takeawayCharge', charge);
+        formData.append('sortOrder', sortOrder !== "" ? Number(sortOrder) : 0);
         
         if(idInput) {
             formData.append('id', idInput);
@@ -128,7 +141,7 @@
                 clearForm();
                 fetchCategories(); 
             } else {
-                alert("දෝෂයක් සිදු විය: " + (result.message || "Unknown error"));
+                alert("දෝෂයක් සිදු විය: "  + (result.message || "Unknown error"));
             }
         } catch (err) {
             console.error("Save error:", err);
@@ -142,6 +155,7 @@
         document.getElementById('edit-id').value = cat.id;
         document.getElementById('cat-name').value = cat.name;
         document.getElementById('cat-charge').value = cat.takeawayCharge || 0;
+        document.getElementById('cat-order').value = cat.sortOrder !== undefined ? cat.sortOrder : '';
         document.getElementById('existing-image').value = cat.image || '';
         document.getElementById('cat-file').value = '';
         document.getElementById('add-btn').innerText = "Update";
@@ -169,6 +183,7 @@
         document.getElementById('edit-id').value = "";
         document.getElementById('cat-name').value = "";
         document.getElementById('cat-charge').value = "";
+        document.getElementById('cat-order').value = "";
         document.getElementById('existing-image').value = "";
         document.getElementById('cat-file').value = "";
         document.getElementById('add-btn').innerText = "Add";
@@ -181,10 +196,9 @@
 <script>
     // පරිශීලකයා ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
     if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "index.html"; // ලොගින් පිටුවට හරවා යැවීම
+        window.location.href = "index.html"; 
     }
 </script>
-
 
 </body>
 </html>
