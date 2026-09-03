@@ -38,13 +38,7 @@
         </div>
     </header>
 
-    <!-- Order Type Selector -->
-    <div class="order-type-tabs" id="order-type-tabs">
-        <button class="tab-btn active" onclick="setOrderType('dinein')">♨ Dine-in</button>
-        <button class="tab-btn" onclick="setOrderType('takeaway')">🛍️ Takeaway</button>
-    </div>
-
-    <!-- 🌟 1. මෙනුවට ඉහළින් (Category tabs වලට උඩින්) Live Order Tracker එක මෙහි තබා ඇත -->
+    <!-- Live Order Tracker -->
     <div id="live-order-tracker" style="display: none; margin: 7px auto; width: 95%; max-width: 600px;"></div>
 
     <!-- Categories Tabs Container -->
@@ -55,7 +49,7 @@
     <!-- Product List Container -->
     <main class="menu-container">
         <div id="product-list" class="product-grid">
-            <!-- Products will be dynamically loaded from app.js -->
+            <!-- Products will be dynamically loaded -->
         </div>
     </main>
 
@@ -75,10 +69,13 @@
             <h3>🛒 Your Selected Items</h3>
             <div id="cart-items-container" class="cart-items-list"></div>
 
-            <!-- 🌟 Order Type Display Box Added Here -->
-            <div style="background: #fdf2f8; padding: 8px 12px; border-radius: 8px; margin: 10px 0; border: 1px solid #fce7f3; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
-                <span style="color: #475569; font-weight: 600;">🍽️ Order Type:</span>
-                <span id="selected-order-type-display" style="color: #db2777; font-weight: 700; background: #fff; padding: 3px 10px; border-radius: 6px; border: 1px solid #fce7f3;">Dine-in</span>
+            <!-- 🌟 View Order ඇතුළෙන්ම Order Type එක මාරු කිරීමට බොත්තම් (Dine-in / Takeaway) -->
+            <div style="margin: 12px 0; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px;">🍽️ Select Order Type:</label>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btn-dinein-opt" onclick="setOrderType('dinein')" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem;">♨ Dine-in</button>
+                    <button type="button" id="btn-takeaway-opt" onclick="setOrderType('takeaway')" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: bold; cursor: pointer; font-size: 0.85rem;">🛍️ Takeaway</button>
+                </div>
             </div>
 
             <div class="cart-input-group">
@@ -89,8 +86,8 @@
                 <input type="tel" id="cust-phone" placeholder="e.g. 0771234567">
             </div>
 
-            <!-- Pick-up Time Input -->
-            <div class="cart-input-group" id="pickup-time-container">
+            <!-- Pick-up Time Input (Takeaway නම් පමණක් පෙන්වයි) -->
+            <div class="cart-input-group" id="pickup-time-container" style="display: none;">
                 <label for="cust-time">🕒 Pick-up Time (රැගෙන යන වෙලාව):</label>
                 <input type="time" id="cust-time">
             </div>
@@ -99,16 +96,14 @@
         </div>
     </div>
 
-    <!-- 🌟 Order Summary Popup Modal 🌟 -->
+    <!-- Order Summary Popup Modal -->
     <div id="order-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>🧾 Order Review</h3>
                 <span class="close-modal" onclick="closeOrderModal()">&times;</span>
             </div>
-            <div id="modal-body" class="modal-body">
-                <!-- Summary details will appear here -->
-            </div>
+            <div id="modal-body" class="modal-body"></div>
             <div class="modal-actions">
                 <button class="btn-modal btn-confirm" onclick="submitOrder(false)">
                     ✅ Confirm Order Only
@@ -122,55 +117,5 @@
 
     <!-- App JS Link -->
     <script src="app.js"></script>
-
-    <!-- 🌟 Order Status & Tab Visibility Helper Script 🌟 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const timeContainer = document.getElementById('pickup-time-container');
-            
-            function updateVisibility() {
-                if (!timeContainer) return;
-                if (typeof isTableQR !== 'undefined' && isTableQR) {
-                    timeContainer.style.display = 'none';
-                    return;
-                }
-                const activeTab = document.querySelector('.tab-btn.active');
-                if (activeTab && activeTab.textContent.includes('Takeaway')) {
-                    timeContainer.style.display = 'block';
-                } else {
-                    timeContainer.style.display = 'none';
-                }
-            }
-
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('.tab-btn')) {
-                    setTimeout(updateVisibility, 50);
-                }
-            });
-
-            setTimeout(updateVisibility, 200);
-
-            setTimeout(() => {
-                if (typeof window.openOrderModal === 'function') {
-                    const originalOpenOrderModal = window.openOrderModal;
-                    window.openOrderModal = function() {
-                        originalOpenOrderModal(); 
-                        
-                        setTimeout(() => {
-                            const modalBody = document.getElementById('modal-body');
-                            const timeInput = document.getElementById('cust-time');
-                            
-                            if (modalBody && timeInput && timeContainer && timeContainer.style.display !== 'none') {
-                                const timeVal = timeInput.value ? timeInput.value : 'ASAP';
-                                if (!modalBody.innerHTML.includes('Pick-up Time')) {
-                                    modalBody.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc;">🕒 <b>Pick-up Time:</b> ${timeVal}</div>`;
-                                }
-                            }
-                        }, 50);
-                    };
-                }
-            }, 300);
-        });
-    </script>
 </body>
 </html>

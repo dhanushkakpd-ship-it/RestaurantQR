@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Cleaned, Fixed & Smart Updated) ---
+// --- CAFE DN - Customer App JavaScript (Updated for In-Cart Order Type Selection) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -15,14 +15,14 @@ let isTableQR = false;
 let tableNumber = "";
 let isShopOpen = true; 
 let latestActiveOrders = []; 
-let lastProductDataJson = ""; // ප්‍රොඩක්ට් ඩේටා වෙනස්වීම් පරීක්ෂා කිරීමට
+let lastProductDataJson = ""; 
 
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchShopStatus();
     await loadCategoriesForCart();
     await loadProductsFromServer();
     checkMyOrderStatus();
-    initScrollSpy(); // 🛠️ Scroll Spy එක ආරම්භ කිරීම (Auto Category Selection සඳහා)
+    initScrollSpy();
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -34,15 +34,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     tableNumber = urlParams.get('table');
 
-    const orderTypeTabs = document.getElementById('order-type-tabs');
-
     if (tableNumber) {
         isTableQR = true;
         currentOrderType = 'dinein';
-        if (orderTypeTabs) orderTypeTabs.style.display = 'flex'; 
     } else {
-        if (orderTypeTabs) orderTypeTabs.style.display = 'flex';
-        showOrderTypePopup();
+        showOrderTypePopup(); // Outside QR නම් මුලින්ම Popup එක මඟින් අසයි
     }
 
     updateTableBadgeUI();
@@ -74,47 +70,20 @@ async function fetchShopStatus() {
 
 function updateStatusBadge() {
     const badge = document.querySelector('.badge-status');
-    const orderTypeTabs = document.getElementById('order-type-tabs'); 
-    const tabButtons = document.querySelectorAll('.tab-btn'); 
-
     if (badge) {
         if (isShopOpen) {
             badge.innerHTML = "🟢 Open Now";
             badge.style.color = "#16a34a"; 
-
-            if (orderTypeTabs) {
-                orderTypeTabs.style.pointerEvents = 'auto';
-                orderTypeTabs.style.opacity = '1';
-            }
-
-            tabButtons.forEach(btn => {
-                btn.disabled = false;
-                btn.style.cursor = 'pointer';
-            });
-
         } else {
             badge.innerHTML = "🔴 Shop Closed";
             badge.style.color = "#dc2626"; 
-
-            if (orderTypeTabs) {
-                orderTypeTabs.style.pointerEvents = 'none'; 
-                orderTypeTabs.style.opacity = '0.5';        
-            }
-
-            tabButtons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.cursor = 'not-allowed'; 
-            });
 
             const cartDetails = document.getElementById('cart-details');
             if (cartDetails && cartDetails.style.display === 'block') {
                 toggleCart();
             }
-
             const cartBar = document.getElementById('cart-bar');
-            if (cartBar) {
-                cartBar.style.display = 'none';
-            }
+            if (cartBar) cartBar.style.display = 'none';
         }
     }
 }
@@ -126,7 +95,7 @@ function updateTableBadgeUI() {
     if (isTableQR) {
         tableBadge.innerText = `📍 Table ${tableNumber} (${currentOrderType === 'takeaway' ? 'Takeaway' : 'Dine-in'})`;
     } else {
-        tableBadge.innerText = currentOrderType === 'takeaway' ? `📍 Takeaway` : `📍 Dine-in (Shop)`;
+        tableBadge.innerText = currentOrderType === 'takeaway' ? `📍 Takeaway (Shop)` : `📍 Dine-in (Shop)`;
     }
 }
 
@@ -149,7 +118,6 @@ async function loadProductsFromServer() {
             const data = await response.json();
             if (data && data.length > 0) {
                 const currentDataJson = JSON.stringify(data);
-                
                 if (currentDataJson !== lastProductDataJson) {
                     lastProductDataJson = currentDataJson;
                     systemData.products = data;
@@ -208,19 +176,15 @@ function showOrderTypePopup() {
 function selectExternalOrderType(type) {
     currentOrderType = type;
     updateTableBadgeUI(); 
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        const btnText = btn.innerText.toLowerCase();
-        if (btnText.includes(type) || (type === 'dinein' && btnText.includes('dine'))) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
     const popup = document.getElementById('order-type-popup');
     if (popup) popup.remove();
     updateCartUI(); 
+}
+
+function setOrderType(type) {
+    currentOrderType = type;
+    updateTableBadgeUI();
+    updateCartUI();
 }
 
 function renderCategoryTabs() {
@@ -232,7 +196,6 @@ function renderCategoryTabs() {
     container.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
 
     let categoriesList = categories;
-
     if (!categoriesList || categoriesList.length === 0) {
         categoriesList = [
             { id: 'juice', name: 'Juice', image: '' },
@@ -287,10 +250,8 @@ function renderProducts() {
         visibleProducts.sort((a, b) => {
             const catA = categories.find(c => c.id === a.category || c.name === a.category);
             const catB = categories.find(c => c.id === b.category || c.name === b.category);
-            
             const orderA = catA && catA.sortOrder !== undefined ? Number(catA.sortOrder) : 9999;
             const orderB = catB && catB.sortOrder !== undefined ? Number(catB.sortOrder) : 9999;
-            
             return orderA - orderB;
         });
     } else {
@@ -305,22 +266,16 @@ function renderProducts() {
     container.innerHTML = visibleProducts.map(product => {
         const isProductUnavailable = (product.available === false || product.available === "false");
         const isDisabled = !isShopOpen || isProductUnavailable;
-
         const hasValidBadge = product.badge && product.badge !== "0" && product.badge.trim() !== "" && product.badge.toLowerCase() !== "none";
-        const badgeHtml = hasValidBadge 
-            ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
-            : '';
+        const badgeHtml = hasValidBadge ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` : '';
 
         return `
             <div class="product-card" data-category="${product.category || 'General'}" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
                     <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
-                    
                     ${badgeHtml}
-                    
                     <p class="desc" style="margin-top: ${hasValidBadge ? '0' : '4px'};">${product.desc || ''}</p>
-                    
                     <div class="price-box" style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
                         <span class="current-price" style="white-space: nowrap;">Rs. ${Number(product.price).toFixed(0)}</span>
                         ${product.oldPrice ? `<span class="old-price" style="white-space: nowrap;">Rs. ${Number(product.oldPrice).toFixed(0)}</span>` : ''}
@@ -349,12 +304,10 @@ function renderProducts() {
     }).join('');
 }
 
-// 🛠️ Scroll Spy Function: පාරිභෝගිකයා පහළට/ඉහළට scroll කරන විට අදාළ category එක auto select වීම
 function initScrollSpy() {
     let scrollTimeout;
     window.addEventListener('scroll', () => {
         if (currentCategory !== 'all') return; 
-
         if (window.scrollY < 50) {
             const tabButtons = document.querySelectorAll('.cat-tab');
             tabButtons.forEach((btn, index) => {
@@ -372,7 +325,6 @@ function initScrollSpy() {
         scrollTimeout = setTimeout(() => {
             const cards = document.querySelectorAll('.product-card');
             let activeCat = null;
-
             for (let card of cards) {
                 const rect = card.getBoundingClientRect();
                 if (rect.top <= 200 && rect.bottom >= 100) {
@@ -380,7 +332,6 @@ function initScrollSpy() {
                     break;
                 }
             }
-
             if (activeCat) {
                 const tabButtons = document.querySelectorAll('.cat-tab');
                 tabButtons.forEach(btn => {
@@ -442,25 +393,39 @@ function updateCartUI() {
 
     const grandTotal = subtotal + totalTakeAwayCharges;
 
-    // 🌟 View Order ඇතුළේ Order Type එක සහ Pick-up time පෙන්නුම් කිරීම යාවත්කාලීන කිරීම
-    const displaySpan = document.getElementById('selected-order-type-display');
-    const timeContainer = document.getElementById('pickup-time-container');
+    // View Order ඇතුළේ ඇති Dine-in / Takeaway බටන් වල ස්ටයිල් යාවත්කාලීන කිරීම
+    const btnDineIn = document.getElementById('btn-dinein-opt');
+    const btnTakeaway = document.getElementById('btn-takeaway-opt');
 
-    if (displaySpan) {
+    if (btnDineIn && btnTakeaway) {
         if (currentOrderType === 'takeaway') {
-            displaySpan.textContent = '🛍️ Takeaway';
+            btnTakeaway.style.background = '#10b981';
+            btnTakeaway.style.color = '#fff';
+            btnTakeaway.style.borderColor = '#10b981';
+
+            btnDineIn.style.background = '#fff';
+            btnDineIn.style.color = '#000';
+            btnDineIn.style.borderColor = '#cbd5e1';
         } else {
-            displaySpan.textContent = '♨ Dine-in';
+            btnDineIn.style.background = '#3b82f6';
+            btnDineIn.style.color = '#fff';
+            btnDineIn.style.borderColor = '#3b82f6';
+
+            btnTakeaway.style.background = '#fff';
+            btnTakeaway.style.color = '#000';
+            btnTakeaway.style.borderColor = '#cbd5e1';
         }
     }
 
+    // Pickup Time container පාලනය කිරීම
+    const timeContainer = document.getElementById('pickup-time-container');
     if (timeContainer) {
         if (currentOrderType === 'takeaway') {
             timeContainer.style.display = 'block';
         } else {
-            timeContainer.style.display = 'none';  // Dine-in නම් කුමන ක්‍රමයක් වුවත් Pickup Time සඟවන්න
+            timeContainer.style.display = 'none';
             const timeInput = document.getElementById('cust-time');
-            if (timeInput) timeInput.value = '';    // Dine-in වෙත මාරු වන විට වෙලාව Clear කරන්න
+            if (timeInput) timeInput.value = '';
         }
     }
 
@@ -482,7 +447,6 @@ function renderCartItemsList(takeawayCharges = 0) {
     if (!container) return;
 
     let html = '';
-
     for (let id in cart) {
         const prod = systemData.products.find(p => p.id == id);
         if (prod) {
@@ -514,25 +478,6 @@ function toggleCart() {
     if (details) {
         details.style.display = details.style.display === 'block' ? 'none' : 'block';
     }
-    updateCartUI(); // කාට් එක විවෘත වන විට Order Type සහ අනෙකුත් විස්තර නිවැරදිව පෙන්වීමට
-}
-
-function setOrderType(type, eventObj) {
-    currentOrderType = type;
-
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const targetBtn = eventObj || (window.event && window.event.target);
-    if (targetBtn) {
-        targetBtn.classList.add('active');
-    }
-
-    // Dine-in වෙත මාරු වුවහොත් Pickup time එක Clear කිරීම සහ Hide කිරීම
-    if (type === 'dinein') {
-        const timeInput = document.getElementById('cust-time');
-        if (timeInput) timeInput.value = '';
-    }
-
-    updateTableBadgeUI(); 
     updateCartUI();
 }
 
@@ -541,7 +486,6 @@ function openOrderModal() {
         showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් කළ නොහැක!');
         return;
     }
-
     if (Object.keys(cart).length === 0) {
         showCustomAlert('කරුණාකර අවම වශයෙන් එක් ආහාරයක් හෝ තෝරන්න!');
         return;
@@ -642,22 +586,8 @@ function openOrderModal() {
 }
 
 function closeOrderModal() {
-    const modal = document.getElementById('order-modal') || 
-                  document.getElementById('review-modal') || 
-                  document.getElementById('orderModal') ||
-                  document.querySelector('.order-modal') ||
-                  document.querySelector('.review-modal');
-
-    if (modal) {
-        modal.style.setProperty('display', 'none', 'important');
-        modal.classList.remove('active', 'show', 'open', 'visible');
-    }
-
-    const backdrops = document.querySelectorAll('.modal-backdrop, .overlay, .backdrop, .popup-overlay');
-    backdrops.forEach(b => {
-        b.style.setProperty('display', 'none', 'important');
-        b.remove();
-    });
+    const modal = document.getElementById('order-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 function showCustomAlert(message) {
@@ -770,10 +700,7 @@ function submitOrder(sendWhatsApp) {
         showCustomAlert('🎉 ඔබගේ ඇණවුම සාර්ථකව යැවුණා!');
         
         const orderModal = document.getElementById('order-modal');
-        if (orderModal) {
-            orderModal.style.setProperty('display', 'none', 'important');
-            orderModal.classList.remove('active', 'show', 'open', 'visible');
-        }
+        if (orderModal) orderModal.style.display = 'none';
 
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
@@ -836,7 +763,6 @@ async function checkMyOrderStatus() {
                         paidTimestamps[o.id] = currentTime;
                         localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
                     }
-
                     let elapsed = currentTime - paidTimestamps[o.id];
                     if (elapsed >= 60000) { 
                         myOrders = myOrders.filter(id => id !== o.id);
@@ -850,17 +776,11 @@ async function checkMyOrderStatus() {
                     localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
                     return false;
                 }
-
                 return true;
             });
 
             if (latestActiveOrders.length > 0) {
                 renderAllCustomerBadges(latestActiveOrders);
-                
-                const existingModal = document.getElementById('all-orders-popup-modal');
-                if (existingModal) {
-                    updateAllOrdersPopupContent(latestActiveOrders);
-                }
             } else {
                 if (trackerContainer) trackerContainer.style.display = 'none';
             }
@@ -880,7 +800,6 @@ function renderAllCustomerBadges(ordersList) {
     trackerContainer.style.maxWidth = '600px';
 
     const latestOrder = ordersList[ordersList.length - 1];
-    
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
     let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase();
     
@@ -888,27 +807,11 @@ function renderAllCustomerBadges(ordersList) {
     let textColor = '#854d0e';
     let statusText = 'Pending';
 
-    if (currentStatus === 'preparing') { 
-        statusColor = '#e0f2fe'; 
-        textColor = '#0284c7'; 
-        statusText = 'Preparing'; 
-    } else if (currentStatus === 'ready') { 
-        statusColor = '#dcfce7'; 
-        textColor = '#16a34a'; 
-        statusText = 'Ready!'; 
-    } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-        statusColor = '#ccfbf1'; 
-        textColor = '#0f766e'; 
-        statusText = 'Paid 💳'; 
-    } else if (currentStatus === 'completed') { 
-        statusColor = '#f1f5f9'; 
-        textColor = '#64748b'; 
-        statusText = 'Waiting for Payment'; 
-    } else if (currentStatus === 'cancelled') { 
-        statusColor = '#fee2e2'; 
-        textColor = '#ef4444'; 
-        statusText = 'Cancelled'; 
-    }
+    if (currentStatus === 'preparing') { statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; } 
+    else if (currentStatus === 'ready') { statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; } 
+    else if (currentStatus === 'paid' || paymentStatus === 'paid') { statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; } 
+    else if (currentStatus === 'completed') { statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; } 
+    else if (currentStatus === 'cancelled') { statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; }
 
     let otherOrdersHtml = '';
     if (ordersList.length > 1) {
@@ -923,7 +826,7 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    let html = `
+    trackerContainer.innerHTML = `
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                 <span>🔔 Live Order Status</span>
@@ -938,7 +841,6 @@ function renderAllCustomerBadges(ordersList) {
             </div>
         </div>
     `;
-    trackerContainer.innerHTML = html;
 }
 
 function showAllOrdersPopup() {
@@ -962,49 +864,21 @@ function showAllOrdersPopup() {
                         background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; font-weight: bold;
                     ">✕</button>
                 </div>
-                <div id="all-orders-list-container"></div>
+                <div id="all-orders-list-container">
+                    ${latestActiveOrders.map(order => `
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
+                            <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    updateAllOrdersPopupContent(latestActiveOrders);
-}
-
-function updateAllOrdersPopupContent(ordersList) {
-    const container = document.getElementById('all-orders-list-container');
-    if (!container) return;
-
-    container.innerHTML = ordersList.map(order => {
-        let currentStatus = (order.status || 'pending').toLowerCase();
-        let paymentStatus = (order.paymentStatus || '').toLowerCase();
-        
-        let statusColor = '#fef08a';
-        let textColor = '#854d0e';
-        let statusText = 'Pending';
-
-        if (currentStatus === 'preparing') { 
-            statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
-        } else if (currentStatus === 'ready') { 
-            statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
-        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-            statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
-        } else if (currentStatus === 'completed') { 
-            statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
-        } else if (currentStatus === 'cancelled') { 
-            statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
-        }
-
-        return `
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
-                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
-                </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
-                <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
-            </div>
-        `;
-    }).join('');
 }
 
 window.addEventListener('load', () => {
@@ -1012,9 +886,7 @@ window.addEventListener('load', () => {
         const loader = document.getElementById('app-loader');
         if (loader) {
             loader.classList.add('fade-out');
-            setTimeout(() => {
-                loader.style.display = 'none';
-            }, 500);
+            setTimeout(() => { loader.style.display = 'none'; }, 500);
         }
     }, 800);
 });
