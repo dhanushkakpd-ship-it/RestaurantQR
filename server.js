@@ -63,10 +63,12 @@ const Product = mongoose.model('Product', new mongoose.Schema({
     visible: { type: Boolean, default: true }
 }, { strict: false }));
 
+// 🛠️ FIX: Category Schema එකට sortOrder එකතු කරන ලදී
 const Category = mongoose.model('Category', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     takeawayCharge: { type: Number, default: 0 },
+    sortOrder: { type: Number, default: 0 }, // මෙතැනට sortOrder එකතු විය
     image: { type: String }
 }, { strict: false }));
 
@@ -124,7 +126,6 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
 
         let imagePath = existingImage || '';
         if (req.file) {
-            // Cloudinary වෙත Product Image එක Upload කිරීම
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/products');
             imagePath = uploadResult.secure_url;
         }
@@ -188,11 +189,11 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             return res.json({ success: true, message: 'Categories saved successfully', categories: savedCategories });
         }
 
-        const { id, name, takeawayCharge, existingImage } = req.body;
+        // 🛠️ FIX: req.body එකෙන් sortOrder එක ලබා ගැනීම
+        const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
 
         let imagePath = existingImage || '';
         if (req.file) {
-            // Cloudinary වෙත Category Image එක Upload කිරීම
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
             imagePath = uploadResult.secure_url;
         }
@@ -203,6 +204,7 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             id: categoryId,
             name: name || '',
             takeawayCharge: parseFloat(takeawayCharge) || 0,
+            sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0, // 🛠️ FIX: sortOrder අගය මෙහි ඇතුළත් වේ
             image: imagePath
         };
 
@@ -212,7 +214,7 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             { upsert: true, new: true }
         );
 
-        console.log('Category saved to DB with Cloudinary Image:', updatedCategory.name);
+        console.log('Category saved to DB with Cloudinary Image & Order:', updatedCategory.name);
         res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -289,7 +291,7 @@ app.delete('/api/orders', async (req, res) => {
     }
 });
 
-app.delete('/api/orders/:id', async (req, res) => {
+app.delete('/api/orders/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const result = await Order.deleteOne({ id: id });
@@ -365,7 +367,6 @@ mongoose.connect(MONGO_URI)
     .then(async () => {
         console.log('✅ MongoDB Database Connected Successfully!');
         
-        // ඩේටාබේස් එක සම්බන්ධ වූ පසු Default Admin සෑදීම
         await createDefaultAdmin();
 
         app.listen(PORT, () => {
