@@ -63,7 +63,7 @@ body {
 .order-type-tabs {
     display: flex;
     background: #fdf2f8;
-    margin: 7px 16px;
+    margin: 0px 16px;
     padding: 4px;
     border-radius: 10px;
     gap: 4px;
@@ -595,7 +595,7 @@ header.header {
 /* 3. Category Tabs - Shop details වලට හරියටම පහළින් (top: 75px) ස්ථාවරව තබා ගැනීම */
 #categoryTabs {
     display: flex !important;
-    gap: 0px !important;
+    gap: 6px !important;
     overflow-x: auto !important;
     padding: 10px 16px !important;
     scrollbar-width: none !important;
