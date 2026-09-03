@@ -458,7 +458,9 @@ function updateCartUI() {
         if (currentOrderType === 'takeaway') {
             timeContainer.style.display = 'block';
         } else {
-            timeContainer.style.display = isTableQR ? 'none' : 'block';
+            timeContainer.style.display = 'none';  // Dine-in නම් කුමන ක්‍රමයක් වුවත් Pickup Time සඟවන්න
+            const timeInput = document.getElementById('cust-time');
+            if (timeInput) timeInput.value = '';    // Dine-in වෙත මාරු වන විට වෙලාව Clear කරන්න
         }
     }
 
@@ -522,6 +524,12 @@ function setOrderType(type, eventObj) {
     const targetBtn = eventObj || (window.event && window.event.target);
     if (targetBtn) {
         targetBtn.classList.add('active');
+    }
+
+    // Dine-in වෙත මාරු වුවහොත් Pickup time එක Clear කිරීම සහ Hide කිරීම
+    if (type === 'dinein') {
+        const timeInput = document.getElementById('cust-time');
+        if (timeInput) timeInput.value = '';
     }
 
     updateTableBadgeUI(); 
@@ -616,7 +624,7 @@ function openOrderModal() {
                 <div>📍 <b>Type:</b> ${displayTableType}</div>
                 <div>👤 <b>Name:</b> ${nameInput}</div>
                 <div>📱 <b>Phone:</b> ${phoneInput || 'Not required'}</div>
-                <div>🕒 <b>Pickup Time:</b> ${timeInput || 'ASAP'}</div>
+                ${isTakeaway ? `<div>🕒 <b>Pickup Time:</b> ${timeInput || 'ASAP'}</div>` : ''}
             </div>
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
                 <p style="font-weight:700; color:#475569; margin-bottom:8px;">Order Items:</p>
@@ -739,7 +747,7 @@ function submitOrder(sendWhatsApp) {
         type: finalOrderTypeStr, 
         customerName: nameInput,
         phone: phoneInput || 'Not Provided',
-        pickupTime: pickupTimeInput || 'ASAP',
+        pickupTime: isTakeaway ? (pickupTimeInput || 'ASAP') : 'N/A',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'pending',
         subtotal: subtotal,
@@ -777,7 +785,7 @@ function submitOrder(sendWhatsApp) {
                             `📍 *Type:* ${finalTableType}\n` +
                             `👤 *Name:* ${nameInput}\n` +
                             `📱 *Phone:* ${phoneInput || 'N/A'}\n` +
-                            `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` +
+                            (isTakeaway ? `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` : `\n`) +
                             `🛒 *Items:*\n${itemText}\n\n` +
                             `💰 *Total Amount:* Rs. ${grandTotal.toFixed(2)}`;
 
