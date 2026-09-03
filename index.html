@@ -64,8 +64,8 @@
             </div>
         </div>
 
-        <!-- Cart Dropdown Details (Fixed for Keyboard Scrolling Issue) -->
-        <div id="cart-details" class="cart-details" style="display: none; max-height: 60vh; overflow-y: auto; padding-bottom: 20px;">
+        <!-- Cart Dropdown Details -->
+        <div id="cart-details" class="cart-details" style="display: none;">
             <h3>🛒 Your Selected Items</h3>
             <div id="cart-items-container" class="cart-items-list"></div>
 
@@ -117,19 +117,5 @@
 
     <!-- App JS Link -->
     <script src="app.js"></script>
-
-    <!-- Mobile Keypad Focus & Auto-scroll Fix Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const inputs = document.querySelectorAll('#cust-name, #cust-phone, #cust-time');
-            inputs.forEach(input => {
-                input.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                });
-            });
-        });
-    </script>
 </body>
 </html>
