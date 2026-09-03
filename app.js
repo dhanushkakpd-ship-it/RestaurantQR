@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Updated for In-Cart Order Type Selection) ---
+// --- CAFE DN - Customer App JavaScript (Complete & Updated) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         isTableQR = true;
         currentOrderType = 'dinein';
     } else {
-        showOrderTypePopup(); // Outside QR නම් මුලින්ම Popup එක මඟින් අසයි
+        isTableQR = false;
+        showOrderTypePopup(); 
     }
 
     updateTableBadgeUI();
@@ -393,7 +394,6 @@ function updateCartUI() {
 
     const grandTotal = subtotal + totalTakeAwayCharges;
 
-    // View Order ඇතුළේ ඇති Dine-in / Takeaway බටන් වල ස්ටයිල් යාවත්කාලීන කිරීම
     const btnDineIn = document.getElementById('btn-dinein-opt');
     const btnTakeaway = document.getElementById('btn-takeaway-opt');
 
@@ -417,10 +417,10 @@ function updateCartUI() {
         }
     }
 
-    // Pickup Time container පාලනය කිරීම
+    // Outside QR නම් Dine-in/Takeaway දෙකටම Pickup Time පෙන්වයි. Table QR නම් Takeaway වලදී පමණක් පෙන්වයි.
     const timeContainer = document.getElementById('pickup-time-container');
     if (timeContainer) {
-        if (currentOrderType === 'takeaway') {
+        if (!isTableQR || currentOrderType === 'takeaway') {
             timeContainer.style.display = 'block';
         } else {
             timeContainer.style.display = 'none';
@@ -493,6 +493,7 @@ function openOrderModal() {
 
     const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
+    const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     if (!nameInput) {
         showCustomAlert('කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!');
@@ -515,11 +516,11 @@ function openOrderModal() {
         }
     }
 
-    const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
     const isTakeaway = (currentOrderType === 'takeaway');
+    const needsTime = (!isTableQR) || (isTableQR && isTakeaway);
 
-    if (isTakeaway && !isTableQR && !timeInput) {
-        showCustomAlert('කරුණාකර ඔබ ඇණවුම ලබා ගැනීමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
+    if (needsTime && !timeInput) {
+        showCustomAlert('කරුණාකර ඔබ පැමිණෙන / ඇණවුම ලබා ගන්නා වේලාව තෝරන්න!');
         return;
     }
 
@@ -568,7 +569,7 @@ function openOrderModal() {
                 <div>📍 <b>Type:</b> ${displayTableType}</div>
                 <div>👤 <b>Name:</b> ${nameInput}</div>
                 <div>📱 <b>Phone:</b> ${phoneInput || 'Not required'}</div>
-                ${isTakeaway ? `<div>🕒 <b>Pickup Time:</b> ${timeInput || 'ASAP'}</div>` : ''}
+                ${needsTime ? `<div>🕒 <b>Time:</b> ${timeInput || 'ASAP'}</div>` : ''}
             </div>
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
                 <p style="font-weight:700; color:#475569; margin-bottom:8px;">Order Items:</p>
@@ -634,7 +635,9 @@ function submitOrder(sendWhatsApp) {
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    if (isTakeaway && !isTableQR && !pickupTimeInput) {
+    const needsTime = (!isTableQR) || (isTableQR && isTakeaway);
+
+    if (needsTime && !pickupTimeInput) {
         showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
         return;
     }
@@ -677,7 +680,7 @@ function submitOrder(sendWhatsApp) {
         type: finalOrderTypeStr, 
         customerName: nameInput,
         phone: phoneInput || 'Not Provided',
-        pickupTime: isTakeaway ? (pickupTimeInput || 'ASAP') : 'N/A',
+        pickupTime: needsTime ? (pickupTimeInput || 'ASAP') : 'N/A',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'pending',
         subtotal: subtotal,
@@ -712,7 +715,7 @@ function submitOrder(sendWhatsApp) {
                             `📍 *Type:* ${finalTableType}\n` +
                             `👤 *Name:* ${nameInput}\n` +
                             `📱 *Phone:* ${phoneInput || 'N/A'}\n` +
-                            (isTakeaway ? `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` : `\n`) +
+                            (needsTime ? `🕒 *Time:* ${pickupTimeInput || 'ASAP'}\n\n` : `\n`) +
                             `🛒 *Items:*\n${itemText}\n\n` +
                             `💰 *Total Amount:* Rs. ${grandTotal.toFixed(2)}`;
 
