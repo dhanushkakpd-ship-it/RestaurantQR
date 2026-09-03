@@ -604,7 +604,7 @@ header.header {
     
     /* 🌟 වැදගත්ම කොටස: Header එකට පහළින් ස්ථාවර වීම */
     position: sticky !important;
-    top: 100px !important; /* Header එකේ උස අනුව මෙය 70px හෝ 80px ලෙස අවශ්‍ය නම් වෙනස් කළ හැක */
+    top: 90px !important; /* Header එකේ උස අනුව මෙය 70px හෝ 80px ලෙස අවශ්‍ය නම් වෙනස් කළ හැක */
     z-index: 99 !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
 }
