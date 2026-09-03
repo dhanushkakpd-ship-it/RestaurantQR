@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Complete & Updated) ---
+// --- CAFE DN - Customer App JavaScript (Updated for Table QR Pickup Time) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -417,10 +417,10 @@ function updateCartUI() {
         }
     }
 
-    // Outside QR නම් Dine-in/Takeaway දෙකටම Pickup Time පෙන්වයි. Table QR නම් Takeaway වලදී පමණක් පෙන්වයි.
+    // 🌟 යාවත්කාලීන කළ තර්කය: Table QR එකක් නම් Pickup Time කිසිවිටක පෙන්වන්නේ නැත. Outside QR නම් Takeaway වලදී පමණක් පෙන්වයි.
     const timeContainer = document.getElementById('pickup-time-container');
     if (timeContainer) {
-        if (!isTableQR || currentOrderType === 'takeaway') {
+        if (!isTableQR && currentOrderType === 'takeaway') {
             timeContainer.style.display = 'block';
         } else {
             timeContainer.style.display = 'none';
@@ -517,7 +517,7 @@ function openOrderModal() {
     }
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = (!isTableQR) || (isTableQR && isTakeaway);
+    const needsTime = (!isTableQR && isTakeaway); // Table QR නම් කවදාවත් time අවශ්‍ය නැත
 
     if (needsTime && !timeInput) {
         showCustomAlert('කරුණාකර ඔබ පැමිණෙන / ඇණවුම ලබා ගන්නා වේලාව තෝරන්න!');
@@ -635,7 +635,7 @@ function submitOrder(sendWhatsApp) {
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = (!isTableQR) || (isTableQR && isTakeaway);
+    const needsTime = (!isTableQR && isTakeaway);
 
     if (needsTime && !pickupTimeInput) {
         showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
