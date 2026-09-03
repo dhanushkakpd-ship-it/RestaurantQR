@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCategoriesForCart();
     await loadProductsFromServer();
     checkMyOrderStatus();
+    initScrollSpy(); // 🛠️ Scroll spy එක ආරම්භ කිරීම
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -134,7 +135,6 @@ async function loadCategoriesForCart() {
         const res = await fetch('/api/categories');
         if (res.ok) {
             const data = await res.json();
-            // 🛠️ FIX: Category sortOrder අනුව පිළිවෙළට සකස් කිරීම (ascending)
             categories = data.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
         }
     } catch (e) {
@@ -227,6 +227,15 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
+    // 🛠️ FIX: Category bar එක sticky කිරීම (පහළට scroll වද්දී උඩින්ම රැඳී තිබීමට)
+    container.style.position = 'sticky';
+    container.style.top = '0';
+    container.style.zIndex = '999';
+    container.style.background = '#ffffff';
+    container.style.paddingTop = '8px';
+    container.style.paddingBottom = '8px';
+    container.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+
     let categoriesList = categories;
 
     if (!categoriesList || categoriesList.length === 0) {
@@ -279,7 +288,6 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
-    // 🛠️ FIX: "All" select කර ඇති විට, Category වල sortOrder පිළිවෙළට අනුව products ත් පිළිවෙළට සකස් කිරීම
     if (currentCategory === 'all') {
         visibleProducts.sort((a, b) => {
             const catA = categories.find(c => c.id === a.category || c.name === a.category);
@@ -308,8 +316,9 @@ function renderProducts() {
             ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
             : '';
 
+        // 🛠️ FIX: Scroll spy මඟින් හඳුනා ගැනීමට පහසු වීමට product-card එකට data-category එක එකතු කර ඇත
         return `
-            <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
+            <div class="product-card" data-category="${product.category || 'General'}" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
                     <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
@@ -344,6 +353,43 @@ function renderProducts() {
             </div>
         `;
     }).join('');
+}
+
+// 🛠️ FIX: Scroll වන විට අදාළ Category එක ස්වයංක්‍රීයව Select වීම සඳහා Scroll Spy function එක
+function initScrollSpy() {
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (currentCategory !== 'all') return; // All view එකේදී පමණක් ක්‍රියාත්මක වේ
+
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const cards = document.querySelectorAll('.product-card');
+            let activeCat = null;
+
+            for (let card of cards) {
+                const rect = card.getBoundingClientRect();
+                // Screen එකේ උඩ භාගයේ පවතින product card එක පරීක්ෂා කිරීම
+                if (rect.top <= 200 && rect.bottom >= 100) {
+                    activeCat = card.getAttribute('data-category');
+                    break;
+                }
+            }
+
+            if (activeCat) {
+                const tabButtons = document.querySelectorAll('.cat-tab');
+                tabButtons.forEach(btn => {
+                    const onclickAttr = btn.getAttribute('onclick') || '';
+                    if (onclickAttr.includes(`'${activeCat}'`)) {
+                        btn.classList.add('active');
+                        // අවශ්‍ය නම් ස්වයංක්‍රීයව tab scroll වීමට සේ සැලසිය හැක
+                        btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        }, 100);
+    });
 }
 
 function changeQty(productId, change) {
