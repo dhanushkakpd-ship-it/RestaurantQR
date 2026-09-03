@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCategoriesForCart();
     await loadProductsFromServer();
     checkMyOrderStatus();
-    initScrollSpy(); // 🛠️ Scroll spy එක ආරම්භ කිරීම
+    initScrollSpy(); // Scroll spy එක ආරම්භ කිරීම
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -227,14 +227,10 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    // 🛠️ FIX: Category bar එක sticky කිරීම (පහළට scroll වද්දී උඩින්ම රැඳී තිබීමට)
-    container.style.position = 'sticky';
-    container.style.top = '0';
-    container.style.zIndex = '999';
-    container.style.background = '#ffffff';
-    container.style.paddingTop = '8px';
-    container.style.paddingBottom = '8px';
-    container.style.boxShadow = '0 2px 6px rgba(0,0,0,0.06)';
+    // 🛠️ FIX: Sticky ඉවත් කර සාමාන්‍ය පරිදි shop details වලට පහළින් දිස්වන සේ සකසා ඇත
+    container.style.position = 'static';
+    container.style.background = 'transparent';
+    container.style.boxShadow = 'none';
 
     let categoriesList = categories;
 
@@ -316,7 +312,6 @@ function renderProducts() {
             ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
             : '';
 
-        // 🛠️ FIX: Scroll spy මඟින් හඳුනා ගැනීමට පහසු වීමට product-card එකට data-category එක එකතු කර ඇත
         return `
             <div class="product-card" data-category="${product.category || 'General'}" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
@@ -355,11 +350,10 @@ function renderProducts() {
     }).join('');
 }
 
-// 🛠️ FIX: Scroll වන විට අදාළ Category එක ස්වයංක්‍රීයව Select වීම සඳහා Scroll Spy function එක
 function initScrollSpy() {
     let scrollTimeout;
     window.addEventListener('scroll', () => {
-        if (currentCategory !== 'all') return; // All view එකේදී පමණක් ක්‍රියාත්මක වේ
+        if (currentCategory !== 'all') return; 
 
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
@@ -368,7 +362,6 @@ function initScrollSpy() {
 
             for (let card of cards) {
                 const rect = card.getBoundingClientRect();
-                // Screen එකේ උඩ භාගයේ පවතින product card එක පරීක්ෂා කිරීම
                 if (rect.top <= 200 && rect.bottom >= 100) {
                     activeCat = card.getAttribute('data-category');
                     break;
@@ -381,7 +374,6 @@ function initScrollSpy() {
                     const onclickAttr = btn.getAttribute('onclick') || '';
                     if (onclickAttr.includes(`'${activeCat}'`)) {
                         btn.classList.add('active');
-                        // අවශ්‍ය නම් ස්වයංක්‍රීයව tab scroll වීමට සේ සැලසිය හැක
                         btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
                     } else {
                         btn.classList.remove('active');
