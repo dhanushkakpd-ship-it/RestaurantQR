@@ -583,19 +583,3 @@ header.header {
     z-index: 998;
     background: #fff5f7; /* Background පාට එකම වීමට */
 }
-
-.order-type-tabs {
-    position: sticky;
-    top: 65px; /* Header එකේ උස අනුව මෙය වෙනස් විය හැක */
-    z-index: 998;
-    background: #fff5f7;
-}
-
-#categoryTabs {
-    position: sticky;
-    top: 125px; /* Header සහ Order type tabs වලට පහළින් පිහිටීමට */
-    z-index: 999;
-    background: #fff5f7;
-    padding: 8px 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
