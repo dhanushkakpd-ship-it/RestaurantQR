@@ -59,6 +59,18 @@ body {
     color: #16a34a;
 }
 
+/* Live Order Tracker Banner */
+#live-order-tracker {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 600px;
+    z-index: 9999;
+}
+
 /* Order Type Switcher Tabs */
 .order-type-tabs {
     display: flex;
@@ -303,7 +315,7 @@ body {
     background: #fffafb;
 }
 
-/* 🌟 JavaScript මඟින් පාලනය වන Keyboard Open වන අවස්ථාව සඳහා Style එක */
+/* Keyboard Open වන අවස්ථාව සඳහා Style එක */
 .cart-bar.keyboard-open {
     position: fixed !important;
     top: 0 !important;
