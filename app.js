@@ -9,7 +9,7 @@ let systemData = {
 
 let categories = []; 
 let currentCategory = 'all';
-let searchQuery = ''; // Added for product search
+let searchQuery = ''; 
 let cart = {}; 
 let currentOrderType = 'dinein';
 let isTableQR = false;
@@ -264,7 +264,6 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
-    // Filter by Category
     if (currentCategory === 'all') {
         visibleProducts.sort((a, b) => {
             const catA = categories.find(c => c.id === a.category || c.name === a.category);
@@ -277,7 +276,6 @@ function renderProducts() {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
     }
 
-    // Filter by Search Query
     if (searchQuery) {
         visibleProducts = visibleProducts.filter(p => 
             (p.name && p.name.toLowerCase().includes(searchQuery)) ||
