@@ -107,9 +107,10 @@ body {
 
 /* Product Card Style */
 .product-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 10px 0;
 }
 
 .product-card {
@@ -121,6 +122,8 @@ body {
     gap: 12px;
     border: 1px solid #fce7f3;
     box-shadow: 0 4px 12px rgba(244, 63, 94, 0.02);
+    animation: fadeInUp 0.45s ease forwards;
+    opacity: 0;
 }
 
 .product-card img {
@@ -299,6 +302,30 @@ body {
     background: #fffafb;
 }
 
+/* 🌟 Mobile Keyboard එක Open වන අවස්ථාවේ (Input එකක් Click කළ විට) Cart View එක උඩට Fixed කිරීම */
+.cart-bar:focus-within {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: auto !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.cart-bar:focus-within .cart-summary {
+    display: none !important; /* Keyboard එක ඇතුළත ඇති විට පහළ Bar එක සඟවයි */
+}
+
+.cart-bar:focus-within .cart-details {
+    display: block !important;
+    flex: 1 !important;
+    max-height: none !important;
+    height: 100% !important;
+    padding-bottom: 40px;
+}
+
 .checkout-btn {
     width: 100%;
     background: #059669;
@@ -391,16 +418,17 @@ body {
 
 /* Category Tabs */
 #categoryTabs {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 10px 16px;
-    scrollbar-width: none;
-    background: #ffffff;
-    border-bottom: 1px solid #fce7f3;
-    position: sticky;
-    top: 53px;
-    z-index: 99;
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    padding: 10px 16px !important;
+    scrollbar-width: none !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #fce7f3 !important;
+    position: sticky !important;
+    top: 90px !important;
+    z-index: 99 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
 }
 
 #categoryTabs::-webkit-scrollbar {
@@ -441,69 +469,18 @@ body {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: #fffafb;
+    background: #f798d7;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 999999;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 #app-loader.fade-out {
     opacity: 0;
     visibility: hidden;
-}
-
-.loader-spinner {
-    width: 45px;
-    height: 45px;
-    border: 4px solid #fdf2f8;
-    border-top: 4px solid #db2777;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loader-text {
-    margin-top: 12px;
-    color: #1e293b;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.loader-subtext {
-    margin-top: 4px;
-    color: #64748b;
-    font-size: 0.8rem;
-}
-
-.logo img {
-    width: 65px;
-    height: 65px;
-    object-fit: cover;
-    border-radius: 50%;
-    display: block;
-}
-
-
-/* --- Minimalist Logo Loader Styles --- */
-#app-loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #f798d7; /* පසුබිම් පාට (අවශ්‍ය නම් වෙනස් කළ හැක) */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999999;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .loader-content {
@@ -513,7 +490,6 @@ body {
     align-items: center;
 }
 
-/* ලාංඡනයේ (Logo) මෝස්තර සහ Pulse ඇනිමේෂන් එක */
 .loader-logo {
     width: 150px;
     height: 150px;
@@ -532,8 +508,15 @@ body {
     margin-bottom: 15px;
 }
 
+.loader-spinner {
+    width: 45px;
+    height: 45px;
+    border: 4px solid #fdf2f8;
+    border-top: 4px solid #db2777;
+    border-radius: 50%;
+    animation: spinLoader 0.7s linear infinite;
+}
 
-/* ඇනිමේෂන් සඳහා keyframes */
 @keyframes spinLoader {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -545,13 +528,6 @@ body {
     100% { transform: scale(1); }
 }
 
-/* වෙබ් අඩවිය ලෝඩ් වූ පසු ක්‍රියාත්මක වන Fade-out පන්තිය */
-#app-loader.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
-
-/* --- Product Cards Smooth Entrance Animation --- */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -563,52 +539,10 @@ body {
     }
 }
 
-.product-card {
-    animation: fadeInUp 0.45s ease forwards;
-    opacity: 0; /* ලෝඩ් වීමට පෙර සැඟවී තිබී ඇනිමේෂන් එක ක්‍රියාත්මක වේ */
-}
-
-/* Product Grid එක නිසි පරිදි සහ පිළිවෙළට සකස් කර ගැනීමට */
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-    padding: 10px 0;
-}
-
-/* 1. Shop details (Header එක) Screen එකේ උඩම ස්ථාවරව තබා ගැනීම */
-header.header {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 100 !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #fce7f3;
-}
-
-/* 2. Order Type Tabs - පහළට scroll කරන විට උඩට ගොස් නොපෙනී යාමට සැලැස්වීම */
-.order-type-tabs {
-    position: relative !important;
-    background: #fdf2f8;
-    z-index: 97;
-}
-
-/* 3. Category Tabs - Shop details වලට හරියටම පහළින් (top: 75px) ස්ථාවරව තබා ගැනීම */
-#categoryTabs {
-    display: flex !important;
-    gap: 6px !important;
-    overflow-x: auto !important;
-    padding: 10px 16px !important;
-    scrollbar-width: none !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #fce7f3 !important;
-    
-    /* 🌟 වැදගත්ම කොටස: Header එකට පහළින් ස්ථාවර වීම */
-    position: sticky !important;
-    top: 90px !important; /* Header එකේ උස අනුව මෙය 70px හෝ 80px ලෙස අවශ්‍ය නම් වෙනස් කළ හැක */
-    z-index: 99 !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
-}
-
-#categoryTabs::-webkit-scrollbar {
-    display: none; 
+.logo img {
+    width: 65px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }

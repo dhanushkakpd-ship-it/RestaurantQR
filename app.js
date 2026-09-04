@@ -417,7 +417,6 @@ function updateCartUI() {
         }
     }
 
-    // 🌟 යාවත්කාලීන කළ තර්කය: Table QR එකක් නම් Pickup Time කිසිවිටක පෙන්වන්නේ නැත. Outside QR නම් Takeaway වලදී පමණක් පෙන්වයි.
     const timeContainer = document.getElementById('pickup-time-container');
     if (timeContainer) {
         if (!isTableQR && currentOrderType === 'takeaway') {
@@ -472,11 +471,19 @@ function renderCartItemsList(takeawayCharges = 0) {
     container.innerHTML = html;
 }
 
+// 🌟 Updated toggleCart function with Arrow Direction Change (▲ / ▼)
 function toggleCart() {
     if (!isShopOpen) return;
     const details = document.getElementById('cart-details');
+    const arrow = document.getElementById('cart-arrow');
+    
     if (details) {
-        details.style.display = details.style.display === 'block' ? 'none' : 'block';
+        const isOpen = details.style.display === 'block';
+        details.style.display = isOpen ? 'none' : 'block';
+        
+        if (arrow) {
+            arrow.innerText = isOpen ? '▲' : '▼';
+        }
     }
     updateCartUI();
 }
@@ -517,7 +524,7 @@ function openOrderModal() {
     }
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = (!isTableQR && isTakeaway); // Table QR නම් කවදාවත් time අවශ්‍ය නැත
+    const needsTime = (!isTableQR && isTakeaway);
 
     if (needsTime && !timeInput) {
         showCustomAlert('කරුණාකර ඔබ පැමිණෙන / ඇණවුම ලබා ගන්නා වේලාව තෝරන්න!');
