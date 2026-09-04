@@ -302,7 +302,7 @@ body {
     background: #fffafb;
 }
 
-/* 🌟 Mobile Keyboard එක Open වන අවස්ථාවේ (Input එකක් Click කළ විට) Cart View එක උඩට Fixed කිරීම */
+/* 🌟 UPDATED: Mobile Keyboard එක Open වන විට Summary bar එක ඉහළින්ම Sticky ලෙස රඳවා ගැනීම */
 .cart-bar:focus-within {
     position: fixed !important;
     top: 0 !important;
@@ -315,15 +315,19 @@ body {
 }
 
 .cart-bar:focus-within .cart-summary {
-    display: none !important; /* Keyboard එක ඇතුළත ඇති විට පහළ Bar එක සඟවයි */
+    display: flex !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10;
+    background: #db2777 !important;
 }
 
 .cart-bar:focus-within .cart-details {
     display: block !important;
     flex: 1 !important;
-    max-height: none !important;
-    height: 100% !important;
-    padding-bottom: 40px;
+    max-height: calc(100vh - 55px) !important;
+    overflow-y: auto !important;
+    padding-bottom: 60px !important;
 }
 
 .checkout-btn {
