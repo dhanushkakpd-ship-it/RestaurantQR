@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Updated with Search & Table QR Pickup Time) ---
+// --- CAFE DN - Customer App JavaScript (Updated without Search & Fixed Keyboard View) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -9,7 +9,6 @@ let systemData = {
 
 let categories = []; 
 let currentCategory = 'all';
-let searchQuery = ''; 
 let cart = {}; 
 let currentOrderType = 'dinein';
 let isTableQR = false;
@@ -24,6 +23,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadProductsFromServer();
     checkMyOrderStatus();
     initScrollSpy();
+
+    // Keyboard open handling for Cart Bar (Order View)
+    const cartInputs = ['cust-name', 'cust-phone', 'cust-time'];
+    cartInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('focus', () => {
+                const cartBar = document.getElementById('cart-bar');
+                if (cartBar) cartBar.classList.add('keyboard-open');
+            });
+            el.addEventListener('blur', () => {
+                setTimeout(() => {
+                    const activeEl = document.activeElement;
+                    if (!cartInputs.some(i => document.getElementById(i) === activeEl)) {
+                        const cartBar = document.getElementById('cart-bar');
+                        if (cartBar) cartBar.classList.remove('keyboard-open');
+                    }
+                }, 100);
+            });
+        }
+    });
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -206,15 +226,6 @@ function renderCategoryTabs() {
         ];
     }
 
-    let searchBoxHtml = `
-        <div style="padding: 0 12px 8px 12px;">
-            <input type="text" id="product-search-input" placeholder="🔍 Search items..." value="${searchQuery}" oninput="handleSearchInput(this.value)" style="
-                width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
-                font-size: 0.9rem; outline: none; background: #ffffff;
-            ">
-        </div>
-    `;
-
     let tabsHtml = `
         <div style="display: flex; overflow-x: auto; gap: 8px; padding: 0 12px; scrollbar-width: none;">
             <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
@@ -241,12 +252,7 @@ function renderCategoryTabs() {
     });
 
     tabsHtml += `</div>`;
-    container.innerHTML = searchBoxHtml + tabsHtml;
-}
-
-function handleSearchInput(query) {
-    searchQuery = query.toLowerCase().trim();
-    renderProducts();
+    container.innerHTML = tabsHtml; // Search box removed completely
 }
 
 function filterCategory(catId) {
@@ -274,13 +280,6 @@ function renderProducts() {
         });
     } else {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
-    }
-
-    if (searchQuery) {
-        visibleProducts = visibleProducts.filter(p => 
-            (p.name && p.name.toLowerCase().includes(searchQuery)) ||
-            (p.desc && p.desc.toLowerCase().includes(searchQuery))
-        );
     }
 
     if (visibleProducts.length === 0) {
@@ -332,7 +331,7 @@ function renderProducts() {
 function initScrollSpy() {
     let scrollTimeout;
     window.addEventListener('scroll', () => {
-        if (currentCategory !== 'all' || searchQuery) return; 
+        if (currentCategory !== 'all') return; 
         if (window.scrollY < 50) {
             const tabButtons = document.querySelectorAll('.cat-tab');
             tabButtons.forEach((btn, index) => {
