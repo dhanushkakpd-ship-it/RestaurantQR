@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Updated for Table QR Pickup Time) ---
+// --- CAFE DN - Customer App JavaScript (Updated with Search & Table QR Pickup Time) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -9,6 +9,7 @@ let systemData = {
 
 let categories = []; 
 let currentCategory = 'all';
+let searchQuery = ''; // Added for product search
 let cart = {}; 
 let currentOrderType = 'dinein';
 let isTableQR = false;
@@ -205,11 +206,21 @@ function renderCategoryTabs() {
         ];
     }
 
-    let html = `
-        <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
-            <span style="font-size: 1rem;">🌟</span>
-            <span>All</span>
-        </button>
+    let searchBoxHtml = `
+        <div style="padding: 0 12px 8px 12px;">
+            <input type="text" id="product-search-input" placeholder="🔍 Search items..." value="${searchQuery}" oninput="handleSearchInput(this.value)" style="
+                width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+                font-size: 0.9rem; outline: none; background: #ffffff;
+            ">
+        </div>
+    `;
+
+    let tabsHtml = `
+        <div style="display: flex; overflow-x: auto; gap: 8px; padding: 0 12px; scrollbar-width: none;">
+            <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
+                <span style="font-size: 1rem;">🌟</span>
+                <span>All</span>
+            </button>
     `;
 
     categoriesList.forEach(cat => {
@@ -221,7 +232,7 @@ function renderCategoryTabs() {
             ? `<img src="${catImage}" alt="${catName}" onerror="this.style.display='none'">` 
             : `<span style="font-size: 1rem;">🍽️</span>`;
 
-        html += `
+        tabsHtml += `
             <button class="cat-tab ${currentCategory === catId ? 'active' : ''}" onclick="filterCategory('${catId}')">
                 ${imageHtml}
                 <span>${catName}</span>
@@ -229,7 +240,13 @@ function renderCategoryTabs() {
         `;
     });
 
-    container.innerHTML = html;
+    tabsHtml += `</div>`;
+    container.innerHTML = searchBoxHtml + tabsHtml;
+}
+
+function handleSearchInput(query) {
+    searchQuery = query.toLowerCase().trim();
+    renderProducts();
 }
 
 function filterCategory(catId) {
@@ -247,6 +264,7 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
+    // Filter by Category
     if (currentCategory === 'all') {
         visibleProducts.sort((a, b) => {
             const catA = categories.find(c => c.id === a.category || c.name === a.category);
@@ -259,8 +277,16 @@ function renderProducts() {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
     }
 
+    // Filter by Search Query
+    if (searchQuery) {
+        visibleProducts = visibleProducts.filter(p => 
+            (p.name && p.name.toLowerCase().includes(searchQuery)) ||
+            (p.desc && p.desc.toLowerCase().includes(searchQuery))
+        );
+    }
+
     if (visibleProducts.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items in this category.</p>`;
+        container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items found.</p>`;
         return;
     }
 
@@ -308,7 +334,7 @@ function renderProducts() {
 function initScrollSpy() {
     let scrollTimeout;
     window.addEventListener('scroll', () => {
-        if (currentCategory !== 'all') return; 
+        if (currentCategory !== 'all' || searchQuery) return; 
         if (window.scrollY < 50) {
             const tabButtons = document.querySelectorAll('.cat-tab');
             tabButtons.forEach((btn, index) => {
@@ -471,7 +497,6 @@ function renderCartItemsList(takeawayCharges = 0) {
     container.innerHTML = html;
 }
 
-// 🌟 Updated toggleCart function with Arrow Direction Change (▲ / ▼)
 function toggleCart() {
     if (!isShopOpen) return;
     const details = document.getElementById('cart-details');

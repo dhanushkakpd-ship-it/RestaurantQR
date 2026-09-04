@@ -7,7 +7,7 @@
 }
 
 body {
-    background-color: #f5dae0; /* ඉතා මෘදු ස්ට්‍රෝබෙරි-ක්‍රීම් පසුබිමක් */
+    background-color: #f5dae0;
     color: #4a5568;
     padding-bottom: 140px;
 }
@@ -33,7 +33,7 @@ body {
 .brand h1 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #db2777; /* Soft Strawberry Pink */
+    color: #db2777;
 }
 
 .status-badges {
@@ -245,7 +245,7 @@ body {
     max-width: 800px;
     margin: 0 auto;
     border-top: 1px solid #fce7f3;
-    transition: transform 0.25s ease;
+    transition: all 0.3s ease;
 }
 
 .cart-summary {
@@ -303,8 +303,8 @@ body {
     background: #fffafb;
 }
 
-/* 🌟 Mobile Keyboard Open වන අවස්ථාව සඳහා Fixed View සහ ස්ථාවර Header එක */
-.cart-bar:focus-within {
+/* 🌟 JavaScript මඟින් පාලනය වන Keyboard Open වන අවස්ථාව සඳහා Style එක */
+.cart-bar.keyboard-open {
     position: fixed !important;
     top: 0 !important;
     bottom: auto !important;
@@ -315,7 +315,7 @@ body {
     flex-direction: column !important;
 }
 
-.cart-bar:focus-within .cart-summary {
+.cart-bar.keyboard-open .cart-summary {
     display: flex !important;
     position: sticky !important;
     top: 0 !important;
@@ -324,7 +324,7 @@ body {
     flex-shrink: 0 !important;
 }
 
-.cart-bar:focus-within .cart-details {
+.cart-bar.keyboard-open .cart-details {
     display: block !important;
     flex: 1 !important;
     max-height: none !important;
