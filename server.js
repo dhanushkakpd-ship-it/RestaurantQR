@@ -6,8 +6,10 @@ const path = require('path');
 const multer = require('multer'); 
 const mongoose = require('mongoose'); 
 const cloudinary = require('cloudinary').v2;
-const bcrypt = require('bcrypt'); // 🌟 අලුතින් එකතු කරන ලදී
-const jwt = require('jsonwebtoken'); // 🌟 අලුතින් එකතු කරන ලදී
+const bcrypt = require('bcrypt'); 
+const jwt = require('jsonwebtoken'); 
+const rateLimit = require('express-rate-limit'); 
+const { body, validationResult } = require('express-validator'); // 🌟 Express-validator එකතු කරන ලදී
 
 const app = express();
 
@@ -15,15 +17,45 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// 🌟 CORS ආරක්ෂාව තහවුරු කිරීම (ඔබේ Frontend ඩොමේන් එකට පමණක් අවසර දීමට මෙය වෙනස් කරන්න)
+// 🌟 CORS ආරක්ෂාව තහවුරු කිරීම (ඔබේ Live ඩොමේන් එකට පමණක් සීමා කරන ලදී)
+const allowedOrigins = [
+    'https://cafe-dn-app.onrender.com',
+    'http://localhost:5000', // Local development සඳහා අවශ්‍ය නම් පමණි
+    'http://localhost:3000'
+];
+
 app.use(cors({
-    origin: '*', // නිෂ්පාදන පරිසරයේදී (Production) මෙහි ඔබේ වෙබ් අඩවියේ URL එක දෙන්න (උදා: 'https://yourdomain.com')
+    origin: function (origin, callback) {
+        // Postman හෝ Server-to-server ඉල්ලීම් (origin නැති ඒවා) සඳහා ඉඩ දීම
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS policy violation: This origin is not allowed.'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
 
 // Current directory එක static ලෙස Serve කිරීම (Frontend එක සඳහා)
 app.use(express.static(__dirname));
+
+// ==========================================
+// 🛡️ RATE LIMITER CONFIGURATION (Brute-Force වැළැක්වීමට)
+// ==========================================
+const loginLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // විනාඩි 1 ක කාල සීමාවක් තුළ
+    max: 5, // උපරිම වාර 5කට වඩා උත්සාහ කළහොත් අවහිර වේ
+    standardHeaders: true, 
+    legacyHeaders: false, 
+    message: { 
+        success: false, 
+        message: 'ප්‍රවේශ වීමේ උත්සාහයන් අධිකයි! කරුණාකර විනාඩි 1 කින් පසු නැවත උත්සාහ කරන්න.' 
+    }
+});
+
 
 // ==========================================
 // ☁️ CLOUDINARY CONFIGURATION (.env හරහා)
@@ -55,7 +87,7 @@ const uploadToCloudinary = (buffer, folderName) => {
 // ==========================================
 
 const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET || 'cafe_dn_super_secret_key_2026'; // .env එකට JWT_SECRET එකක් එකතු කිරීම වඩාත් සුදුසුය
+const JWT_SECRET = process.env.JWT_SECRET || 'cafe_dn_super_secret_key_2026';
 
 const Product = mongoose.model('Product', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
@@ -94,7 +126,6 @@ const Admin = mongoose.model('Admin', new mongoose.Schema({
     password: { type: String, required: true }
 }));
 
-// 🌟 Default Admin කෙනෙක් සාදන විට මුරපදය BCRYPT මඟින් HASH කිරීම
 async function createDefaultAdmin() {
     try {
         const count = await Admin.countDocuments();
@@ -120,12 +151,12 @@ const verifyAdminToken = (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ success: false, message: 'ಅවලංගු Token ආකෘතියකි!' });
+        return res.status(401).json({ success: false, message: 'අවලංගු Token ආකෘතියකි!' });
     }
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403,).json({ success: false, message: 'Token එක අගය කිරීමට නොහැකිය හෝ කල් ඉකුත් වී ඇත!' });
+            return res.status(403).json({ success: false, message: 'Token එක අගය කිරීමට නොහැකිය හෝ කල් ඉකුත් වී ඇත!' });
         }
         req.admin = decoded;
         next();
@@ -145,7 +176,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// 🌟 Product එකතු කිරීම/වෙනස් කිරීම Admin කෙනෙකුට පමණක් සීමා කිරීම (verifyAdminToken එකතු කරන ලදී)
 app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
@@ -186,7 +216,6 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
     }
 });
 
-// 🌟 Product මකා දැමීම Admin කෙනෙකුට පමණක් සීමා කිරීම
 app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -262,7 +291,7 @@ app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
 
 
 // ==========================================
-// --- Orders APIs ---
+// --- Orders APIs (Input Validation සහ Sanitization සමඟ) ---
 // ==========================================
 app.get('/api/orders', verifyAdminToken, async (req, res) => {
     try {
@@ -273,7 +302,27 @@ app.get('/api/orders', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', [
+    // පාරිභෝගිකයාගේ නම පරීක්ෂා කිරීම සහ XSS වැළැක්වීම
+    body('name')
+        .optional()
+        .trim()
+        .escape(),
+
+    // දුරකථන අංකය පරීක්ෂා කිරීම (ඇත්නම් නිවැරදි ආකෘතියක තිබේදැයි බලයි)
+    body('phone')
+        .optional()
+        .trim()
+        .isLength({ min: 9, max: 15 })
+        .withMessage('වලංගු දුරකථන අංකයක් ලබා දෙන්න!')
+        .escape()
+], async (req, res) => {
+    // දෝෂ ඇත්නම් පරීක්ෂා කර ප්‍රතික්ෂේප කිරීම
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
     try {
         const newOrderData = {
             id: `ORD-${Math.floor(100 + Math.random() * 900)}`,
@@ -328,7 +377,7 @@ app.delete('/api/orders/:id', verifyAdminToken, async (req, res) => {
 
         res.json({ success: true, message: `Order ${id} deleted successfully` });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -366,9 +415,9 @@ app.post('/api/shop-status', verifyAdminToken, async (req, res) => {
 
 
 // ==========================================
-// --- Admin Login API (BCRYPT & JWT Enabled) ---
+// --- Admin Login API (Rate Limiter එකතු කරන ලදී) ---
 // ==========================================
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
         const admin = await Admin.findOne({ username });
@@ -377,19 +426,17 @@ app.post('/api/admin/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
         }
 
-        // 🌟 හැෂ් කළ මුරපදය සමඟ සංසන්දනය කිරීම
         const isPasswordValid = await bcrypt.compare(password, admin.password);
         if (!isPasswordValid) {
             return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
         }
 
-        // 🌟 සාර්ථක නම් JWT Token එකක් ජනප්‍රභ කිරීම (පැය 2 කින් කල් ඉකුත් වේ)
         const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '2h' });
 
         res.json({ 
             success: true, 
             message: 'Login successful', 
-            token: token // Frontend එකෙන් මෙම Token එක LocalStorage එකේ සේව් කර API ඉල්ලීම් යැවීමේදී Headers වල යැවිය යුතුය
+            token: token 
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
