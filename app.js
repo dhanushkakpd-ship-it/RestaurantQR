@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (Updated without Search & Fixed Keyboard View) ---
+// --- CAFE DN - Customer App JavaScript (With Visual Viewport Keyboard Auto-Reset) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -24,26 +24,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkMyOrderStatus();
     initScrollSpy();
 
-    // Keyboard open handling for Cart Bar (Order View)
-    const cartInputs = ['cust-name', 'cust-phone', 'cust-time'];
-    cartInputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('focus', () => {
-                const cartBar = document.getElementById('cart-bar');
-                if (cartBar) cartBar.classList.add('keyboard-open');
-            });
-            el.addEventListener('blur', () => {
-                setTimeout(() => {
-                    const activeEl = document.activeElement;
-                    if (!cartInputs.some(i => document.getElementById(i) === activeEl)) {
-                        const cartBar = document.getElementById('cart-bar');
-                        if (cartBar) cartBar.classList.remove('keyboard-open');
-                    }
-                }, 100);
-            });
-        }
-    });
+    // Smart Mobile Keyboard Detection using visualViewport
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            const cartBar = document.getElementById('cart-bar');
+            if (!cartBar) return;
+            
+            // If visual viewport height shrinks significantly, keyboard is open
+            const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 150;
+            
+            if (isKeyboardOpen) {
+                cartBar.classList.add('keyboard-open');
+            } else {
+                // Keyboard closed -> Automatically revert to half/normal cart details view
+                cartBar.classList.remove('keyboard-open');
+            }
+        });
+    } else {
+        // Fallback for older browsers
+        const cartInputs = ['cust-name', 'cust-phone', 'cust-time'];
+        cartInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('focus', () => {
+                    const cartBar = document.getElementById('cart-bar');
+                    if (cartBar) cartBar.classList.add('keyboard-open');
+                });
+                el.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        const activeEl = document.activeElement;
+                        if (!cartInputs.some(i => document.getElementById(i) === activeEl)) {
+                            const cartBar = document.getElementById('cart-bar');
+                            if (cartBar) cartBar.classList.remove('keyboard-open');
+                        }
+                    }, 100);
+                });
+            }
+        });
+    }
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -252,7 +270,7 @@ function renderCategoryTabs() {
     });
 
     tabsHtml += `</div>`;
-    container.innerHTML = tabsHtml; // Search box removed completely
+    container.innerHTML = tabsHtml;
 }
 
 function filterCategory(catId) {
