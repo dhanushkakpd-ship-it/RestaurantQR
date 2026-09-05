@@ -60,41 +60,16 @@
             align-items: center;
             gap: 8px;
         }
-        .btn-excel {
-            background: #10b981;
-            color: white;
-        }
-        .btn-excel:hover {
-            background: #059669;
-        }
-        .btn-print {
-            background: #4f46e5;
-            color: white;
-        }
-        .btn-print:hover {
-            background: #4338ca;
-        }
-        .btn-backup {
-            background: #0ea5e9;
-            color: white;
-        }
-        .btn-backup:hover {
-            background: #0284c7;
-        }
-        .btn-restore {
-            background: #f59e0b;
-            color: white;
-        }
-        .btn-restore:hover {
-            background: #d97706;
-        }
-        .btn-reset {
-            background: #e2e8f0;
-            color: #475569;
-        }
-        .btn-reset:hover {
-            background: #cbd5e1;
-        }
+        .btn-excel { background: #10b981; color: white; }
+        .btn-excel:hover { background: #059669; }
+        .btn-print { background: #4f46e5; color: white; }
+        .btn-print:hover { background: #4338ca; }
+        .btn-backup { background: #0ea5e9; color: white; }
+        .btn-backup:hover { background: #0284c7; }
+        .btn-restore { background: #f59e0b; color: white; }
+        .btn-restore:hover { background: #d97706; }
+        .btn-reset { background: #e2e8f0; color: #475569; }
+        .btn-reset:hover { background: #cbd5e1; }
 
         /* Summary Cards */
         .report-summary {
@@ -118,9 +93,7 @@
             top: 0; left: 0; width: 4px; height: 100%;
             background: #4f46e5;
         }
-        .card-box:nth-child(2)::after {
-            background: #10b981;
-        }
+        .card-box:nth-child(2)::after { background: #10b981; }
         .card-box h3 {
             margin: 0;
             color: #64748b;
@@ -217,9 +190,7 @@
             border-bottom: 1px solid #f1f5f9;
             color: #475569;
         }
-        tr:hover td {
-            background: #f8fafc;
-        }
+        tr:hover td { background: #f8fafc; }
         .badge {
             padding: 4px 10px;
             border-radius: 20px;
@@ -227,14 +198,8 @@
             font-weight: 600;
             display: inline-block;
         }
-        .badge-dine {
-            background: #e0f2fe;
-            color: #0369a1;
-        }
-        .badge-takeaway {
-            background: #fef3c7;
-            color: #d97706;
-        }
+        .badge-dine { background: #e0f2fe; color: #0369a1; }
+        .badge-takeaway { background: #fef3c7; color: #d97706; }
 
         @media print {
             .btn, .filter-section, .header button, .chart-container { display: none; }
@@ -244,6 +209,15 @@
     </style>
 </head>
 <body>
+
+    <!-- 🛡️ JWT Token ආරක්ෂක පරීක්ෂාව -->
+    <script>
+        const adminToken = localStorage.getItem("adminToken") || localStorage.getItem("token");
+        if (!adminToken) {
+            window.location.href = "admin.html";
+        }
+    </script>
+
 <div class="container">
     <div class="header">
         <h2>Sales Reports & Analytics</h2>
@@ -307,6 +281,15 @@
     let liveProducts = [];
     let liveCategories = [];
 
+    // Helper to get Auth Headers for secure API requests
+    function getAuthHeaders() {
+        const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+    }
+
     function setDefaultDates() {
         let today = new Date();
         let toStr = today.toISOString().split('T')[0];
@@ -344,11 +327,12 @@
         setDefaultDates();
         
         try {
-            // Fetch Orders
-            const resOrders = await fetch('/api/orders');
+            // Fetch Orders with Authorization Header
+            const resOrders = await fetch('/api/orders', {
+                headers: getAuthHeaders()
+            });
             if (resOrders.ok) {
                 let data = await resOrders.json();
-                // Filter only paid orders for reports
                 let paidData = data.filter(ord => (ord.status === 'paid' || ord.paymentStatus === 'paid' || ord.status === 'Completed' || ord.paymentStatus === 'Paid'));
                 allPaidOrders = paidData.map(ord => ({
                     id: ord.id || ord._id || 'N/A',
@@ -504,16 +488,15 @@
         filterReports();
     }
 
-    // Backup Function: Pulls live products and categories from database server
+    // Backup Function: Pulls live products and categories from database server securely
     async function backupData() {
         try {
             let backupOrders = allPaidOrders;
             let backupProducts = liveProducts;
             let backupCategories = liveCategories;
 
-            // Fetch latest direct from server if available
             try {
-                const resOrd = await fetch('/api/orders');
+                const resOrd = await fetch('/api/orders', { headers: getAuthHeaders() });
                 if(resOrd.ok) backupOrders = await resOrd.json();
                 const resPr = await fetch('/api/products');
                 if(resPr.ok) backupProducts = await resPr.json();
@@ -541,12 +524,11 @@
         }
     }
 
-    // Trigger Restore File Input
     function triggerRestore() {
         document.getElementById('restoreFile').click();
     }
 
-    // Restore Function: Sends backup data back to MongoDB via Backend APIs
+    // Restore Function: Sends backup data securely with JWT Token to MongoDB via Backend APIs
     async function restoreData(event) {
         let file = event.target.files[0];
         if (!file) return;
@@ -564,12 +546,12 @@
                     
                     let successCount = 0;
 
-                    // 1. Restore Products to MongoDB via POST endpoint
+                    // 1. Restore Products to MongoDB via POST endpoint with Auth Header
                     if (parsed.products && Array.isArray(parsed.products) && parsed.products.length > 0) {
                         try {
                             const prodRes = await fetch('/api/products', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: getAuthHeaders(),
                                 body: JSON.stringify(parsed.products)
                             });
                             if (prodRes.ok) successCount++;
@@ -578,13 +560,12 @@
                         }
                     }
 
-                    // 2. Restore Categories to MongoDB via POST endpoint
+                    // 2. Restore Categories to MongoDB via POST endpoint with Auth Header
                     if (parsed.categories && Array.isArray(parsed.categories) && parsed.categories.length > 0) {
                         try {
-                            // First clear or post directly based on backend logic (backend deletes all if array is posted)
                             const catRes = await fetch('/api/categories', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: getAuthHeaders(),
                                 body: JSON.stringify(parsed.categories)
                             });
                             if (catRes.ok) successCount++;
@@ -593,9 +574,7 @@
                         }
                     }
 
-                    // 3. Restore Orders if present
                     if (parsed.orders && Array.isArray(parsed.orders) && parsed.orders.length > 0) {
-                        // Optional: Clear existing and re-add or leave orders. Usually orders can stay or be kept.
                         localStorage.setItem('paidOrders', JSON.stringify(parsed.orders));
                     }
 
@@ -638,10 +617,5 @@
     initReport();
 </script>
 
-<script>
-    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "admin.html";
-    }
-</script>
 </body>
 </html>

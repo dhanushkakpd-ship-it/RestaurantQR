@@ -74,13 +74,21 @@
 </head>
 <body>
 
+    <!-- 🛡️ ආරක්ෂක පරීක්ෂාව (Admin Token එක නැත්නම් Login පිටුවට හරවා යැවීම) -->
+    <script>
+        const adminToken = localStorage.getItem("adminToken") || localStorage.getItem("token");
+        if (!adminToken) {
+            window.location.href = "admin.html";
+        }
+    </script>
+
     <div class="container py-5">
         <!-- Header -->
         <div class="row no-print">
             <div class="col-12">
                 <div class="main-header text-center">
                     <h1 class="fw-bold mb-2">✨ CAFE DN QR Code Studio</h1>
-                    <p class="text-slate-300 mb-0 opacity-75">මේස සඳහා සහ සාමාන්‍ය පිටත ඇණවුම් සඳහා අලංකාර QR Codes පහසුවෙන් සාදාගන්න.</p>
+                    <p class="text-slate-300 mb-0 opacity-75">මේස සඳහා සහ සාමාන්‍ය පිටත ඇණවුම් සඳහා අලංකාර QR Codes පහසුවෙන් සාදාගන්න[cite: 11].</p>
                 </div>
             </div>
         </div>
@@ -91,17 +99,17 @@
                 <div class="control-card">
                     <div class="mb-3">
                         <label class="form-label fw-bold text-secondary">🌐 මෙනු වෙබ් අඩවියේ මූලික ලින්ක් එක (Base URL):</label>
-                        <input type="text" id="baseUrl" class="form-control form-control-lg" value="https://yourwebsite.com/menu.html" placeholder="https://yourdomain.com/menu.html">
+                        <input type="text" id="baseUrl" class="form-control form-control-lg" placeholder="https://yourdomain.com/index.html">
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold text-secondary">🔢 අවශ්‍ය මේස ක්‍රමය (Generation Type):</label>
                             <select id="genType" class="form-select form-control-lg" onchange="toggleTableInput()">
-                                <option value="all">සියලුම මේස සහ Outside එකවර</option>
-                                <option value="single">නිශ්චිත එක් මේසයක් පමණක් (Single Table)</option>
-                                <option value="customRange">පරාසයක් (Range - උදා: 1 සිට 5)</option>
-                                <option value="outsideOnly">Outside / Takeaway පමණක්</option>
+                                <option value="all">සියලුම මේස සහ Outside එකවර[cite: 11]</option>
+                                <option value="single">නිශ්චිත එක් මේසයක් පමණක් (Single Table)[cite: 11]</option>
+                                <option value="customRange">පරාසයක් (Range - උදා: 1 සිට 5)[cite: 11]</option>
+                                <option value="outsideOnly">Outside / Takeaway පමණක්[cite: 11]</option>
                             </select>
                         </div>
                         
@@ -135,7 +143,7 @@
         <!-- Print Button Bar -->
         <div class="row mb-4 no-print">
             <div class="col-12 text-center">
-                <button onclick="window.print()" class="btn btn-success btn-lg px-5 fw-bold shadow">🖨️ Print All QR Codes</button>
+                <button onclick="window.print()" class="btn btn-success btn-lg px-5 fw-bold shadow">🖨️ Print All QR Codes[cite: 11]</button>
             </div>
         </div>
 
@@ -159,12 +167,12 @@
             const container = document.getElementById('qrContainer');
             
             if (!baseUrl) {
-                alert('කරුණාකර Base URL එක ඇතුළත් කරන්න!');
+                alert('කරුණාකර Base URL එක ඇතුළත් කරන්න![cite: 11]');
                 return;
             }
 
             let html = '';
-            let tasks = []; // Store QRs to render after HTML injection
+            let tasks = [];
 
             // 1. Outside QR
             if (genType === 'all' || genType === 'outsideOnly') {
@@ -250,18 +258,13 @@
             }, 100);
         }
 
-        // Auto load on page start
+        // Auto load on page start & auto-detect current web domain base URL
         window.onload = function() {
+            const currentBase = window.location.origin + window.location.pathname.replace('qr-generator.html', 'index.html');
+            document.getElementById('baseUrl').value = currentBase;
             generateQRs();
         };
     </script>
-
-<script>
-    // පරිශීලකයා ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
-    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "admin.html"; // ලොගින් පිටුවට හරවා යැවීම
-    }
-</script>
 
 </body>
 </html>
