@@ -1,3 +1,5 @@
+require('dotenv').config(); // 🌟 මුලින්ම මෙය එකතු කරන ලදී
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -17,12 +19,12 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 // ==========================================
-// ☁️ CLOUDINARY CONFIGURATION
+// ☁️ CLOUDINARY CONFIGURATION (.env හරහා)
 // ==========================================
 cloudinary.config({
-    cloud_name: 'euc8lhe4',
-    api_key: '954832384958133',
-    api_secret: '_ZDWlH2YPmv_l6H__UulHDpv2Yk'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // Multer Memory Storage සැකසීම (ෆයිල් ලෝකල් ඩිස්ක් එකේ සේව් නොකර බෆර් එක හරහා Cloudinary යැවීමට)
@@ -47,7 +49,7 @@ const uploadToCloudinary = (buffer, folderName) => {
 // 🌐 MONGODB CONNECTION & SCHEMAS SETUP
 // ==========================================
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dhanushkakpd_db_user:8qagi82&imRKVhC@cluster0.xgi1etr.mongodb.net/cafe_dn?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.MONGO_URI;
 
 // Mongoose Models නිර්මාණය කිරීම
 const Product = mongoose.model('Product', new mongoose.Schema({
@@ -309,7 +311,7 @@ app.delete('/api/orders/:id', async (req, res, next) => {
 
 
 // ==========================================
-// --- Shop Status APIs ---
+-- --- Shop Status APIs ---
 // ==========================================
 app.get('/api/shop-status', async (req, res) => {
     try {
