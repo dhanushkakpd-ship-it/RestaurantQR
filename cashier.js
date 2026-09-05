@@ -277,12 +277,17 @@ function closeBillModal() {
     document.getElementById('bill-modal').style.display = 'none';
 }
 
-// Confirm Payment and Mark Order as Paid (තහවුරු කිරීමකින් තොරව ඍජුව ක්‍රියාත්මක වේ)
+// Confirm Payment and Mark Order as Paid (🌟 ඊට අමතරව JWT Token එකද ඇතුළත් කරන ලදී)
 async function confirmPaymentAndFinish(orderId) {
+    const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
+
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token // 🌟 Token එක සර්වර් එකට යැවීම
+            },
             body: JSON.stringify({ 
                 paymentStatus: 'paid',
                 status: 'closed' 
@@ -298,6 +303,6 @@ async function confirmPaymentAndFinish(orderId) {
 
     } catch (error) {
         console.error('Error completing order payment:', error.message);
-        showCustomAlert("පේමන්ට් එක තහවුරු කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.", "error");
+        alert("පේමන්ට් එක තහවුරු කිරීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.");
     }
 }

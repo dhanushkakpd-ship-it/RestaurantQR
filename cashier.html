@@ -98,9 +98,9 @@
     <script src="cashier.js"></script>
 
 <script>
-    // පරිශීලකයා ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
-    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "admin.html"; // ලොගින් පිටුවට හරවා යැවීම
+    // 🌟 ඩිජිටල් ටෝකන් පරීක්ෂාව (Admin Token Check)
+    if (!localStorage.getItem("adminToken")) {
+        window.location.href = "admin.html"; 
     }
 </script>
 

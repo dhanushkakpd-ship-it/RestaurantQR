@@ -8,9 +8,10 @@
         body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
         .card { background: white; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #1e293b; }
         input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; }
-        button { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; }
+        button { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1rem; font-weight: bold; }
+        button:hover { background: #2563eb; }
     </style>
 </head>
 <body>
@@ -36,6 +37,61 @@
     <button onclick="saveSettings()">Save Changes</button>
 </div>
 
-<script src="admin.js"></script>
+<script>
+    // 1. පිටුව ලෝඩ් වූ වහාම සැකසුම් (Settings) සර්වර් එකෙන් ගෙන와 Input වලට දැමීම සහ ටෝකන් පරීක්ෂා කිරීම
+    window.addEventListener('DOMContentLoaded', () => {
+        if (!localStorage.getItem("adminToken")) {
+            window.location.href = "admin.html";
+            return;
+        }
+        fetchSettings();
+    });
+
+    async function fetchSettings() {
+        try {
+            const res = await fetch('/api/settings');
+            if (res.ok) {
+                const data = await res.json();
+                if (data) {
+                    document.getElementById('biz-name').value = data.businessName || '';
+                    document.getElementById('biz-phone').value = data.phone || '';
+                    document.getElementById('biz-logo').value = data.logo || '';
+                }
+            }
+        } catch (err) {
+            console.error("Error fetching settings:", err);
+        }
+    }
+
+    // 2. වෙනස්කම් සේව් කිරීම (JWT Token එක සමඟ)
+    async function saveSettings() {
+        const businessName = document.getElementById('biz-name').value.trim();
+        const phone = document.getElementById('biz-phone').value.trim();
+        const logo = document.getElementById('biz-logo').value.trim();
+        const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
+
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token // 🌟 Token එක සර්වර් එකට යැවීම
+                },
+                body: JSON.stringify({ businessName, phone, logo })
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                alert('සැකසුම් සාර්ථකව සුරකින ලදී! ✅');
+            } else {
+                alert('දෝෂයක් සිදු විය: ' + (result.message || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error("Save settings error:", err);
+            alert('සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය.');
+        }
+    }
+</script>
+
 </body>
 </html>
