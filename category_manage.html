@@ -54,7 +54,7 @@
 <script>
     let categories = [];
 
-    // Base64 Fallback Image
+    // Base64 Fallback Image[cite: 4]
     const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
 
     async function fetchCategories() {
@@ -82,7 +82,6 @@
         const tbody = document.getElementById('cat-table');
         if(!tbody) return;
 
-        // sortOrder එක අනුව පිළිවෙළට සකස් කිරීම (ascending order)
         categories.sort((a, b) => {
             let orderA = (a.sortOrder !== undefined && a.sortOrder !== null && a.sortOrder !== "") ? Number(a.sortOrder) : 999;
             let orderB = (b.sortOrder !== undefined && b.sortOrder !== null && b.sortOrder !== "") ? Number(b.sortOrder) : 999;
@@ -113,6 +112,9 @@
         const fileInput = document.getElementById('cat-file');
         const existingImage = document.getElementById('existing-image').value;
         
+        // 🌟 JWT Token එක ලබා ගැනීම
+        const token = localStorage.getItem('adminToken');
+        
         if(!name) return alert("Please enter category name");
 
         const formData = new FormData();
@@ -133,6 +135,9 @@
         try {
             const response = await fetch('/api/categories', {
                 method: 'POST',
+                headers: { 
+                    'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම[cite: 1]
+                },
                 body: formData 
             });
 
@@ -163,13 +168,22 @@
     }
 
     function deleteCat(id) {
+        const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
+
         if(confirm("Delete this category?")) {
-            fetch(`/api/categories/${id}`, { method: 'DELETE' })
+            fetch(`/api/categories/${id}`, { 
+                method: 'DELETE',
+                headers: { 
+                    'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම[cite: 1]
+                }
+            })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
                     categories = data.categories;
                     render();
+                } else {
+                    alert(data.message || "මකා දැමීමේදී දෝෂයක් ඇති විය.");
                 }
             })
             .catch(err => {
@@ -194,9 +208,9 @@
 </script>
 
 <script>
-    // පරිශීලකයා ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
-    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
-        window.location.href = "index.html"; 
+    // 🌟 පරිශීලකයා ටෝකන් එකක් සහිතව ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
+    if (!localStorage.getItem("adminToken")) {
+        window.location.href = "admin.html"; 
     }
 </script>
 
