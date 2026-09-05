@@ -1,4 +1,4 @@
-require('dotenv').config(); // 🌟 මුලින්ම මෙය එකතු කරන ලදී
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
@@ -6,6 +6,8 @@ const path = require('path');
 const multer = require('multer'); 
 const mongoose = require('mongoose'); 
 const cloudinary = require('cloudinary').v2;
+const bcrypt = require('bcrypt'); // 🌟 අලුතින් එකතු කරන ලදී
+const jwt = require('jsonwebtoken'); // 🌟 අලුතින් එකතු කරන ලදී
 
 const app = express();
 
@@ -13,7 +15,12 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-app.use(cors());
+// 🌟 CORS ආරක්ෂාව තහවුරු කිරීම (ඔබේ Frontend ඩොමේන් එකට පමණක් අවසර දීමට මෙය වෙනස් කරන්න)
+app.use(cors({
+    origin: '*', // නිෂ්පාදන පරිසරයේදී (Production) මෙහි ඔබේ වෙබ් අඩවියේ URL එක දෙන්න (උදා: 'https://yourdomain.com')
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 
 // Current directory එක static ලෙස Serve කිරීම (Frontend එක සඳහා)
 app.use(express.static(__dirname));
@@ -27,10 +34,8 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Multer Memory Storage සැකසීම (ෆයිල් ලෝකල් ඩිස්ක් එකේ සේව් නොකර බෆර් එක හරහා Cloudinary යැවීමට)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Cloudinary වෙත ඉමේජ් අප්ලෝඩ් කිරීම සඳහා වන Helper Function එක
 const uploadToCloudinary = (buffer, folderName) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -50,8 +55,8 @@ const uploadToCloudinary = (buffer, folderName) => {
 // ==========================================
 
 const MONGO_URI = process.env.MONGO_URI;
+const JWT_SECRET = process.env.JWT_SECRET || 'cafe_dn_super_secret_key_2026'; // .env එකට JWT_SECRET එකක් එකතු කිරීම වඩාත් සුදුසුය
 
-// Mongoose Models නිර්මාණය කිරීම
 const Product = mongoose.model('Product', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
@@ -65,12 +70,11 @@ const Product = mongoose.model('Product', new mongoose.Schema({
     visible: { type: Boolean, default: true }
 }, { strict: false }));
 
-// 🛠️ FIX: Category Schema එකට sortOrder එකතු කරන ලදී
 const Category = mongoose.model('Category', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     takeawayCharge: { type: Number, default: 0 },
-    sortOrder: { type: Number, default: 0 }, // මෙතැනට sortOrder එකතු විය
+    sortOrder: { type: Number, default: 0 },
     image: { type: String }
 }, { strict: false }));
 
@@ -90,18 +94,43 @@ const Admin = mongoose.model('Admin', new mongoose.Schema({
     password: { type: String, required: true }
 }));
 
-// Default Admin කෙනෙක් සෑදීමේ ෆන්ක්ෂන් එක (Username: admin, Password: 123)
+// 🌟 Default Admin කෙනෙක් සාදන විට මුරපදය BCRYPT මඟින් HASH කිරීම
 async function createDefaultAdmin() {
     try {
         const count = await Admin.countDocuments();
         if (count === 0) {
-            await Admin.create({ username: 'admin', password: '123' });
-            console.log('👤 Default Admin Created: username -> admin | password -> 123');
+            const hashedPassword = await bcrypt.hash('123', 10);
+            await Admin.create({ username: 'admin', password: hashedPassword });
+            console.log('👤 Default Admin Created: username -> admin | password -> 123 (Secured with Hash)');
         }
     } catch (err) {
         console.error('Error creating default admin:', err);
     }
 }
+
+
+// ==========================================
+// 🛡️ AUTHENTICATION MIDDLEWARE (JWT Verification)
+// ==========================================
+const verifyAdminToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return res.status(401).json({ success: false, message: 'ප්‍රවේශ වීම සඳහා Token එකක් අවශ්‍ය වේ!' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'ಅවලංගු Token ආකෘතියකි!' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403,).json({ success: false, message: 'Token එක අගය කිරීමට නොහැකිය හෝ කල් ඉකුත් වී ඇත!' });
+        }
+        req.admin = decoded;
+        next();
+    });
+};
 
 
 // ==========================================
@@ -116,7 +145,8 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-app.post('/api/products', upload.single('image'), async (req, res) => {
+// 🌟 Product එකතු කිරීම/වෙනස් කිරීම Admin කෙනෙකුට පමණක් සීමා කිරීම (verifyAdminToken එකතු කරන ලදී)
+app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
             await Product.deleteMany({});
@@ -150,20 +180,18 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
             { upsert: true, new: true }
         );
 
-        console.log('Product saved to DB with Cloudinary Image:', updatedProduct.name);
         res.json({ success: true, message: 'Product saved successfully', product: updatedProduct });
     } catch (error) {
-        console.error("Error saving product:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.delete('/api/products/:id', async (req, res) => {
+// 🌟 Product මකා දැමීම Admin කෙනෙකුට පමණක් සීමා කිරීම
+app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         await Product.deleteOne({ id: id });
         const remainingProducts = await Product.find({});
-        console.log(`Product ${id} deleted from DB.`);
         res.json({ success: true, message: 'Product deleted successfully', products: remainingProducts });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -183,7 +211,7 @@ app.get('/api/categories', async (req, res) => {
     }
 });
 
-app.post('/api/categories', upload.single('image'), async (req, res) => {
+app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
             await Category.deleteMany({});
@@ -191,7 +219,6 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             return res.json({ success: true, message: 'Categories saved successfully', categories: savedCategories });
         }
 
-        // 🛠️ FIX: req.body එකෙන් sortOrder එක ලබා ගැනීම
         const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
 
         let imagePath = existingImage || '';
@@ -206,7 +233,7 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             id: categoryId,
             name: name || '',
             takeawayCharge: parseFloat(takeawayCharge) || 0,
-            sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0, // 🛠️ FIX: sortOrder අගය මෙහි ඇතුළත් වේ
+            sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0,
             image: imagePath
         };
 
@@ -216,19 +243,17 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
             { upsert: true, new: true }
         );
 
-        console.log('Category saved to DB with Cloudinary Image & Order:', updatedCategory.name);
         res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.delete('/api/categories/:id', async (req, res) => {
+app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         await Category.deleteOne({ id: id });
         const remainingCategories = await Category.find({});
-        console.log(`Category ${id} deleted from DB.`);
         res.json({ success: true, message: 'Category deleted successfully', categories: remainingCategories });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -239,7 +264,7 @@ app.delete('/api/categories/:id', async (req, res) => {
 // ==========================================
 // --- Orders APIs ---
 // ==========================================
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', verifyAdminToken, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ createdAt: -1 });
         res.json(orders);
@@ -264,7 +289,7 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', async (req, res) => {
+app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         let updateData = {};
@@ -283,17 +308,16 @@ app.put('/api/orders/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/orders', async (req, res) => {
+app.delete('/api/orders', verifyAdminToken, async (req, res) => {
     try {
         await Order.deleteMany({});
-        console.log("✅ සියලුම Orders සාර්ථකව ඩේටාබේස් එකෙන් මකා දැමුණා!");
         res.status(200).json({ success: true, message: "All orders cleared successfully" });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.delete('/api/orders/:id', async (req, res, next) => {
+app.delete('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Order.deleteOne({ id: id });
@@ -302,7 +326,6 @@ app.delete('/api/orders/:id', async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        console.log(`✅ Order ${id} deleted successfully from database.`);
         res.json({ success: true, message: `Order ${id} deleted successfully` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -311,7 +334,7 @@ app.delete('/api/orders/:id', async (req, res, next) => {
 
 
 // ==========================================
--- --- Shop Status APIs ---
+// --- Shop Status APIs ---
 // ==========================================
 app.get('/api/shop-status', async (req, res) => {
     try {
@@ -325,7 +348,7 @@ app.get('/api/shop-status', async (req, res) => {
     }
 });
 
-app.post('/api/shop-status', async (req, res) => {
+app.post('/api/shop-status', verifyAdminToken, async (req, res) => {
     try {
         const { isOpen } = req.body;
         let status = await ShopStatus.findOne({});
@@ -343,17 +366,31 @@ app.post('/api/shop-status', async (req, res) => {
 
 
 // ==========================================
-// --- Admin Login API ---
+// --- Admin Login API (BCRYPT & JWT Enabled) ---
 // ==========================================
 app.post('/api/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const admin = await Admin.findOne({ username, password });
-        if (admin) {
-            res.json({ success: true, message: 'Login successful' });
-        } else {
-            res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
+        const admin = await Admin.findOne({ username });
+        
+        if (!admin) {
+            return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
         }
+
+        // 🌟 හැෂ් කළ මුරපදය සමඟ සංසන්දනය කිරීම
+        const isPasswordValid = await bcrypt.compare(password, admin.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
+        }
+
+        // 🌟 සාර්ථක නම් JWT Token එකක් ජනප්‍රභ කිරීම (පැය 2 කින් කල් ඉකුත් වේ)
+        const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '2h' });
+
+        res.json({ 
+            success: true, 
+            message: 'Login successful', 
+            token: token // Frontend එකෙන් මෙම Token එක LocalStorage එකේ සේව් කර API ඉල්ලීම් යැවීමේදී Headers වල යැවිය යුතුය
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

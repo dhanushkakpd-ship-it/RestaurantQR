@@ -1,20 +1,19 @@
 // --- CAFE DN - Admin Panel Script ---
 
-// පිටුව ලෝඩ් වූ වහාම ලොග් වී ඇත්දැයි සහ ෂොප් ස්ටේටස් එක බැලීම
+// පිටුව ලෝඩ් වූ වහාම ටෝකන් එක ඇත්දැයි පරීක්ෂා කිරීම
 window.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
+    const token = localStorage.getItem('adminToken');
     const overlay = document.getElementById('loginOverlay');
     
-    if (isLoggedIn === 'true') {
-        if (overlay) overlay.remove(); // මීට පෙර ලොග් වී ඇත්නම් ෆෝම් එක ඉවත් කරන්න
+    if (token) {
+        if (overlay) overlay.remove(); 
     } else {
-        if (overlay) overlay.style.display = 'flex'; // ලොග් වී නැත්නම් ලොගින් ෆෝම් එක පෙන්වන්න
+        if (overlay) overlay.style.display = 'flex'; 
     }
     fetchShopStatus();
 });
 
-
-// Admin Login වීම පරීක්ෂා කිරීම සහ සර්වර් එකට යැවීම
+// Admin Login වීම සහ Token එක Save කරගැනීම
 async function handleAdminLogin(event) {
     event.preventDefault();
     const username = document.getElementById('adminUser').value;
@@ -29,14 +28,12 @@ async function handleAdminLogin(event) {
         });
         
         const data = await response.json();
-        console.log("Server Response:", data);
 
-        // සර්වර් එක සාර්ථකයි නම්
-        if (response.ok && (data.success === true || data.success === undefined || data.token)) {
-            // 1. ලොග් වූ බව localStorage හි සටහන් කරන්න
-            localStorage.setItem('isAdminLoggedIn', 'true');
+        if (response.ok && data.success && data.token) {
+            // 🌟 සර්වර් එකෙන් ලැබුණු Token එක localStorage එකේ සේව් කරගන්න
+            localStorage.setItem('adminToken', data.token);
             
-            // 2. වහාම පිටුව ස්වයංක්‍රීයව රිෆ්‍රෙෂ් කරන්න (මෙය මඟින් ලොගින් ෆෝම් එක තනියම අപ്രത്യక్ష වී ඩෑෂ්බෝඩ් එක පෙන්වයි)
+            // පිටුව රිෆ්‍රෙෂ් කරන්න
             window.location.reload();
         } else {
             if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
@@ -47,11 +44,11 @@ async function handleAdminLogin(event) {
     }
 }
 
-// 🚪 Admin Logout Function (ඇඩ්මින් පැනල් එකෙන් ඉවත් වීම)
+// 🚪 Admin Logout Function
 function adminLogout() {
     if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
-        localStorage.removeItem('isAdminLoggedIn');
-        // පිටුව රිෆ්‍රෙෂ් කළ විට නැවත ලොගින් ෆෝම් එක මතුවනු ඇත
+        // 🌟 ඉවත් වන විට Token එක මකා දමන්න
+        localStorage.removeItem('adminToken');
         window.location.reload(); 
     }
 }
@@ -87,22 +84,26 @@ async function fetchShopStatus() {
     }
 }
 
-// Toggle shop status (Open / Closed)
+// Toggle shop status with Token
 async function toggleShopStatus() {
     const btn = document.getElementById('shopStatusBtn');
     const isOpen = btn.classList.contains('open');
     const newStatus = !isOpen;
+    const token = localStorage.getItem('adminToken');
 
     try {
         const response = await fetch('/api/shop-status', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම
+            },
             body: JSON.stringify({ isOpen: newStatus })
         });
         const data = await response.json();
         updateShopStatusUI(data.isOpen);
     } catch (error) {
-        console.error('Error updating shop status:', error); // දෝෂය මෙතැනදී නිවැරදි කර ඇත
+        console.error('Error updating shop status:', error);
     }
 }
 

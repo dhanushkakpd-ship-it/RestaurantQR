@@ -160,60 +160,18 @@
 
     <!-- Script for Tab Navigation, Login, Shop Status, and Logout -->
     <script>
-        // පිටුව ලෝඩ් වූ වහාම ලොග් වී ඇත්දැයි පරීක්ෂා කිරීම
+        // පිටුව ලෝඩ් වූ වහාම Token එක ඇත්දැයි පරීක්ෂා කිරීම
         window.addEventListener('DOMContentLoaded', () => {
-            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
+            const token = localStorage.getItem('adminToken');
             const overlay = document.getElementById('loginOverlay');
             
-            if (isLoggedIn !== 'true') {
+            if (!token) {
                 if (overlay) overlay.style.display = 'flex';
             } else {
                 if (overlay) overlay.style.display = 'none';
             }
             fetchShopStatus();
         });
-
-        // Admin Login වීම පරීක්ෂා කිරීම සහ සර්වර් එකට යැවීම
-        async function handleAdminLogin(event) {
-            event.preventDefault();
-            const username = document.getElementById('adminUser').value;
-            const password = document.getElementById('adminPass').value;
-            const errorMsg = document.getElementById('loginError');
-
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    localStorage.setItem('isAdminLoggedIn', 'true');
-                    const overlay = document.getElementById('loginOverlay');
-                    if (overlay) overlay.style.display = 'none';
-                    // Clear inputs
-                    document.getElementById('adminUser').value = '';
-                    document.getElementById('adminPass').value = '';
-                    if (errorMsg) errorMsg.innerText = '';
-                } else {
-                    if (errorMsg) errorMsg.innerText = data.message || 'වැරදි Username එකක් හෝ Password එකක්!';
-                }
-            } catch (err) {
-                if (errorMsg) errorMsg.innerText = 'සර්වර් එක සමඟ සම්බන්ධ වීමේ දෝෂයක්!';
-            }
-        }
-
-        // Admin Logout Function
-        function adminLogout() {
-            if (confirm('ඔබට ඇඩ්මින් පැනල් එකෙන් ඉවත් වීමට (Logout වීමට) අවශ්‍ය බව විශ්වාසද?')) {
-                localStorage.removeItem('isAdminLoggedIn');
-                const overlay = document.getElementById('loginOverlay');
-                if (overlay) {
-                    overlay.style.display = 'flex';
-                }
-            }
-        }
 
         // Tab switching function
         function openTab(tabId, btn) {
@@ -234,16 +192,20 @@
             }
         }
 
-        // Toggle shop status (Open / Closed)
+        // Toggle shop status (Open / Closed) - Authorization Token සමඟ යැවීම
         async function toggleShopStatus() {
             const btn = document.getElementById('shopStatusBtn');
             const isOpen = btn.classList.contains('open');
-            const newStatus = !isOpen; // Switch state
+            const newStatus = !isOpen;
+            const token = localStorage.getItem('adminToken');
 
             try {
                 const response = await fetch('/api/shop-status', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({ isOpen: newStatus })
                 });
                 const data = await response.json();
