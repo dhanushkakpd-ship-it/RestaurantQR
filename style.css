@@ -243,16 +243,17 @@ body {
     cursor: pointer;
 }
 
-/* Floating Bottom Cart Bar */
+/* Floating Bottom Cart Bar (Curved Top Corners Added) */
 .cart-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     background: #ffffff;
-    box-shadow: 0 -4px 20px rgba(244, 63, 94, 0.08);
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    overflow: hidden;
     z-index: 1000;
     max-width: 800px;
     margin: 0 auto;

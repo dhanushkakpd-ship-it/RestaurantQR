@@ -460,7 +460,7 @@ function updateCartUI() {
 
     const timeContainer = document.getElementById('pickup-time-container');
     if (timeContainer) {
-        if (!isTableQR && currentOrderType === 'takeaway') {
+        if (!isTableQR) { // Outside පැමිණි විට Dine-in හෝ Takeaway කුමන එක වුවත් Time එක පෙන්වන්න
             timeContainer.style.display = 'block';
         } else {
             timeContainer.style.display = 'none';
@@ -564,7 +564,7 @@ function openOrderModal() {
     }
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = (!isTableQR && isTakeaway);
+    const needsTime = !isTableQR; // Outside නම් Dine-in/Takeaway ඕනෑම එකකට Time අනිවාර්යයි
 
     if (needsTime && !timeInput) {
         showCustomAlert('කරුණාකර ඔබ පැමිණෙන / ඇණවුම ලබා ගන්නා වේලාව තෝරන්න!');
@@ -682,7 +682,7 @@ function submitOrder(sendWhatsApp) {
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = (!isTableQR && isTakeaway);
+    const needsTime = !isTableQR; // Outside නම් Dine-in/Takeaway ඕනෑම එකකට Time අනිවාර්යයි
 
     if (needsTime && !pickupTimeInput) {
         showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
