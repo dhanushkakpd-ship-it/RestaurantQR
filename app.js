@@ -225,7 +225,12 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    let categoriesList = categories;
+    let categoriesList = [...categories];
+
+    // අඩ්මින් පැනල් එකේ දී ඇති sortOrder එක අනුව categories පෙළගැස්වීම
+    if (categoriesList && categoriesList.length > 0) {
+        categoriesList.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+    }
 
     if (!categoriesList || categoriesList.length === 0) {
         categoriesList = [
@@ -277,23 +282,118 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
+    let sortedCategories = [...categories];
+    if (sortedCategories && sortedCategories.length > 0) {
+        sortedCategories.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+    }
+
+    visibleProducts.sort((a, b) => {
+        let catAId = a.category || 'General';
+        let catBId = b.category || 'General';
+        
+        let indexA = sortedCategories.findIndex(c => (typeof c === 'object' ? (c.id === catAId || c.name === catAId) : c === catAId));
+        let indexB = sortedCategories.findIndex(c => (typeof c === 'object' ? (c.id === catBId || c.name === catBId) : c === catBId));
+        
+        if (indexA === -1) indexA = 999;
+        if (indexB === -1) indexB = 999;
+
+        if (indexA !== indexB) return indexA - indexB;
+        return (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0);
+    });
+
     if (currentCategory !== 'all') {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
-    }
+        if (visibleProducts.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items in this category.</p>`;
+            return;
+        }
+        container.innerHTML = generateProductsHtml(visibleProducts);
+    } else {
+        if (visibleProducts.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items available.</p>`;
+            return;
+        }
 
-    if (visibleProducts.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items in this category.</p>`;
-        return;
-    }
+        let groupedHtml = '';
+        let categoryGroups = {};
+        
+        visibleProducts.forEach(product => {
+            let cat = product.category || 'General';
+            if (!categoryGroups[cat]) categoryGroups[cat] = [];
+            categoryGroups[cat].push(product);
+        });
 
-    container.innerHTML = visibleProducts.map(product => {
+        sortedCategories.forEach(catObj => {
+            let catKey = typeof catObj === 'object' ? (catObj.id || catObj.name) : catObj;
+            let catDisplayName = typeof catObj === 'object' ? (catObj.name || catObj.id) : catKey;
+
+            if (categoryGroups[catKey] && categoryGroups[catKey].length > 0) {
+                // 🌟 Scroll Spy සඳහා data-cat-id යොදන ලද Header එක
+                groupedHtml += `
+                    <div class="category-section-title" data-cat-id="${catKey}" style="
+                        grid-column: 1 / -1; 
+                        margin-top: 20px; 
+                        margin-bottom: 10px; 
+                        border-bottom: 2px solid #e2e8f0; 
+                        padding-bottom: 8px;
+                        scroll-margin-top: 100px;
+                    ">
+                        <h3 style="font-size: 1.2rem; color: #1e293b; font-weight: 800; text-transform: capitalize;">📂 ${catDisplayName}</h3>
+                    </div>
+                `;
+                groupedHtml += generateProductsHtml(categoryGroups[catKey]);
+            }
+        });
+
+        container.innerHTML = groupedHtml;
+        initScrollSpy(); // 🌟 මෙනුව රෙන්ඩර් වූ පසු Scroll Spy ක්‍රියාත්මක කිරීම
+    }
+}
+
+// 🌟 ස්ක්‍රෝල් කරන විට අදාළ Category එක ඔටෝ සෙレクト වීමට
+function initScrollSpy() {
+    const sections = document.querySelectorAll('.category-section-title');
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const catId = entry.target.getAttribute('data-cat-id');
+                if (catId && currentCategory === 'all') {
+                    highlightCategoryTab(catId);
+                }
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: 0
+    });
+
+    sections.forEach(section => observer.observe(section));
+}
+
+function highlightCategoryTab(catId) {
+    const tabs = document.querySelectorAll('.cat-tab');
+    tabs.forEach(tab => {
+        const onclickAttr = tab.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${catId}'`) || onclickAttr.includes(`"${catId}"`)) {
+            tab.classList.add('active');
+            // අවශ්‍ය නම් ටැබ් එක ස්වයංක්‍රීයව පෙනෙන තැනට ස්ක්‍රෝල් කර ගැනීමට:
+            tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        } else if (!onclickAttr.includes("'all'") && !onclickAttr.includes('"all"')) {
+            tab.classList.remove('active');
+        }
+    });
+}
+
+// නිෂ්පාදන කාඩ්පත් සෑදීමට උපකාරක ෆන්ක්ෂන් එකක්
+function generateProductsHtml(productsList) {
+    return productsList.map(product => {
         const isProductUnavailable = (product.available === false || product.available === "false");
         const isDisabled = !isShopOpen || isProductUnavailable;
-
         const hasValidBadge = product.badge && product.badge !== "0" && product.badge.trim() !== "" && product.badge.toLowerCase() !== "none";
-        const badgeHtml = hasValidBadge 
-            ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
-            : '';
+        const badgeHtml = hasValidBadge ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` : '';
 
         return `
             <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
