@@ -1107,17 +1107,24 @@ window.addEventListener('scroll', function() {
     }
 });
 
-// Bubble එක click කළ විට Live Orders පෙන්වන Modal එක Open/Close කිරීම
+// 🌟 Bubble එක click කළ විට 'View All Orders' මෝඩල් එක විවෘත කිරීම
 function toggleLiveOrderModal() {
-    const modal = document.getElementById('live-order-modal');
-    const liveTrackerContent = document.getElementById('live-order-tracker').innerHTML;
-    const modalBody = document.getElementById('modal-live-orders-body');
+    const modal = document.getElementById('all-orders-popup-modal'); // 'View All' මෝඩලය Open කිරීම
     
-    if (modal.style.display === 'flex') {
-        modal.style.display = 'none';
+    if (modal) {
+        if (modal.style.display === 'flex') {
+            modal.style.setProperty('display', 'none', 'important');
+        } else {
+            modal.style.setProperty('display', 'flex', 'important');
+            // මෝඩලය විවෘත වූ විට අලුත්ම දත්ත එයට Load වී ඇති බවට වග බලා ගැනීම
+            if (typeof latestActiveOrders !== 'undefined' && latestActiveOrders.length > 0) {
+                 updateAllOrdersPopupContent(latestActiveOrders);
+            }
+        }
     } else {
-        // මුල් Tracker එකේ ඇතුළත් දත්ත මෝඩල් එකට ද ඩෝඩ් කිරීම
-        modalBody.innerHTML = liveTrackerContent;
-        modal.style.display = 'flex';
+        // මෝඩලය තවමත් නිර්මාණය වී නැතිනම් (පළමු වතාවට) showAllOrdersPopup() එක අමතන්න
+        if (typeof showAllOrdersPopup === 'function') {
+            showAllOrdersPopup();
+        }
     }
 }
