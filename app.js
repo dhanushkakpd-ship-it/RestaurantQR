@@ -385,7 +385,7 @@ function initScrollSpy() {
 
         // 3. ස්ක්‍රෝල් කිරීම නතර කර මිලි තත්පර 100 කට පසු (0.1 seconds) ක්‍රියාත්මක වීම
         scrollTimeout = setTimeout(() => {
-            let scrollPosition = window.scrollY + 120;
+            let scrollPosition = window.scrollY + 80;
             let activeCatId = null;
             
             sections.forEach(section => {
