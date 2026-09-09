@@ -429,7 +429,7 @@ function initScrollSpy() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const catId = entry.target.getAttribute('data-cat-id');
-                if (catId && window.scrollY >= 100) {
+                if (catId && window.scrollY >= 60) {
                     highlightCategoryTab(catId);
                 }
             }
