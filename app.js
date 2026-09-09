@@ -365,40 +365,6 @@ function renderProducts() {
     }
 }
 
-// 🌟 උඩටම ගිය විට 'All' සහ ටිකක් පහළට ගිය විට අදාළ කැටගරිය select වන ස්ක්‍රෝල් ස්පයි කේතය
-function initScrollSpy() {
-    const sections = document.querySelectorAll('.category-section-title');
-    if (sections.length === 0) return;
-
-    // 1. මෙනුව උඩටම (Top) ගෙන ගිය විට 'All' ටැබ් එක ඔටෝ Active කිරීම
-    window.addEventListener('scroll', () => {
-        if (currentCategory === 'all') {
-            if (window.scrollY < 150) { // මෙනුව මුදුනේ සිට 150px ට වඩා උඩින් පවතිී නම්
-                highlightAllTab();
-            }
-        }
-    });
-
-    // 2. ටිකක් පහළට ස්ක්‍රෝල් කරන විට අදාළ කැටගරිය Active කිරීම
-    const observer = new IntersectionObserver((entries) => {
-        if (currentCategory !== 'all') return; 
-
-        entries.forEach(entry => {
-            if (entry.isIntersecting && window.scrollY >= 150) {
-                const catId = entry.target.getAttribute('data-cat-id');
-                if (catId) {
-                    highlightCategoryTab(catId);
-                }
-            }
-        });
-    }, {
-        root: null,
-        rootMargin: '-10% 0px -50% 0px',
-        threshold: 0
-    });
-
-    sections.forEach(section => observer.observe(section));
-}
 
 // 🌟 නිවැරදිව පළමු කැටගරිය සහ අනෙකුත් කැටගරි ස්වයංක්‍රීයව Select වන Scroll Spy කේතය
 function initScrollSpy() {
@@ -409,7 +375,7 @@ function initScrollSpy() {
     window.addEventListener('scroll', () => {
         if (currentCategory === 'all') {
             // scroll position එක 100 ට අඩු නම් 'All' තෝරන්න
-            if (window.scrollY < 100) {
+            if (window.scrollY < 50) {
                 highlightAllTab();
             }
         }
