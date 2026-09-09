@@ -120,15 +120,15 @@ body {
 /* Product Card Style */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
     padding: 10px 0;
 }
 
 .product-card {
     background: #ffffff;
     border-radius: 12px;
-    padding: 10px;
+    padding: 12px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -139,8 +139,8 @@ body {
 }
 
 .product-card img {
-    width: 80px;
-    height: 90px;
+    width: 90px;
+    height: 100px;
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;
@@ -155,14 +155,14 @@ body {
 }
 
 .product-info h3 {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #1e293b;
     margin-bottom: 2px;
 }
 
 .badge {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
     background: #fdf2f8;
     color: #db2777;
     padding: 2px 6px;
@@ -172,7 +172,7 @@ body {
 }
 
 .desc {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: #64748b;
     margin-bottom: 4px;
 }
@@ -184,13 +184,13 @@ body {
 }
 
 .current-price {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: #059669;
 }
 
 .old-price {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     color: #94a3b8;
     text-decoration: line-through;
 }
@@ -214,21 +214,21 @@ body {
 }
 
 .qty-control button {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border: none;
     background: #ffffff;
     border-radius: 4px;
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: #db2777;
     cursor: pointer;
 }
 
 .qty-control span {
-    padding: 0 6px;
+    padding: 0 8px;
     font-weight: 700;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: #1e293b;
 }
 
@@ -239,8 +239,16 @@ body {
     padding: 6px 12px;
     border-radius: 6px;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     cursor: pointer;
+}
+
+/* 🌟 Google Pixel සහ අනෙකුත් සියලුම ජංගම දුරකථන සඳහා (Screen width එක 600px හෝ අඩු නම්) */
+@media (max-width: 600px) {
+    .product-grid {
+        grid-template-columns: 1fr; /* සියලුම ජංගම දුරකථනවල මෙනුව එක යට එකට (1 column) පෙන්වයි */
+        gap: 12px;
+    }
 }
 
 /* Floating Bottom Cart Bar (Curved Top Corners Added) */
