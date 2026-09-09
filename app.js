@@ -365,42 +365,36 @@ function renderProducts() {
     }
 }
 
+// 🌟 මෙනුව මුදුනටම ගිය විට 'All' සහ පොඩි ප්‍රමාණයක් පහළට ගිය විට පළමු කැටගරිය select වන ක්‍රමය
 function initScrollSpy() {
     const sections = document.querySelectorAll('.category-section-title');
     if (sections.length === 0) return;
 
-    // 1. මෙනුව උඩටම (Top - 50px ට වඩා අඩු නම්) ගෙන ගිය විට 'All' ටැබ් එක පමණක් Active කිරීම
+    // Scroll කරන සෑම අවස්ථාවකම පරීක්ෂා කිරීම
     window.addEventListener('scroll', () => {
-        if (currentCategory === 'all') {
-            if (window.scrollY < 50) {
-                highlightAllTab();
-            }
+        if (currentCategory !== 'all') return;
+
+        // 1. මෙනුව උඩටම ගොස් ඇත නම් (scrollY අගය 15 ට වඩා අඩු නම්) 'All' ටැබ් එක පමණක් තෝරන්න
+        if (window.scrollY < 15) {
+            highlightAllTab();
+            return;
         }
-    });
 
-    // 2. IntersectionObserver මඟින් තිරයට එන ඕනෑම කැටගරියක් (පළමු කැටගරියද ඇතුළුව) හරියටම අල්ලා ගැනීම
-    const observerOptions = {
-        root: null,
-        // rootMargin මඟින් තිරයේ ඉහළ සිටින කොටසට කැටගරිය පැමිණි විගස ක්‍රියාත්මක වේ
-        rootMargin: '-60px 0px -40% 0px', 
-        threshold: 0
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        if (currentCategory !== 'all') return; 
-
-        entries.forEach(entry => {
-            // මෙහි තිබූ window.scrollY පරීක්ෂාව ඉවත් කර ඇත, එවිට පළමු කැටගරියද 100% ක් වැඩ කරයි
-            if (entry.isIntersecting) {
-                const catId = entry.target.getAttribute('data-cat-id');
-                if (catId) {
-                    highlightCategoryTab(catId);
-                }
+        // 2. 15 ට වඩා ටිකක් පහළට පැමිණි විගස, තිරයේ ඉහළටම ඇති (පළමු හෝ ඊළඟ) කැටගරිය සොයා ගැනීම
+        let scrollPosition = window.scrollY + 120; // Header සහ Offset සඳහා එකතු කරන ලදී
+        
+        let activeCatId = null;
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (scrollPosition >= sectionTop) {
+                activeCatId = section.getAttribute('data-cat-id');
             }
         });
-    }, observerOptions);
 
-    sections.forEach(section => observer.observe(section));
+        if (activeCatId) {
+            highlightCategoryTab(activeCatId);
+        }
+    });
 }
 
 // 🌟 'All' ටැබ් එක පමණක් Active කිරීමට
@@ -419,8 +413,6 @@ function highlightAllTab() {
 
 // 🌟 අදාළ කැටගරි ටැබ් එක Active කිරීමට
 function highlightCategoryTab(catId) {
-    if (currentCategory !== 'all') return;
-
     const tabs = document.querySelectorAll('.cat-tab');
     tabs.forEach(tab => {
         const onclickAttr = tab.getAttribute('onclick') || '';
@@ -432,7 +424,6 @@ function highlightCategoryTab(catId) {
         }
     });
 }
-
 // නිෂ්පාදන කාඩ්පත් සෑදීමට උපකාරක ෆන්ක්ෂන් එකක්
 function generateProductsHtml(productsList) {
     return productsList.map(product => {
