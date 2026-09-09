@@ -341,7 +341,7 @@ function renderProducts() {
                         <span style="
                             background: #f1f5f9; 
                             color: #334155; 
-                            padding: 6px 14px; 
+                            padding: 3px 14px; 
                             border-radius: 20px; 
                             font-size: 0.95rem; 
                             font-weight: 700; 
