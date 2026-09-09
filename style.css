@@ -34,7 +34,7 @@ body {
     font-size: 1.3rem;
     font-weight: 700;
     color: #db2777;
-    align-items: center;
+    text-align: center;
 }
 
 .status-badges {
