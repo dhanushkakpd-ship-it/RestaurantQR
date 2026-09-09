@@ -365,60 +365,67 @@ function renderProducts() {
     }
 }
 
-// 🌟 මෙනුව මුදුනටම ගිය විට 'All' සහ පොඩි ප්‍රමාණයක් පහළට ගිය විට පළමු කැටගරිය select වන ක්‍රමය
+let scrollTimeout = null;
+
 function initScrollSpy() {
     const sections = document.querySelectorAll('.category-section-title');
     if (sections.length === 0) return;
 
-    // Scroll කරන සෑම අවස්ථාවකම පරීක්ෂා කිරීම
     window.addEventListener('scroll', () => {
         if (currentCategory !== 'all') return;
 
-        // 1. මෙනුව උඩටම ගොස් ඇත නම් (scrollY අගය 15 ට වඩා අඩු නම්) 'All' ටැබ් එක පමණක් තෝරන්න
+        // 1. මෙනුව උඩටම ගොස් ඇත නම් ක්ෂණිකව 'All' ටැබ් එක තෝරන්න
         if (window.scrollY < 15) {
             highlightAllTab();
             return;
         }
 
-        // 2. 15 ට වඩා ටිකක් පහළට පැමිණි විගස, තිරයේ ඉහළටම ඇති (පළමු හෝ ඊළඟ) කැටගරිය සොයා ගැනීම
-        let scrollPosition = window.scrollY + 120; // Header සහ Offset සඳහා එකතු කරන ලදී
-        
-        let activeCatId = null;
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (scrollPosition >= sectionTop) {
-                activeCatId = section.getAttribute('data-cat-id');
-            }
-        });
+        // 2. ස්ක්‍රෝල් කරන විට පවතින ටයිමර් එක ඉවත් කිරීම
+        clearTimeout(scrollTimeout);
 
-        if (activeCatId) {
-            highlightCategoryTab(activeCatId);
-        }
+        // 3. ස්ක්‍රෝල් කිරීම නතර කර මිලි තත්පර 100 කට පසු (0.1 seconds) ක්‍රියාත්මක වීම
+        scrollTimeout = setTimeout(() => {
+            let scrollPosition = window.scrollY + 120;
+            let activeCatId = null;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollPosition >= sectionTop) {
+                    activeCatId = section.getAttribute('data-cat-id');
+                }
+            });
+
+            if (activeCatId) {
+                highlightCategoryTab(activeCatId);
+            }
+        }, 100); // මෙහි කාලය අවශ්‍ය නම් වැඩි හෝ අඩු කළ හැක
     });
 }
 
-// 🌟 'All' ටැබ් එක පමණක් Active කිරීමට
 function highlightAllTab() {
     const tabs = document.querySelectorAll('.cat-tab');
     tabs.forEach(tab => {
         const onclickAttr = tab.getAttribute('onclick') || '';
         if (onclickAttr.includes("'all'") || onclickAttr.includes('"all"')) {
-            tab.classList.add('active');
-            tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            if (!tab.classList.contains('active')) {
+                tab.classList.add('active');
+                tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         } else {
             tab.classList.remove('active');
         }
     });
 }
 
-// 🌟 අදාළ කැටගරි ටැබ් එක Active කිරීමට
 function highlightCategoryTab(catId) {
     const tabs = document.querySelectorAll('.cat-tab');
     tabs.forEach(tab => {
         const onclickAttr = tab.getAttribute('onclick') || '';
         if (onclickAttr.includes(`'${catId}'`) || onclickAttr.includes(`"${catId}"`)) {
-            tab.classList.add('active');
-            tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            if (!tab.classList.contains('active')) {
+                tab.classList.add('active');
+                tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         } else if (!onclickAttr.includes("'all'") && !onclickAttr.includes('"all"')) {
             tab.classList.remove('active');
         }
