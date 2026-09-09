@@ -332,7 +332,7 @@ function renderProducts() {
                 groupedHtml += `
                     <div class="category-section-title" data-cat-id="${catKey}" style="
                         grid-column: 1 / -1; 
-                        margin-top: 5px; 
+                        margin-top: 10px; 
                         margin-bottom: 2px; 
                         display: flex;
                         align-items: center;
