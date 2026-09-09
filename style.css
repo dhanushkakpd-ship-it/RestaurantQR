@@ -66,15 +66,37 @@ body {
 
 /* Live Order Tracker Banner */
 #live-order-tracker {
-    display: none;
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 600px;
-    z-index: 9999;
+display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
+    
+    /* පහත වෙනස්කම් මඟින් එය Category Tabs වලට පහළින් ස්ථාවරව පෙන්වයි */
+    position: relative; 
+    top: 0;
+    transform: none; 
+    left: 0;
+    
+    width: auto;
+    max-width: 800px; /* Menu container එකේ පළලට සමාන කිරීම */
+    margin: 10px 16px 5px 16px; /* වටේට Margin එකක් (ඉහළින් 10px) */
+    z-index: 1; /* Header එකට යටින් තැබීමට */
+    margin-left: auto;
+    margin-right: auto;
+
 }
+
+
+
+/* 🌟 View All බට්න් එකේ වර්ණය ඔබේ තීම් එකට (Strawberry & Cream) ගැලපෙන සේ වෙනස් කිරීම */
+#live-order-tracker button {
+    background: #fdf2f8 !important; /* Light pink background */
+    border: 1px solid #fce7f3 !important;
+    color: #9d174d !important; /* Darker pink text */
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+}
+
 
 /* Order Type Switcher Tabs */
 .order-type-tabs {
