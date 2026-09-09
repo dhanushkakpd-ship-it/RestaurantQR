@@ -118,6 +118,25 @@
         </div>
     </div>
 
+    <!-- 🌟 Floating Live Order Bubble Button -->
+<div id="floating-live-bubble" class="floating-bubble" onclick="toggleLiveOrderModal()" style="display: none;">
+    <div class="bubble-icon">🔔</div>
+    <div class="bubble-badge" id="bubble-order-count">0</div>
+</div>
+
+<!-- 🌟 Floating Order Details Modal / Popup -->
+<div id="live-order-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔔 Live Orders Status</h3>
+            <span class="close-modal" onclick="toggleLiveOrderModal()">&times;</span>
+        </div>
+        <div id="modal-live-orders-body" class="modal-body">
+            <!-- Live Orders ටික මෙතැනට Load වේ -->
+        </div>
+    </div>
+</div>
+
     <!-- App JS Link -->
     <script src="app.js"></script>
 </body>

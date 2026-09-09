@@ -64,20 +64,23 @@ body {
     color: #16a34a;
 }
 
-/* Live Order Tracker Banner - Scroll කරන විට උඩින් ස්ථාවරව (Sticky) පෙන්වීමට */
+/* Live Order Tracker Banner */
 #live-order-tracker {
-    display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
+display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
     
-    /* 🌟 මෙන්න මේ වෙනස්කම් සිදු කරන්න */
-    position: sticky; 
-    top: 130px; /* Header සහ Category Tabs වල උස අනුව මෙය 120px සිට 140px දක්වා වෙනස් කරගත හැක */
+    /* පහත වෙනස්කම් මඟින් එය Category Tabs වලට පහළින් ස්ථාවරව පෙන්වයි */
+    position: relative; 
+    top: 0;
+    transform: none; 
+    left: 0;
     
-    width: 100%;
-    max-width: 800px;
-    z-index: 98; /* Header (100) සහ Tabs (99) වලට යටින්, මෙනුවට ඉහළින් තැබීමට */
-    margin: 0 auto;
-    padding: 6px 16px;
-    background-color: #f5dae0; /* Scroll කරන විට පිටුපස ඇති දේ නොපෙනී යාමට බේස් කලර් එක */
+    width: auto;
+    max-width: 800px; /* Menu container එකේ පළලට සමාන කිරීම */
+    margin: 0px 16px 0px 16px; /* වටේට Margin එකක් (ඉහළින් 10px) */
+    z-index: 1; /* Header එකට යටින් තැබීමට */
+    margin-left: auto;
+    margin-right: auto;
+
 }
 
 /* Live Order Bar එකට පහළින් ඇති Ice Cone / Category කොටසේ ඉහළ ඉඩ (Top Space) සම්පූර්ණයෙන්ම අඩු කිරීමට */
@@ -608,4 +611,53 @@ body {
     object-fit: cover;
     border-radius: 50%;
     display: block;
+}
+
+
+
+/* 🌟 Floating Bubble Styles */
+.floating-bubble {
+    position: fixed;
+    bottom: 90px; /* Cart bar එකට උඩින් පෙන්වීමට */
+    right: 20px;
+    background: #db2777;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(219, 39, 119, 0.4);
+    cursor: pointer;
+    z-index: 999;
+    animation: bounceBubble 2s infinite;
+    transition: transform 0.2s ease;
+}
+
+.floating-bubble:hover {
+    transform: scale(1.1);
+}
+
+.bubble-icon {
+    font-size: 1.3rem;
+}
+
+.bubble-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #059669;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+@keyframes bounceBubble {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-6px);}
+    60% {transform: translateY(-3px);}
 }
