@@ -365,27 +365,24 @@ function renderProducts() {
     }
 }
 
-
-// 🌟 නිවැරදිව පළමු කැටගරිය සහ අනෙකුත් කැටගරි ස්වයංක්‍රීයව Select වන Scroll Spy කේතය
 function initScrollSpy() {
     const sections = document.querySelectorAll('.category-section-title');
     if (sections.length === 0) return;
 
-    // 1. මෙනුව උඩටම (Top) ගෙන ගිය විට 'All' ටැබ් එක පමණක් Active කිරීම
+    // 1. මෙනුව උඩටම (Top - 50px ට වඩා අඩු නම්) ගෙන ගිය විට 'All' ටැබ් එක පමණක් Active කිරීම
     window.addEventListener('scroll', () => {
         if (currentCategory === 'all') {
-            // scroll position එක 100 ට අඩු නම් 'All' තෝරන්න
             if (window.scrollY < 50) {
                 highlightAllTab();
             }
         }
     });
 
-    // 2. IntersectionObserver මඟින් තිරයට එන කැටගරිය හඳුනා ගැනීම
+    // 2. IntersectionObserver මඟින් තිරයට එන ඕනෑම කැටගරියක් (පළමු කැටගරියද ඇතුළුව) හරියටම අල්ලා ගැනීම
     const observerOptions = {
         root: null,
-        // rootMargin මඟින් තිරයේ ඉහළ කොටසට පැමිණෙන විටම කැටගරිය අල්ලා ගනී
-        rootMargin: '-80px 0px -50% 0px', 
+        // rootMargin මඟින් තිරයේ ඉහළ සිටින කොටසට කැටගරිය පැමිණි විගස ක්‍රියාත්මක වේ
+        rootMargin: '-60px 0px -40% 0px', 
         threshold: 0
     };
 
@@ -393,9 +390,10 @@ function initScrollSpy() {
         if (currentCategory !== 'all') return; 
 
         entries.forEach(entry => {
+            // මෙහි තිබූ window.scrollY පරීක්ෂාව ඉවත් කර ඇත, එවිට පළමු කැටගරියද 100% ක් වැඩ කරයි
             if (entry.isIntersecting) {
                 const catId = entry.target.getAttribute('data-cat-id');
-                if (catId && window.scrollY >= 60) {
+                if (catId) {
                     highlightCategoryTab(catId);
                 }
             }
@@ -434,6 +432,7 @@ function highlightCategoryTab(catId) {
         }
     });
 }
+
 // නිෂ්පාදන කාඩ්පත් සෑදීමට උපකාරක ෆන්ක්ෂන් එකක්
 function generateProductsHtml(productsList) {
     return productsList.map(product => {
