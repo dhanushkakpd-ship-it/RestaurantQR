@@ -1087,3 +1087,34 @@ window.addEventListener('load', () => {
         }
     }, 800);
 });
+
+// Scroll වන විට මුල් Live Tracker එක පෙනේදැයි බලා Bubble එක පාලනය කිරීම
+window.addEventListener('scroll', function() {
+    const liveTracker = document.getElementById('live-order-tracker');
+    const floatingBubble = document.getElementById('floating-live-bubble');
+    
+    if (liveTracker && liveTracker.style.display !== 'none') {
+        const rect = liveTracker.getBoundingClientRect();
+        // Tracker එක screen එකෙන් උඩට මතු වී ගියහොත් (Hidden නම්)
+        if (rect.bottom < 0) {
+            floatingBubble.style.display = 'flex';
+        } else {
+            floatingBubble.style.display = 'none';
+        }
+    }
+});
+
+// Bubble එක click කළ විට Live Orders පෙන්වන Modal එක Open/Close කිරීම
+function toggleLiveOrderModal() {
+    const modal = document.getElementById('live-order-modal');
+    const liveTrackerContent = document.getElementById('live-order-tracker').innerHTML;
+    const modalBody = document.getElementById('modal-live-orders-body');
+    
+    if (modal.style.display === 'flex') {
+        modal.style.display = 'none';
+    } else {
+        // මුල් Tracker එකේ ඇතුළත් දත්ත මෝඩල් එකට ද ඩෝඩ් කිරීම
+        modalBody.innerHTML = liveTrackerContent;
+        modal.style.display = 'flex';
+    }
+}
