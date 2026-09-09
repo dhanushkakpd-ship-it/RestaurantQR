@@ -225,7 +225,12 @@ function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    let categoriesList = categories;
+    let categoriesList = [...categories];
+
+    // අඩ්මින් පැනල් එකේ දී ඇති sortOrder එක අනුව categories පෙළගැස්වීම
+    if (categoriesList && categoriesList.length > 0) {
+        categoriesList.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+    }
 
     if (!categoriesList || categoriesList.length === 0) {
         categoriesList = [
