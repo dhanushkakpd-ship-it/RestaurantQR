@@ -1,7 +1,7 @@
-// --- CAFE DN - Cashier Billing Panel (Complete JS with Tabs and Token Authentication) ---
+// --- CAFE DN - Cashier Billing Panel (Complete Clean JS) ---
 
 let allOrders = [];
-let currentCashierTab = 'unpaid'; // මුලින්ම පෙන්වන්නේ Unpaid ටැබ් එකයි
+let currentCashierTab = 'unpaid';
 
 document.addEventListener('DOMContentLoaded', () => {
     startClock();
@@ -51,15 +51,23 @@ function switchCashierTab(tabName) {
     const paidBtn = document.getElementById('tab-paid-btn');
 
     if (tabName === 'unpaid') {
-        unpaidBtn.style.background = '#3b82f6';
-        unpaidBtn.style.color = 'white';
-        paidBtn.style.background = '#e2e8f0';
-        paidBtn.style.color = '#475569';
+        if (unpaidBtn) {
+            unpaidBtn.style.background = '#3b82f6';
+            unpaidBtn.style.color = 'white';
+        }
+        if (paidBtn) {
+            paidBtn.style.background = '#e2e8f0';
+            paidBtn.style.color = '#475569';
+        }
     } else {
-        paidBtn.style.background = '#22c55e';
-        paidBtn.style.color = 'white';
-        unpaidBtn.style.background = '#e2e8f0';
-        unpaidBtn.style.color = '#475569';
+        if (paidBtn) {
+            paidBtn.style.background = '#22c55e';
+            paidBtn.style.color = 'white';
+        }
+        if (unpaidBtn) {
+            unpaidBtn.style.background = '#e2e8f0';
+            unpaidBtn.style.color = '#475569';
+        }
     }
 
     renderCashierTickets();
@@ -90,7 +98,6 @@ function renderCashierTickets() {
     const container = document.getElementById('cashier-tickets-grid');
     if (!container) return;
 
-    // වත්මන් ටැබ් එකට අදාළ ඔර්ඩර්ස් පමණක් ෆිල්ටර් කිරීම[cite: 9]
     let displayOrders = allOrders.filter(o => {
         let status = (o.status || '').toLowerCase();
         let paymentStatus = (o.paymentStatus || '').toLowerCase();
@@ -106,8 +113,8 @@ function renderCashierTickets() {
 
     if (displayOrders.length === 0) {
         let msg = currentCashierTab === 'unpaid' 
-            ? "✅ මුදල් අය කර ගැනීමට බිල්පත් කිසිවක් නොමැත (No Unpaid Orders)"[cite: 9] 
-            : "📭 ගෙවීම් කළ බිල්පත් කිසිවක් හමු නොවීය (No Paid Orders)";[cite: 9]
+            ? "✅ මුදල් අය කර ගැනීමට බිල්පත් කිසිවක් නොමැත (No Unpaid Orders)"
+            : "📭 ගෙවීම් කළ බිල්පත් කිසිවක් හමු නොවීය (No Paid Orders)";
         
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 50px;">
             <h3>${msg}</h3>
@@ -146,6 +153,20 @@ function renderCashierTickets() {
         let totalAmount = subtotal + takeawayCharge;
         let isPaid = (order.paymentStatus || '').toLowerCase() === 'paid';
 
+        let itemsHtml = (order.items || []).map(item => `
+            <div class="item-row" style="display: flex; justify-content: space-between;">
+                <span><span class="qty-tag">${item.qty}x</span> ${item.name}</span>
+                <span>${item.price ? 'LKR ' + (item.price * item.qty) : ''}</span>
+            </div>
+        `).join('');
+
+        let takeawayHtml = takeawayCharge > 0 ? `
+            <div class="item-row" style="display: flex; justify-content: space-between; color: #d97706; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
+                <span>Take Away Charges</span>
+                <span>LKR ${takeawayCharge.toFixed(2)}</span>
+            </div>
+        ` : '';
+
         return `
             <div class="ticket-card ready" style="border-top: 4px solid ${isPaid ? '#22c55e' : '#f59e0b'};">
                 <div class="ticket-header">
@@ -171,19 +192,8 @@ function renderCashierTickets() {
                 </div>
 
                 <div class="ticket-body">
-                     ${(order.items || []).map(item => `
-                        <div class="item-row" style="display: flex; justify-content: space-between;">
-                            <span><span class="qty-tag">${item.qty}x</span> ${item.name}</span>
-                            <span>${item.price ? 'LKR ' + (item.price * item.qty) : ''}</span>
-                        </div>
-                    `).join('')}
-
-                    ${takeawayCharge > 0 ? `
-                        <div class="item-row" style="display: flex; justify-content: space-between; color: #d97706; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">
-                            <span>Take Away Charges</span>
-                            <span>LKR ${takeawayCharge.toFixed(2)}</span>
-                        </div>
-                    ` : ''}
+                    ${itemsHtml}
+                    ${takeawayHtml}
                 </div>
                 
                 <div style="padding: 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
@@ -217,6 +227,24 @@ function openBillModal(orderId) {
     const modal = document.getElementById('bill-modal');
     const content = document.getElementById('modal-bill-body');
 
+    let modalItemsHtml = (order.items || []).map(item => `
+        <div style="margin-bottom: 4px;">
+            <div>${item.qty} x ${item.name}</div>
+            <div style="display: flex; justify-content: space-between; padding-left: 10px;">
+                <span>@ ${item.price}</span>
+                <span>Rs. ${(item.price * item.qty).toFixed(2)}</span>
+            </div>
+        </div>
+    `).join('');
+
+    let modalTakeawayHtml = takeawayCharge > 0 ? `
+        <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Take Away Packaging Charges</span>
+            <span>Rs. ${takeawayCharge.toFixed(2)}</span>
+        </div>
+    ` : '';
+
     content.innerHTML = `
         <div style="font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #000;">
             <div style="text-align: center;">
@@ -243,24 +271,10 @@ function openBillModal(orderId) {
             <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
 
             <div>
-                ${(order.items || []).map(item => `
-                    <div style="margin-bottom: 4px;">
-                        <div>${item.qty} x ${item.name}</div>
-                        <div style="display: flex; justify-content: space-between; padding-left: 10px;">
-                            <span>@ ${item.price}</span>
-                            <span>Rs. ${(item.price * item.qty).toFixed(2)}</span>
-                        </div>
-                    </div>
-                `).join('')}
+                ${modalItemsHtml}
             </div>
 
-            ${takeawayCharge > 0 ? `
-                <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Take Away Packaging Charges</span>
-                    <span>Rs. ${takeawayCharge.toFixed(2)}</span>
-                </div>
-            ` : ''}
+            ${modalTakeawayHtml}
 
             <div style="border-bottom: 1px dashed #000; margin: 5px 0;"></div>
             <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
@@ -285,19 +299,20 @@ function openBillModal(orderId) {
 }
 
 function closeBillModal() {
-    document.getElementById('bill-modal').style.display = 'none';
+    const modal = document.getElementById('bill-modal');
+    if (modal) modal.style.display = 'none';
 }
 
 // Confirm Payment and Mark Order as Paid (Token සමඟ)[cite: 9]
 async function confirmPaymentAndFinish(orderId) {
-    const token = localStorage.getItem('adminToken') || ''; //[cite: 9]
+    const token = localStorage.getItem('adminToken') || '';[cite: 9]
 
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token //[cite: 9]
+                'Authorization': 'Bearer ' + token[cite: 9]
             },
             body: JSON.stringify({ 
                 paymentStatus: 'paid',
