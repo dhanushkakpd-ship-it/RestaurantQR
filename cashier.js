@@ -1,4 +1,4 @@
-// --- CAFE DN - Cashier Billing Panel (Complete JS with Tabs) ---
+// --- CAFE DN - Cashier Billing Panel (Complete JS with Tabs and Token Authentication) ---
 
 let allOrders = [];
 let currentCashierTab = 'unpaid'; // මුලින්ම පෙන්වන්නේ Unpaid ටැබ් එකයි
@@ -20,10 +20,21 @@ function startClock() {
     }, 1000);
 }
 
-// Server එකෙන් සියලුම Orders ලබා ගැනීම
+// Server එකෙන් සියලුම Orders ලබා ගැනීම (Token එක සමඟ)[cite: 9]
 function fetchOrdersForCashier() {
-    fetch('/api/orders')
-        .then(res => res.json())
+    const token = localStorage.getItem('adminToken') || '';
+
+    fetch('/api/orders', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Unauthorized or Server Error');
+            return res.json();
+        })
         .then(data => {
             allOrders = data || [];
             updateTabCounts();
@@ -32,7 +43,7 @@ function fetchOrdersForCashier() {
         .catch(err => console.error("Error fetching cashier orders:", err));
 }
 
-// ටැබ් මාරු කිරීමේ කාර්යය
+// ටැබ් මාරු කිරීමේ කාර්යය[cite: 9]
 function switchCashierTab(tabName) {
     currentCashierTab = tabName;
     
@@ -54,7 +65,7 @@ function switchCashierTab(tabName) {
     renderCashierTickets();
 }
 
-// ටැබ් වල ඔර්ඩර් ගණන යාවත්කාලීන කිරීම
+// ටැබ් වල ඔර්ඩර් ගණන යාවත්කාලීන කිරීම[cite: 9]
 function updateTabCounts() {
     const unpaidList = allOrders.filter(o => {
         let status = (o.status || '').toLowerCase();
@@ -74,12 +85,12 @@ function updateTabCounts() {
     if (paidCountEl) paidCountEl.innerText = paidList.length;
 }
 
-// Render Cashier Order Tickets based on Active Tab
+// Render Cashier Order Tickets based on Active Tab[cite: 9]
 function renderCashierTickets() {
     const container = document.getElementById('cashier-tickets-grid');
     if (!container) return;
 
-    // වත්මන් ටැබ් එකට අදාළ ඔර්ඩර්ස් පමණක් ෆිල්ටර් කිරීම
+    // වත්මන් ටැබ් එකට අදාළ ඔර්ඩර්ස් පමණක් ෆිල්ටර් කිරීම[cite: 9]
     let displayOrders = allOrders.filter(o => {
         let status = (o.status || '').toLowerCase();
         let paymentStatus = (o.paymentStatus || '').toLowerCase();
@@ -95,8 +106,8 @@ function renderCashierTickets() {
 
     if (displayOrders.length === 0) {
         let msg = currentCashierTab === 'unpaid' 
-            ? "✅ මුදල් අය කර ගැනීමට බිල්පත් කිසිවක් නොමැත (No Unpaid Orders)" 
-            : "📭 ගෙවීම් කළ බිල්පත් කිසිවක් හමු නොවීය (No Paid Orders)";
+            ? "✅ මුදල් අය කර ගැනීමට බිල්පත් කිසිවක් නොමැත (No Unpaid Orders)"[cite: 9] 
+            : "📭 ගෙවීම් කළ බිල්පත් කිසිවක් හමු නොවීය (No Paid Orders)";[cite: 9]
         
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 50px;">
             <h3>${msg}</h3>
@@ -190,7 +201,7 @@ function renderCashierTickets() {
     }).join('');
 }
 
-// Open Bill Modal with Thermal Receipt Format
+// Open Bill Modal with Thermal Receipt Format[cite: 9]
 function openBillModal(orderId) {
     const order = allOrders.find(o => o.id === orderId);
     if (!order) return;
@@ -277,16 +288,16 @@ function closeBillModal() {
     document.getElementById('bill-modal').style.display = 'none';
 }
 
-// Confirm Payment and Mark Order as Paid (🌟 ඊට අමතරව JWT Token එකද ඇතුළත් කරන ලදී)
+// Confirm Payment and Mark Order as Paid (Token සමඟ)[cite: 9]
 async function confirmPaymentAndFinish(orderId) {
-    const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
+    const token = localStorage.getItem('adminToken') || ''; //[cite: 9]
 
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token // 🌟 Token එක සර්වර් එකට යැවීම
+                'Authorization': 'Bearer ' + token //[cite: 9]
             },
             body: JSON.stringify({ 
                 paymentStatus: 'paid',
