@@ -365,36 +365,63 @@ function renderProducts() {
     }
 }
 
-// 🌟 ස්ක්‍රෝල් කරන විට අදාළ Category එක ඔටෝ සෙレクト වීමට
+// 🌟 උඩටම ගිය විට 'All' සහ ටිකක් පහළට ගිය විට අදාළ කැටගරිය select වන ස්ක්‍රෝල් ස්පයි කේතය
 function initScrollSpy() {
     const sections = document.querySelectorAll('.category-section-title');
     if (sections.length === 0) return;
 
+    // 1. මෙනුව උඩටම (Top) ගෙන ගිය විට 'All' ටැබ් එක ඔටෝ Active කිරීම
+    window.addEventListener('scroll', () => {
+        if (currentCategory === 'all') {
+            if (window.scrollY < 150) { // මෙනුව මුදුනේ සිට 150px ට වඩා උඩින් පවතිී නම්
+                highlightAllTab();
+            }
+        }
+    });
+
+    // 2. ටිකක් පහළට ස්ක්‍රෝල් කරන විට අදාළ කැටගරිය Active කිරීම
     const observer = new IntersectionObserver((entries) => {
+        if (currentCategory !== 'all') return; 
+
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
+            if (entry.isIntersecting && window.scrollY >= 150) {
                 const catId = entry.target.getAttribute('data-cat-id');
-                if (catId && currentCategory === 'all') {
+                if (catId) {
                     highlightCategoryTab(catId);
                 }
             }
         });
     }, {
         root: null,
-        rootMargin: '-20% 0px -60% 0px',
+        rootMargin: '-10% 0px -50% 0px',
         threshold: 0
     });
 
     sections.forEach(section => observer.observe(section));
 }
 
+// 🌟 'All' ටැබ් එක පමණක් Active කර අනෙක්වා ඉවත් කිරීමට
+function highlightAllTab() {
+    const tabs = document.querySelectorAll('.cat-tab');
+    tabs.forEach(tab => {
+        const onclickAttr = tab.getAttribute('onclick') || '';
+        if (onclickAttr.includes("'all'") || onclickAttr.includes('"all"')) {
+            tab.classList.add('active');
+            tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+}
+
 function highlightCategoryTab(catId) {
+    if (currentCategory !== 'all') return;
+
     const tabs = document.querySelectorAll('.cat-tab');
     tabs.forEach(tab => {
         const onclickAttr = tab.getAttribute('onclick') || '';
         if (onclickAttr.includes(`'${catId}'`) || onclickAttr.includes(`"${catId}"`)) {
             tab.classList.add('active');
-            // අවශ්‍ය නම් ටැබ් එක ස්වයංක්‍රීයව පෙනෙන තැනට ස්ක්‍රෝල් කර ගැනීමට:
             tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         } else if (!onclickAttr.includes("'all'") && !onclickAttr.includes('"all"')) {
             tab.classList.remove('active');
