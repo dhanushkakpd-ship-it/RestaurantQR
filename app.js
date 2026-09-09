@@ -375,7 +375,7 @@ function initScrollSpy() {
         if (currentCategory !== 'all') return;
 
         // 1. මෙනුව උඩටම ගොස් ඇත නම් ක්ෂණිකව 'All' ටැබ් එක තෝරන්න
-        if (window.scrollY < 15) {
+        if (window.scrollY < 5) {
             highlightAllTab();
             return;
         }
