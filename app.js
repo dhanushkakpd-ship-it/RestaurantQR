@@ -943,6 +943,9 @@ function renderAllCustomerBadges(ordersList) {
     const trackerContainer = document.getElementById('live-order-tracker');
     if (!trackerContainer) return;
 
+    const activeOrdersCount = ordersList ? ordersList.length : 0;
+    document.getElementById('bubble-order-count').innerText = activeOrdersCount;
+
     trackerContainer.style.display = 'block';
     trackerContainer.style.margin = '10px auto';
     trackerContainer.style.width = '95%';
