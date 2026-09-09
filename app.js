@@ -328,17 +328,32 @@ function renderProducts() {
             let catDisplayName = typeof catObj === 'object' ? (catObj.name || catObj.id) : catKey;
 
             if (categoryGroups[catKey] && categoryGroups[catKey].length > 0) {
-                // 🌟 Scroll Spy සඳහා data-cat-id යොදන ලද Header එක
+                // 🌟 කුඩා, ලස්සන Modern Pill/Badge ස්ටייל එකට සකස් කළ Header එක
                 groupedHtml += `
                     <div class="category-section-title" data-cat-id="${catKey}" style="
                         grid-column: 1 / -1; 
-                        margin-top: 20px; 
-                        margin-bottom: 10px; 
-                        border-bottom: 2px solid #e2e8f0; 
-                        padding-bottom: 8px;
+                        margin-top: 24px; 
+                        margin-bottom: 12px; 
+                        display: flex;
+                        align-items: center;
                         scroll-margin-top: 100px;
                     ">
-                        <h3 style="font-size: 1.2rem; color: #1e293b; font-weight: 800; text-transform: capitalize;">📂 ${catDisplayName}</h3>
+                        <span style="
+                            background: #f1f5f9; 
+                            color: #334155; 
+                            padding: 6px 14px; 
+                            border-radius: 20px; 
+                            font-size: 0.95rem; 
+                            font-weight: 700; 
+                            display: inline-flex; 
+                            align-items: center; 
+                            gap: 6px;
+                            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+                            border: 1px solid #e2e8f0;
+                            text-transform: capitalize;
+                        ">
+                            🍽️ ${catDisplayName}
+                        </span>
                     </div>
                 `;
                 groupedHtml += generateProductsHtml(categoryGroups[catKey]);
