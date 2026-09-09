@@ -400,7 +400,46 @@ function initScrollSpy() {
     sections.forEach(section => observer.observe(section));
 }
 
-// 🌟 'All' ටැබ් එක පමණක් Active කර අනෙක්වා ඉවත් කිරීමට
+// 🌟 නිවැරදිව පළමු කැටගරිය සහ අනෙකුත් කැටගරි ස්වයංක්‍රීයව Select වන Scroll Spy කේතය
+function initScrollSpy() {
+    const sections = document.querySelectorAll('.category-section-title');
+    if (sections.length === 0) return;
+
+    // 1. මෙනුව උඩටම (Top) ගෙන ගිය විට 'All' ටැබ් එක පමණක් Active කිරීම
+    window.addEventListener('scroll', () => {
+        if (currentCategory === 'all') {
+            // scroll position එක 100 ට අඩු නම් 'All' තෝරන්න
+            if (window.scrollY < 100) {
+                highlightAllTab();
+            }
+        }
+    });
+
+    // 2. IntersectionObserver මඟින් තිරයට එන කැටගරිය හඳුනා ගැනීම
+    const observerOptions = {
+        root: null,
+        // rootMargin මඟින් තිරයේ ඉහළ කොටසට පැමිණෙන විටම කැටගරිය අල්ලා ගනී
+        rootMargin: '-80px 0px -50% 0px', 
+        threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        if (currentCategory !== 'all') return; 
+
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const catId = entry.target.getAttribute('data-cat-id');
+                if (catId && window.scrollY >= 100) {
+                    highlightCategoryTab(catId);
+                }
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+}
+
+// 🌟 'All' ටැබ් එක පමණක් Active කිරීමට
 function highlightAllTab() {
     const tabs = document.querySelectorAll('.cat-tab');
     tabs.forEach(tab => {
@@ -414,6 +453,7 @@ function highlightAllTab() {
     });
 }
 
+// 🌟 අදාළ කැටගරි ටැබ් එක Active කිරීමට
 function highlightCategoryTab(catId) {
     if (currentCategory !== 'all') return;
 
@@ -428,7 +468,6 @@ function highlightCategoryTab(catId) {
         }
     });
 }
-
 // නිෂ්පාදන කාඩ්පත් සෑදීමට උපකාරක ෆන්ක්ෂන් එකක්
 function generateProductsHtml(productsList) {
     return productsList.map(product => {
