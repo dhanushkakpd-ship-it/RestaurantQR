@@ -1,4 +1,4 @@
-// --- CAFE DN - Customer App JavaScript (With Visual Viewport Keyboard Auto-Reset) ---
+// --- CAFE DN - Customer App JavaScript (Security Updated) ---
 
 const RESTAURANT_WA_NUMBER = "94754940329"; // Restaurant WhatsApp Number
 
@@ -22,46 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCategoriesForCart();
     await loadProductsFromServer();
     checkMyOrderStatus();
-    initScrollSpy();
-
-    // Smart Mobile Keyboard Detection using visualViewport
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => {
-            const cartBar = document.getElementById('cart-bar');
-            if (!cartBar) return;
-            
-            // If visual viewport height shrinks significantly, keyboard is open
-            const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 150;
-            
-            if (isKeyboardOpen) {
-                cartBar.classList.add('keyboard-open');
-            } else {
-                // Keyboard closed -> Automatically revert to half/normal cart details view
-                cartBar.classList.remove('keyboard-open');
-            }
-        });
-    } else {
-        // Fallback for older browsers
-        const cartInputs = ['cust-name', 'cust-phone', 'cust-time'];
-        cartInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('focus', () => {
-                    const cartBar = document.getElementById('cart-bar');
-                    if (cartBar) cartBar.classList.add('keyboard-open');
-                });
-                el.addEventListener('blur', () => {
-                    setTimeout(() => {
-                        const activeEl = document.activeElement;
-                        if (!cartInputs.some(i => document.getElementById(i) === activeEl)) {
-                            const cartBar = document.getElementById('cart-bar');
-                            if (cartBar) cartBar.classList.remove('keyboard-open');
-                        }
-                    }, 100);
-                });
-            }
-        });
-    }
 
     setInterval(async () => {
         await fetchShopStatus();
@@ -73,12 +33,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     tableNumber = urlParams.get('table');
 
+    const orderTypeTabs = document.getElementById('order-type-tabs');
+
     if (tableNumber) {
         isTableQR = true;
         currentOrderType = 'dinein';
+        if (orderTypeTabs) orderTypeTabs.style.display = 'flex'; 
     } else {
-        isTableQR = false;
-        showOrderTypePopup(); 
+        if (orderTypeTabs) orderTypeTabs.style.display = 'flex';
+        showOrderTypePopup();
     }
 
     updateTableBadgeUI();
@@ -110,20 +73,47 @@ async function fetchShopStatus() {
 
 function updateStatusBadge() {
     const badge = document.querySelector('.badge-status');
+    const orderTypeTabs = document.getElementById('order-type-tabs'); 
+    const tabButtons = document.querySelectorAll('.tab-btn'); 
+
     if (badge) {
         if (isShopOpen) {
             badge.innerHTML = "🟢 Open Now";
             badge.style.color = "#16a34a"; 
+
+            if (orderTypeTabs) {
+                orderTypeTabs.style.pointerEvents = 'auto';
+                orderTypeTabs.style.opacity = '1';
+            }
+
+            tabButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.cursor = 'pointer';
+            });
+
         } else {
             badge.innerHTML = "🔴 Shop Closed";
             badge.style.color = "#dc2626"; 
+
+            if (orderTypeTabs) {
+                orderTypeTabs.style.pointerEvents = 'none'; 
+                orderTypeTabs.style.opacity = '0.5';        
+            }
+
+            tabButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.cursor = 'not-allowed'; 
+            });
 
             const cartDetails = document.getElementById('cart-details');
             if (cartDetails && cartDetails.style.display === 'block') {
                 toggleCart();
             }
+
             const cartBar = document.getElementById('cart-bar');
-            if (cartBar) cartBar.style.display = 'none';
+            if (cartBar) {
+                cartBar.style.display = 'none';
+            }
         }
     }
 }
@@ -135,7 +125,7 @@ function updateTableBadgeUI() {
     if (isTableQR) {
         tableBadge.innerText = `📍 Table ${tableNumber} (${currentOrderType === 'takeaway' ? 'Takeaway' : 'Dine-in'})`;
     } else {
-        tableBadge.innerText = currentOrderType === 'takeaway' ? `📍 Takeaway (Shop)` : `📍 Dine-in (Shop)`;
+        tableBadge.innerText = currentOrderType === 'takeaway' ? `📍 Takeaway` : `📍 Dine-in (Shop)`;
     }
 }
 
@@ -143,8 +133,7 @@ async function loadCategoriesForCart() {
     try {
         const res = await fetch('/api/categories');
         if (res.ok) {
-            const data = await res.json();
-            categories = data.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+            categories = await res.json();
         }
     } catch (e) {
         console.error("Error loading categories for cart:", e);
@@ -158,6 +147,7 @@ async function loadProductsFromServer() {
             const data = await response.json();
             if (data && data.length > 0) {
                 const currentDataJson = JSON.stringify(data);
+                
                 if (currentDataJson !== lastProductDataJson) {
                     lastProductDataJson = currentDataJson;
                     systemData.products = data;
@@ -216,26 +206,27 @@ function showOrderTypePopup() {
 function selectExternalOrderType(type) {
     currentOrderType = type;
     updateTableBadgeUI(); 
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const btnText = btn.innerText.toLowerCase();
+        if (btnText.includes(type) || (type === 'dinein' && btnText.includes('dine'))) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
     const popup = document.getElementById('order-type-popup');
     if (popup) popup.remove();
     updateCartUI(); 
-}
-
-function setOrderType(type) {
-    currentOrderType = type;
-    updateTableBadgeUI();
-    updateCartUI();
 }
 
 function renderCategoryTabs() {
     const container = document.getElementById('categoryTabs');
     if (!container) return;
 
-    container.style.background = '#fff5f7'; 
-    container.style.padding = '8px 0';
-    container.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-
     let categoriesList = categories;
+
     if (!categoriesList || categoriesList.length === 0) {
         categoriesList = [
             { id: 'juice', name: 'Juice', image: '' },
@@ -244,12 +235,11 @@ function renderCategoryTabs() {
         ];
     }
 
-    let tabsHtml = `
-        <div style="display: flex; overflow-x: auto; gap: 8px; padding: 0 12px; scrollbar-width: none;">
-            <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
-                <span style="font-size: 1rem;">🌟</span>
-                <span>All</span>
-            </button>
+    let html = `
+        <button class="cat-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
+            <span style="font-size: 1rem;">🌟</span>
+            <span>All</span>
+        </button>
     `;
 
     categoriesList.forEach(cat => {
@@ -261,7 +251,7 @@ function renderCategoryTabs() {
             ? `<img src="${catImage}" alt="${catName}" onerror="this.style.display='none'">` 
             : `<span style="font-size: 1rem;">🍽️</span>`;
 
-        tabsHtml += `
+        html += `
             <button class="cat-tab ${currentCategory === catId ? 'active' : ''}" onclick="filterCategory('${catId}')">
                 ${imageHtml}
                 <span>${catName}</span>
@@ -269,8 +259,7 @@ function renderCategoryTabs() {
         `;
     });
 
-    tabsHtml += `</div>`;
-    container.innerHTML = tabsHtml;
+    container.innerHTML = html;
 }
 
 function filterCategory(catId) {
@@ -288,31 +277,26 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
-    if (currentCategory === 'all') {
-        visibleProducts.sort((a, b) => {
-            const catA = categories.find(c => c.id === a.category || c.name === a.category);
-            const catB = categories.find(c => c.id === b.category || c.name === b.category);
-            const orderA = catA && catA.sortOrder !== undefined ? Number(catA.sortOrder) : 9999;
-            const orderB = catB && catB.sortOrder !== undefined ? Number(catB.sortOrder) : 9999;
-            return orderA - orderB;
-        });
-    } else {
+    if (currentCategory !== 'all') {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
     }
 
     if (visibleProducts.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items found.</p>`;
+        container.innerHTML = `<p style="text-align: center; color: #64748b; grid-column: 1 / -1; padding: 20px;">No items in this category.</p>`;
         return;
     }
 
     container.innerHTML = visibleProducts.map(product => {
         const isProductUnavailable = (product.available === false || product.available === "false");
         const isDisabled = !isShopOpen || isProductUnavailable;
+
         const hasValidBadge = product.badge && product.badge !== "0" && product.badge.trim() !== "" && product.badge.toLowerCase() !== "none";
-        const badgeHtml = hasValidBadge ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` : '';
+        const badgeHtml = hasValidBadge 
+            ? `<div class="badge-box"><span class="badge">${product.badge}</span></div>` 
+            : '';
 
         return `
-            <div class="product-card" data-category="${product.category || 'General'}" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
+            <div class="product-card" style="${isDisabled ? 'opacity: 0.90; background: #f8ebeb;' : ''}">
                 ${product.image ? `<img src="${product.image}" alt="${product.name}" onerror="this.style.display='none'">` : ''}
                 <div class="product-info">
                     <h3 style="margin-bottom: ${hasValidBadge ? '4px' : '6px'};">${product.name}</h3>
@@ -344,50 +328,6 @@ function renderProducts() {
             </div>
         `;
     }).join('');
-}
-
-function initScrollSpy() {
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (currentCategory !== 'all') return; 
-        if (window.scrollY < 50) {
-            const tabButtons = document.querySelectorAll('.cat-tab');
-            tabButtons.forEach((btn, index) => {
-                if (index === 0) {
-                    btn.classList.add('active');
-                    btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            return; 
-        }
-
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            const cards = document.querySelectorAll('.product-card');
-            let activeCat = null;
-            for (let card of cards) {
-                const rect = card.getBoundingClientRect();
-                if (rect.top <= 200 && rect.bottom >= 100) {
-                    activeCat = card.getAttribute('data-category');
-                    break;
-                }
-            }
-            if (activeCat) {
-                const tabButtons = document.querySelectorAll('.cat-tab');
-                tabButtons.forEach(btn => {
-                    const onclickAttr = btn.getAttribute('onclick') || '';
-                    if (onclickAttr.includes(`'${activeCat}'`)) {
-                        btn.classList.add('active');
-                        btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-            }
-        }, 100);
-    });
 }
 
 function changeQty(productId, change) {
@@ -435,40 +375,6 @@ function updateCartUI() {
 
     const grandTotal = subtotal + totalTakeAwayCharges;
 
-    const btnDineIn = document.getElementById('btn-dinein-opt');
-    const btnTakeaway = document.getElementById('btn-takeaway-opt');
-
-    if (btnDineIn && btnTakeaway) {
-        if (currentOrderType === 'takeaway') {
-            btnTakeaway.style.background = '#10b981';
-            btnTakeaway.style.color = '#fff';
-            btnTakeaway.style.borderColor = '#10b981';
-
-            btnDineIn.style.background = '#fff';
-            btnDineIn.style.color = '#000';
-            btnDineIn.style.borderColor = '#cbd5e1';
-        } else {
-            btnDineIn.style.background = '#3b82f6';
-            btnDineIn.style.color = '#fff';
-            btnDineIn.style.borderColor = '#3b82f6';
-
-            btnTakeaway.style.background = '#fff';
-            btnTakeaway.style.color = '#000';
-            btnTakeaway.style.borderColor = '#cbd5e1';
-        }
-    }
-
-    const timeContainer = document.getElementById('pickup-time-container');
-    if (timeContainer) {
-        if (!isTableQR) { 
-            timeContainer.style.display = 'block';
-        } else {
-            timeContainer.style.display = 'none';
-            const timeInput = document.getElementById('cust-time');
-            if (timeInput) timeInput.value = '';
-        }
-    }
-
     const cartBar = document.getElementById('cart-bar');
     if (cartBar) {
         if (totalItems > 0 && isShopOpen) {
@@ -487,6 +393,7 @@ function renderCartItemsList(takeawayCharges = 0) {
     if (!container) return;
 
     let html = '';
+
     for (let id in cart) {
         const prod = systemData.products.find(p => p.id == id);
         if (prod) {
@@ -515,16 +422,26 @@ function renderCartItemsList(takeawayCharges = 0) {
 function toggleCart() {
     if (!isShopOpen) return;
     const details = document.getElementById('cart-details');
-    const arrow = document.getElementById('cart-arrow');
-    
     if (details) {
-        const isOpen = details.style.display === 'block';
-        details.style.display = isOpen ? 'none' : 'block';
-        
-        if (arrow) {
-            arrow.innerText = isOpen ? '▲' : '▼';
-        }
+        details.style.display = details.style.display === 'block' ? 'none' : 'block';
     }
+
+    const timeContainer = document.getElementById('pickup-time-container');
+    if (timeContainer) {
+        timeContainer.style.display = isTableQR ? 'none' : 'block';
+    }
+}
+
+function setOrderType(type, eventObj) {
+    currentOrderType = type;
+
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetBtn = eventObj || (window.event && window.event.target);
+    if (targetBtn) {
+        targetBtn.classList.add('active');
+    }
+
+    updateTableBadgeUI(); 
     updateCartUI();
 }
 
@@ -533,6 +450,7 @@ function openOrderModal() {
         showCustomAlert('ආපන ශාලාව වසා ඇති බැවින් ඇණවුම් කළ නොහැක!');
         return;
     }
+
     if (Object.keys(cart).length === 0) {
         showCustomAlert('කරුණාකර අවම වශයෙන් එක් ආහාරයක් හෝ තෝරන්න!');
         return;
@@ -540,7 +458,6 @@ function openOrderModal() {
 
     const nameInput = document.getElementById('cust-name') ? document.getElementById('cust-name').value.trim() : '';
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
-    const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
     if (!nameInput) {
         showCustomAlert('කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!');
@@ -563,17 +480,16 @@ function openOrderModal() {
         }
     }
 
-    const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = !isTableQR; 
-
-    if (needsTime && !timeInput) {
-        showCustomAlert('කරුණාකර ඔබ පැමිණෙන / ඇණවුම ලබා ගන්නා වේලාව තෝරන්න!');
+    const timeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
+    if (!isTableQR && !timeInput) {
+        showCustomAlert('කරුණාකර ඔබ ඇණවුම ලබා ගැනීමට බලාපොරොත්තු වන වේලාව තෝරන්න!');
         return;
     }
 
+    const isTakeaway = (currentOrderType === 'takeaway');
     let displayTableType = '';
     if (isTableQR) {
-        displayTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber} (Dine-in)`;
+        displayTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
     } else {
         displayTableType = isTakeaway ? 'Takeaway (Shop)' : 'Dine-in (Shop)';
     }
@@ -616,7 +532,7 @@ function openOrderModal() {
                 <div>📍 <b>Type:</b> ${displayTableType}</div>
                 <div>👤 <b>Name:</b> ${nameInput}</div>
                 <div>📱 <b>Phone:</b> ${phoneInput || 'Not required'}</div>
-                ${needsTime ? `<div>🕒 <b>Time:</b> ${timeInput || 'ASAP'}</div>` : ''}
+                <div>🕒 <b>Pickup Time:</b> ${timeInput || 'ASAP'}</div>
             </div>
             <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
                 <p style="font-weight:700; color:#475569; margin-bottom:8px;">Order Items:</p>
@@ -634,8 +550,22 @@ function openOrderModal() {
 }
 
 function closeOrderModal() {
-    const modal = document.getElementById('order-modal');
-    if (modal) modal.style.display = 'none';
+    const modal = document.getElementById('order-modal') || 
+                  document.getElementById('review-modal') || 
+                  document.getElementById('orderModal') ||
+                  document.querySelector('.order-modal') ||
+                  document.querySelector('.review-modal');
+
+    if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('active', 'show', 'open', 'visible');
+    }
+
+    const backdrops = document.querySelectorAll('.modal-backdrop, .overlay, .backdrop, .popup-overlay');
+    backdrops.forEach(b => {
+        b.style.setProperty('display', 'none', 'important');
+        b.remove();
+    });
 }
 
 function showCustomAlert(message) {
@@ -681,21 +611,18 @@ function submitOrder(sendWhatsApp) {
     const phoneInput = document.getElementById('cust-phone') ? document.getElementById('cust-phone').value.trim() : '';
     const pickupTimeInput = document.getElementById('cust-time') ? document.getElementById('cust-time').value : '';
 
-    const isTakeaway = (currentOrderType === 'takeaway');
-    const needsTime = !isTableQR; 
-
-    if (needsTime && !pickupTimeInput) {
+    if (!isTableQR && !pickupTimeInput) {
         showCustomAlert('කරුණාකර වේලාව තෝරන්න!');
         return;
     }
 
-    const orderId = "ORD-" + Math.floor(100 + Math.random() * 900);
-
+    const isTakeaway = (currentOrderType === 'takeaway');
     let finalTableType = '';
+
     if (isTableQR) {
-        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber} (Dine-in)`;
+        finalTableType = isTakeaway ? `Table ${tableNumber} (Takeaway)` : `Table ${tableNumber}`;
     } else {
-        finalTableType = isTakeaway ? 'Takeaway (Shop)' : 'Dine-in (Shop)';
+        finalTableType = isTakeaway ? 'Takeaway' : 'Dine-in (Shop)';
     }
 
     const finalOrderTypeStr = isTakeaway ? 'Takeaway' : 'Dine-in';
@@ -722,14 +649,12 @@ function submitOrder(sendWhatsApp) {
     const grandTotal = subtotal + totalTakeAwayCharges;
 
     const newOrder = {
-        id: orderId,
         table: finalTableType,
         type: finalOrderTypeStr, 
         customerName: nameInput,
         phone: phoneInput || 'Not Provided',
-        pickupTime: needsTime ? (pickupTimeInput || 'ASAP') : 'N/A',
+        pickupTime: pickupTimeInput || 'ASAP',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'pending',
         subtotal: subtotal,
         takeawayCharge: totalTakeAwayCharges,
         total: grandTotal,
@@ -743,14 +668,23 @@ function submitOrder(sendWhatsApp) {
     })
     .then(res => res.json())
     .then(data => {
-        let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
-        myOrders.push(orderId);
-        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+        if (data.success && data.order) {
+            // 🌟 සර්වර් එකෙන් ලැබෙන ID එක සහ Secret Key එක LocalStorage හි සුරක්ෂිත කිරීම
+            let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
+            myOrders.push({
+                id: data.order.id,
+                secretKey: data.order.secretKey
+            });
+            localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+        }
 
         showCustomAlert('🎉 ඔබගේ ඇණවුම සාර්ථකව යැවුණා!');
         
         const orderModal = document.getElementById('order-modal');
-        if (orderModal) orderModal.style.display = 'none';
+        if (orderModal) {
+            orderModal.style.setProperty('display', 'none', 'important');
+            orderModal.classList.remove('active', 'show', 'open', 'visible');
+        }
 
         if (sendWhatsApp) {
             let itemText = orderItems.map(i => `▫️ ${i.qty}x ${i.name} - Rs. ${(i.price * i.qty).toFixed(2)}`).join('\n');
@@ -758,11 +692,11 @@ function submitOrder(sendWhatsApp) {
                 itemText += `\n▫️ Take Away Charges - Rs. ${totalTakeAwayCharges.toFixed(2)}`;
             }
 
-            let waMessage = `🧾 *NEW ORDER - ${orderId}*\n` +
+            let waMessage = `🧾 *NEW ORDER - ${data.success ? data.order.id : ''}*\n` +
                             `📍 *Type:* ${finalTableType}\n` +
                             `👤 *Name:* ${nameInput}\n` +
                             `📱 *Phone:* ${phoneInput || 'N/A'}\n` +
-                            (needsTime ? `🕒 *Time:* ${pickupTimeInput || 'ASAP'}\n\n` : `\n`) +
+                            `🕒 *Pickup Time:* ${pickupTimeInput || 'ASAP'}\n\n` +
                             `🛒 *Items:*\n${itemText}\n\n` +
                             `💰 *Total Amount:* Rs. ${grandTotal.toFixed(2)}`;
 
@@ -785,6 +719,7 @@ function submitOrder(sendWhatsApp) {
     });
 }
 
+// 🌟 ආරක්ෂිතව පාරිභෝගිකයාගේ ඇණවුම් තත්ත්වය පරීක්ෂා කිරීම
 async function checkMyOrderStatus() {
     let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
     const trackerContainer = document.getElementById('live-order-tracker');
@@ -795,45 +730,65 @@ async function checkMyOrderStatus() {
     }
 
     try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-            const allOrders = await res.json();
-            let paidTimestamps = JSON.parse(localStorage.getItem('cafePaidTimestamps') || '{}');
-            let currentTime = Date.now();
+        let activeOrdersList = [];
+        let paidTimestamps = JSON.parse(localStorage.getItem('cafePaidTimestamps') || '{}');
+        let currentTime = Date.now();
 
-            latestActiveOrders = allOrders.filter(o => {
-                if (!myOrders.includes(o.id)) return false;
-                let status = (o.status || '').toLowerCase();
-                let paymentStatus = (o.paymentStatus || '').toLowerCase();
-                
-                let isPaidOrCompleted = (status === 'paid' || status === 'completed' || paymentStatus === 'paid');
+        for (let orderObj of myOrders) {
+            let orderId = typeof orderObj === 'object' ? orderObj.id : orderObj;
+            let secretKey = typeof orderObj === 'object' ? orderObj.secretKey : '';
 
-                if (isPaidOrCompleted) {
-                    if (!paidTimestamps[o.id]) {
-                        paidTimestamps[o.id] = currentTime;
-                        localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
-                    }
-                    let elapsed = currentTime - paidTimestamps[o.id];
-                    if (elapsed >= 60000) { 
-                        myOrders = myOrders.filter(id => id !== o.id);
-                        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
-                        return false; 
-                    }
-                }
-
-                if (status === 'cancelled') {
-                    myOrders = myOrders.filter(id => id !== o.id);
-                    localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
-                    return false;
-                }
-                return true;
+            const res = await fetch('/api/customer-order-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, secretKey })
             });
 
-            if (latestActiveOrders.length > 0) {
-                renderAllCustomerBadges(latestActiveOrders);
-            } else {
-                if (trackerContainer) trackerContainer.style.display = 'none';
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.order) {
+                    let o = data.order;
+                    let status = (o.status || '').toLowerCase();
+                    let paymentStatus = (o.paymentStatus || '').toLowerCase();
+                    
+                    let isPaidOrCompleted = (status === 'paid' || status === 'completed' || paymentStatus === 'paid');
+
+                    if (isPaidOrCompleted) {
+                        if (!paidTimestamps[o.id]) {
+                            paidTimestamps[o.id] = currentTime;
+                            localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
+                        }
+
+                        let elapsed = currentTime - paidTimestamps[o.id];
+                        if (elapsed >= 60000) { 
+                            myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== o.id : item !== o.id));
+                            localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+                            continue; 
+                        }
+                    }
+
+                    if (status === 'cancelled') {
+                        myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== o.id : item !== o.id));
+                        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
+                        continue;
+                    }
+
+                    activeOrdersList.push(o);
+                }
             }
+        }
+
+        latestActiveOrders = activeOrdersList;
+
+        if (latestActiveOrders.length > 0) {
+            renderAllCustomerBadges(latestActiveOrders);
+            
+            const existingModal = document.getElementById('all-orders-popup-modal');
+            if (existingModal) {
+                updateAllOrdersPopupContent(latestActiveOrders);
+            }
+        } else {
+            if (trackerContainer) trackerContainer.style.display = 'none';
         }
     } catch (e) {
         console.error("Error checking customer orders status:", e);
@@ -850,6 +805,7 @@ function renderAllCustomerBadges(ordersList) {
     trackerContainer.style.maxWidth = '600px';
 
     const latestOrder = ordersList[ordersList.length - 1];
+    
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
     let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase();
     
@@ -857,11 +813,27 @@ function renderAllCustomerBadges(ordersList) {
     let textColor = '#854d0e';
     let statusText = 'Pending';
 
-    if (currentStatus === 'preparing') { statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; } 
-    else if (currentStatus === 'ready') { statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; } 
-    else if (currentStatus === 'paid' || paymentStatus === 'paid') { statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; } 
-    else if (currentStatus === 'completed') { statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; } 
-    else if (currentStatus === 'cancelled') { statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; }
+    if (currentStatus === 'preparing') { 
+        statusColor = '#e0f2fe'; 
+        textColor = '#0284c7'; 
+        statusText = 'Preparing'; 
+    } else if (currentStatus === 'ready') { 
+        statusColor = '#dcfce7'; 
+        textColor = '#16a34a'; 
+        statusText = 'Ready!'; 
+    } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
+        statusColor = '#ccfbf1'; 
+        textColor = '#0f766e'; 
+        statusText = 'Paid 💳'; 
+    } else if (currentStatus === 'completed') { 
+        statusColor = '#f1f5f9'; 
+        textColor = '#64748b'; 
+        statusText = 'Waiting for Payment'; 
+    } else if (currentStatus === 'cancelled') { 
+        statusColor = '#fee2e2'; 
+        textColor = '#ef4444'; 
+        statusText = 'Cancelled'; 
+    }
 
     let otherOrdersHtml = '';
     if (ordersList.length > 1) {
@@ -876,7 +848,7 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    trackerContainer.innerHTML = `
+    let html = `
         <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
                 <span>🔔 Live Order Status</span>
@@ -891,6 +863,7 @@ function renderAllCustomerBadges(ordersList) {
             </div>
         </div>
     `;
+    trackerContainer.innerHTML = html;
 }
 
 function showAllOrdersPopup() {
@@ -914,21 +887,49 @@ function showAllOrdersPopup() {
                         background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #64748b; font-weight: bold;
                     ">✕</button>
                 </div>
-                <div id="all-orders-list-container">
-                    ${latestActiveOrders.map(order => `
-                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
-                            </div>
-                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
-                            <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
-                        </div>
-                    `).join('')}
-                </div>
+                <div id="all-orders-list-container"></div>
             </div>
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
+    updateAllOrdersPopupContent(latestActiveOrders);
+}
+
+function updateAllOrdersPopupContent(ordersList) {
+    const container = document.getElementById('all-orders-list-container');
+    if (!container) return;
+
+    container.innerHTML = ordersList.map(order => {
+        let currentStatus = (order.status || 'pending').toLowerCase();
+        let paymentStatus = (order.paymentStatus || '').toLowerCase();
+        
+        let statusColor = '#fef08a';
+        let textColor = '#854d0e';
+        let statusText = 'Pending';
+
+        if (currentStatus === 'preparing') { 
+            statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
+        } else if (currentStatus === 'ready') { 
+            statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
+        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
+            statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
+        } else if (currentStatus === 'completed') { 
+            statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
+        } else if (currentStatus === 'cancelled') { 
+            statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
+        }
+
+        return `
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
+                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 window.addEventListener('load', () => {
@@ -936,7 +937,9 @@ window.addEventListener('load', () => {
         const loader = document.getElementById('app-loader');
         if (loader) {
             loader.classList.add('fade-out');
-            setTimeout(() => { loader.style.display = 'none'; }, 500);
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
         }
     }, 800);
 });
