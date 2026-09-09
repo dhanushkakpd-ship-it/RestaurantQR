@@ -30,7 +30,7 @@ body {
 
 .brand {
     display: flex;
-    flex-direction: column; /* ලාංඡනය සහ නම එක යටට මැදින් පෙන්වීමට */
+   
     align-items: center;
     gap: 8px;
 }
