@@ -303,16 +303,16 @@ function closeBillModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// Confirm Payment and Mark Order as Paid (Token සමඟ)[cite: 9]
+// Confirm Payment and Mark Order as Paid (Token සමඟ)
 async function confirmPaymentAndFinish(orderId) {
-    const token = localStorage.getItem('adminToken') || '';[cite: 9]
+    const token = localStorage.getItem('adminToken') || '';
 
     try {
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token[cite: 9]
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({ 
                 paymentStatus: 'paid',
