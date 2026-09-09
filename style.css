@@ -76,7 +76,7 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
     
     width: auto;
     max-width: 800px; /* Menu container එකේ පළලට සමාන කිරීම */
-    margin: 10px 16px 5px 16px; /* වටේට Margin එකක් (ඉහළින් 10px) */
+    margin: 10px 16px 0px 16px; /* වටේට Margin එකක් (ඉහළින් 10px) */
     z-index: 1; /* Header එකට යටින් තැබීමට */
     margin-left: auto;
     margin-right: auto;
