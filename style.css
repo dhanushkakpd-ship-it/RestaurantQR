@@ -1,5 +1,5 @@
 /* ==========================================================
-   CAFE DN - Main Stylesheet (Updated for Single Column Mobile)
+   CAFE DN - Main Stylesheet (Strict Single Column Mobile)
    ========================================================== */
 
 /* Base Reset & Variables */
@@ -38,16 +38,17 @@ header h1 {
     margin-bottom: 5px;
 }
 
-/* --- PRODUCT GRID (Mobile: Single Column | Desktop: Multi Column) --- */
+/* --- PRODUCT GRID (Mobile: Strictly Single Column) --- */
 .product-grid {
-    display: grid;
-    grid-template-columns: 1fr; /* සියලුම මොබයිල් ෆෝන් සඳහා එකම තීරුවක් (Single Column) පෙන්වයි */
+    display: flex !important;
+    flex-direction: column !important;
     gap: 15px;
     padding: 10px 0;
 }
 
 /* Product Card */
 .product-card {
+    width: 100% !important;
     background: #ffffff;
     border-radius: 10px;
     overflow: hidden;
@@ -55,6 +56,7 @@ header h1 {
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease;
+    margin-bottom: 5px;
 }
 
 .product-card:hover {
@@ -124,11 +126,17 @@ header h1 {
     z-index: 1000;
 }
 
-/* --- MEDIA QUERIES FOR TABLETS & LAPTOPS --- */
+/* --- MEDIA QUERIES FOR TABLETS & LAPTOPS (768px සහ ඉහළට පමණක් Grid වැඩ කරයි) --- */
 @media (min-width: 768px) {
     .product-grid {
-        /* ටැබ්ලට් සහ ලැප්ටොප් තිර සඳහා ස්වයංක්‍රීයව columns වැඩි වේ */
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+        gap: 15px;
+    }
+    
+    .product-card {
+        width: auto !important;
+        margin-bottom: 0 !important;
     }
     
     header h1 {
