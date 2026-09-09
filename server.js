@@ -9,26 +9,22 @@ const cloudinary = require('cloudinary').v2;
 const bcrypt = require('bcrypt'); 
 const jwt = require('jsonwebtoken'); 
 const rateLimit = require('express-rate-limit'); 
-const { body, validationResult } = require('express-validator'); // 🌟 Express-validator එකතු කරන ලදී
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 
-// 🌟 413 (Payload Too Large) දෝෂය වැළැක්වීම සඳහා සීමාව වැඩි කිරීම (10MB දක්වා)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// 🌟 CORS ආරක්ෂාව තහවුරු කිරීම (ඔබේ Live ඩොමේන් එකට පමණක් සීමා කරන ලදී)
 const allowedOrigins = [
     'https://cafe-dn-app.onrender.com',
-    'http://localhost:5000', // Local development සඳහා අවශ්‍ය නම් පමණි
+    'http://localhost:5000',
     'http://localhost:3000'
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Postman හෝ Server-to-server ඉල්ලීම් (origin නැති ඒවා) සඳහා ඉඩ දීම
         if (!origin) return callback(null, true);
-        
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -39,15 +35,11 @@ app.use(cors({
     credentials: true
 }));
 
-// Current directory එක static ලෙස Serve කිරීම (Frontend එක සඳහා)
 app.use(express.static(__dirname));
 
-// ==========================================
-// 🛡️ RATE LIMITER CONFIGURATION (Brute-Force වැළැක්වීමට)
-// ==========================================
 const loginLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // විනාඩි 1 ක කාල සීමාවක් තුළ
-    max: 5, // උපරිම වාර 5කට වඩා උත්සාහ කළහොත් අවහිර වේ
+    windowMs: 1 * 60 * 1000,
+    max: 5,
     standardHeaders: true, 
     legacyHeaders: false, 
     message: { 
@@ -56,10 +48,6 @@ const loginLimiter = rateLimit({
     }
 });
 
-
-// ==========================================
-// ☁️ CLOUDINARY CONFIGURATION (.env හරහා)
-// ==========================================
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -80,11 +68,6 @@ const uploadToCloudinary = (buffer, folderName) => {
         stream.end(buffer);
     });
 };
-
-
-// ==========================================
-// 🌐 MONGODB CONNECTION & SCHEMAS SETUP
-// ==========================================
 
 const MONGO_URI = process.env.MONGO_URI;
 const JWT_SECRET = process.env.JWT_SECRET || 'cafe_dn_super_secret_key_2026';
@@ -114,6 +97,7 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     status: { type: String, default: 'pending' },
     paymentStatus: { type: String, default: 'unpaid' },
+    secretKey: { type: String, required: true }, // 🌟 පාරිභෝගික ආරක්ෂාව සඳහා Secret Key එකතු කරන ලදී
     createdAt: { type: Date, default: Date.now }
 }, { strict: false }));
 
@@ -132,17 +116,13 @@ async function createDefaultAdmin() {
         if (count === 0) {
             const hashedPassword = await bcrypt.hash('123', 10);
             await Admin.create({ username: 'admin', password: hashedPassword });
-            console.log('👤 Default Admin Created: username -> admin | password -> 123 (Secured with Hash)');
+            console.log('👤 Default Admin Created: username -> admin | password -> 123');
         }
     } catch (err) {
         console.error('Error creating default admin:', err);
     }
 }
 
-
-// ==========================================
-// 🛡️ AUTHENTICATION MIDDLEWARE (JWT Verification)
-// ==========================================
 const verifyAdminToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
@@ -156,17 +136,13 @@ const verifyAdminToken = (req, res, next) => {
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ success: false, message: 'Token එක අගය කිරීමට නොහැකිය හෝ කල් ඉකුත් වී ඇත!' });
+            return res.status(403).json({ success: false, message: 'Token එක කල් ඉකුත් වී ඇත!' });
         }
         req.admin = decoded;
         next();
     });
 };
 
-
-// ==========================================
-// --- Products APIs ---
-// ==========================================
 app.get('/api/products', async (req, res) => {
     try {
         const products = await Product.find({});
@@ -185,7 +161,6 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         }
 
         const { id, name, category, price, description, existingImage, ...otherFields } = req.body;
-
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/products');
@@ -193,7 +168,6 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         }
 
         const productId = id && id !== '' ? id : 'PROD-' + Date.now();
-        
         let productData = {
             id: productId,
             name: name || '',
@@ -204,12 +178,7 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
             ...otherFields
         };
 
-        const updatedProduct = await Product.findOneAndUpdate(
-            { id: productId },
-            productData,
-            { upsert: true, new: true }
-        );
-
+        const updatedProduct = await Product.findOneAndUpdate({ id: productId }, productData, { upsert: true, new: true });
         res.json({ success: true, message: 'Product saved successfully', product: updatedProduct });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -227,10 +196,6 @@ app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     }
 });
 
-
-// ==========================================
-// --- Categories APIs ---
-// ==========================================
 app.get('/api/categories', async (req, res) => {
     try {
         const categories = await Category.find({});
@@ -249,7 +214,6 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
         }
 
         const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
-
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
@@ -257,7 +221,6 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
         }
 
         const categoryId = id && id !== '' ? id : 'CAT-' + Date.now();
-        
         let categoryData = {
             id: categoryId,
             name: name || '',
@@ -266,12 +229,7 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
             image: imagePath
         };
 
-        const updatedCategory = await Category.findOneAndUpdate(
-            { id: categoryId },
-            categoryData,
-            { upsert: true, new: true }
-        );
-
+        const updatedCategory = await Category.findOneAndUpdate({ id: categoryId }, categoryData, { upsert: true, new: true });
         res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -289,10 +247,7 @@ app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
     }
 });
 
-
-// ==========================================
-// --- Orders APIs (Input Validation සහ Sanitization සමඟ) ---
-// ==========================================
+// Admin සඳහා පමණක් සියලුම ඕර්ඩර්ස් බැලීමට
 app.get('/api/orders', verifyAdminToken, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ createdAt: -1 });
@@ -302,37 +257,68 @@ app.get('/api/orders', verifyAdminToken, async (req, res) => {
     }
 });
 
+// නව ඇණවුමක් දැමීමේදී Secret Key එකක් සමඟ සේව් වීම[cite: 6]
 app.post('/api/orders', [
-    // පාරිභෝගිකයාගේ නම පරීක්ෂා කිරීම සහ XSS වැළැක්වීම
-    body('name')
-        .optional()
-        .trim()
-        .escape(),
-
-    // දුරකථන අංකය පරීක්ෂා කිරීම (ඇත්නම් නිවැරදි ආකෘතියක තිබේදැයි බලයි)
-    body('phone')
-        .optional()
-        .trim()
-        .isLength({ min: 9, max: 15 })
-        .withMessage('වලංගු දුරකථන අංකයක් ලබා දෙන්න!')
-        .escape()
+    body('name').optional().trim().escape(),
+    body('phone').optional().trim().isLength({ min: 9, max: 15 }).withMessage('වලංගු දුරකථන අංකයක් ලබා දෙන්න!').escape()
 ], async (req, res) => {
-    // දෝෂ ඇත්නම් පරීක්ෂා කර ප්‍රතික්ෂේප කිරීම
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     try {
+        const secretKey = 'SEC-' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+
         const newOrderData = {
             id: `ORD-${Math.floor(100 + Math.random() * 900)}`,
             status: 'pending',
             paymentStatus: 'unpaid',
+            secretKey: secretKey,
             createdAt: new Date(),
             ...req.body
         };
         const newOrder = await Order.create(newOrderData);
-        res.status(201).json({ success: true, order: newOrder });
+        
+        res.status(201).json({ 
+            success: true, 
+            order: {
+                id: newOrder.id,
+                status: newOrder.status,
+                paymentStatus: newOrder.paymentStatus,
+                secretKey: newOrder.secretKey
+            } 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 🌟 පාරිභෝගිකයාගේ Live Status සඳහා ආරක්ෂිත API එක[cite: 6]
+app.post('/api/customer-order-status', async (req, res) => {
+    try {
+        const { orderId, secretKey } = req.body;
+        
+        if (!orderId || !secretKey) {
+            return res.status(400).json({ success: false, message: 'Order ID සහ Secret Key අවශ්‍ය වේ!' });
+        }
+
+        const order = await Order.findOne({ id: orderId, secretKey: secretKey });
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'අවසර නැත හෝ ඇණවුම සොයාගත නොහැකිය!' });
+        }
+
+        res.json({
+            success: true,
+            order: {
+                id: order.id,
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                createdAt: order.createdAt,
+                total: order.total
+            }
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -346,11 +332,9 @@ app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
         if (req.body.paymentStatus !== undefined) updateData.paymentStatus = req.body.paymentStatus;
 
         const updatedOrder = await Order.findOneAndUpdate({ id: id }, updateData, { new: true });
-
         if (!updatedOrder) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
-
         res.json({ success: true, order: updatedOrder });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -370,21 +354,15 @@ app.delete('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await Order.deleteOne({ id: id });
-
         if (result.deletedCount === 0) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
-
         res.json({ success: true, message: `Order ${id} deleted successfully` });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-
-// ==========================================
-// --- Shop Status APIs ---
-// ==========================================
 app.get('/api/shop-status', async (req, res) => {
     try {
         let status = await ShopStatus.findOne({});
@@ -413,10 +391,6 @@ app.post('/api/shop-status', verifyAdminToken, async (req, res) => {
     }
 });
 
-
-// ==========================================
-// --- Admin Login API (Rate Limiter එකතු කරන ලදී) ---
-// ==========================================
 app.post('/api/admin/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -432,32 +406,20 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
         }
 
         const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '2h' });
-
-        res.json({ 
-            success: true, 
-            message: 'Login successful', 
-            token: token 
-        });
+        res.json({ success: true, message: 'Login successful', token: token });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-
-// ==========================================
-// --- Start Server & DB Connection ---
-// ==========================================
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(MONGO_URI)
     .then(async () => {
         console.log('✅ MongoDB Database Connected Successfully!');
-        
         await createDefaultAdmin();
-
         app.listen(PORT, () => {
             console.log(`🚀 CAFE DN Server running on port ${PORT}`);
-            console.log(`☁️ Cloudinary Connected Successfully!`);
         });
     })
     .catch(err => {
