@@ -243,11 +243,11 @@ body {
     cursor: pointer;
 }
 
-/* 🌟 Google Pixel සහ අනෙකුත් සියලුම ජංගම දුරකථන සඳහා (Screen width එක 600px හෝ අඩු නම්) */
-@media (max-width: 600px) {
+/* 🌟 Google Pixel සහ අනෙකුත් සියලුම ජංගම දුරකථන සඳහා (Screen width එක 768px හෝ අඩු නම්) */
+@media (max-width: 768px) {
     .product-grid {
-        grid-template-columns: 1fr; /* සියලුම ජංගම දුරකථනවල මෙනුව එක යට එකට (1 column) පෙන්වයි */
-        gap: 12px;
+        grid-template-columns: 1fr !important; /* මෙනුව අනිවාර්යයෙන්ම එක යට එකට (1 Column) පමණක් පෙන්වයි */
+        gap: 12px !important;
     }
 }
 
