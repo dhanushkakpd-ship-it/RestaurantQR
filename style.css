@@ -83,6 +83,18 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
 
 }
 
+/* Live Order Bar එකට පහළින් ඇති Ice Cone / Category කොටසේ ඉහළ ඉඩ (Top Space) සම්පූර්ණයෙන්ම අඩු කිරීමට */
+#live-order-tracker + * {
+    margin-top: 0px !important;
+    padding-top: 0px !important;
+}
+
+/* Product list එකේ මුල්ම මාතෘකාවට ඉහළින් ඇති ඉඩ අඩු කිරීම සඳහා */
+#product-list {
+    margin-top: 0px !important;
+    padding-top: 2px !important;
+}
+
 
 
 /* 🌟 View All බට්න් එකේ වර්ණය ඔබේ තීම් එකට (Strawberry & Cream) ගැලපෙන සේ වෙනස් කිරීම */
