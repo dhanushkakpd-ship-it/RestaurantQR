@@ -332,8 +332,8 @@ function renderProducts() {
                 groupedHtml += `
                     <div class="category-section-title" data-cat-id="${catKey}" style="
                         grid-column: 1 / -1; 
-                        margin-top: 24px; 
-                        margin-bottom: 12px; 
+                        margin-top: 5px; 
+                        margin-bottom: 2px; 
                         display: flex;
                         align-items: center;
                         scroll-margin-top: 100px;
@@ -352,7 +352,7 @@ function renderProducts() {
                             border: 1px solid #e2e8f0;
                             text-transform: capitalize;
                         ">
-                            🍽️ ${catDisplayName}
+                             ${catDisplayName}
                         </span>
                     </div>
                 `;
