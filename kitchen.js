@@ -17,12 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchOrdersFromServer, 2000);
 });
 
-// Server එකෙන් Live Orders ලබාගැනීම
+// Server එකෙන් Live Orders ලබාගැනීම (Token එක සමඟ)
 function fetchOrdersFromServer() {
-    fetch('/api/orders')
-        .then(res => res.json())
+    const token = localStorage.getItem('adminToken') || '';
+
+    fetch('/api/orders', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('Unauthorized or Server Error');
+            return res.json();
+        })
         .then(data => {
-            const newOrders = data || [];
+            const newOrders = Array.isArray(data) ? data : (data.orders || []);
             const newIds = new Set(newOrders.map(o => o.id));
             
             let hasNewOrder = false;
@@ -268,13 +279,16 @@ function renderTickets() {
     }).join('');
 }
 
-// Kitchen එකෙන් Status එක වෙනස් කිරීම
+// Kitchen එකෙන් Status එක වෙනස් කිරීම (Token එක සමඟ)
 async function changeStatus(orderId, newStatus) {
     try {
+        const token = localStorage.getItem('adminToken') || '';
+
         const response = await fetch(`/api/orders/${orderId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify({ status: newStatus })
         });
@@ -351,8 +365,12 @@ async function handleBulkDelete() {
     if (!confirm(`සැබවින්ම දැනට පෙනෙන (${currentFilter}) Orders ${filteredOrders.length} ක් මකා දැමීමට අවශ්‍යද?`)) return;
 
     try {
+        const token = localStorage.getItem('adminToken') || '';
         for (const order of filteredOrders) {
-            await fetch(`/api/orders/${order.id}`, { method: 'DELETE' });
+            await fetch(`/api/orders/${order.id}`, { 
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
         }
         alert("🗑️ දැනට පෙනෙන Orders සාර්ථකව මකා දැමුණා!");
         closeDeleteModal();
@@ -383,7 +401,11 @@ async function handleSpecificDelete() {
     if (!confirm(`සැබවින්ම ${orderId} Order එක මකා දැමීමට අවශ්‍යද?`)) return;
 
     try {
-        const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
+        const token = localStorage.getItem('adminToken') || '';
+        const res = await fetch(`/api/orders/${orderId}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
         if (res.ok) {
             alert(`🗑️ ${orderId} සාර්ථකව මකා දැමුණි!`);
             inputField.value = '';
