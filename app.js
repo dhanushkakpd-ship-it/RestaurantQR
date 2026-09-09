@@ -375,7 +375,7 @@ function initScrollSpy() {
         if (currentCategory !== 'all') return;
 
         // 1. මෙනුව උඩටම ගොස් ඇත නම් ක්ෂණිකව 'All' ටැබ් එක තෝරන්න
-        if (window.scrollY < 5) {
+        if (window.scrollY < 15) {
             highlightAllTab();
             return;
         }
@@ -385,7 +385,7 @@ function initScrollSpy() {
 
         // 3. ස්ක්‍රෝල් කිරීම නතර කර මිලි තත්පර 100 කට පසු (0.1 seconds) ක්‍රියාත්මක වීම
         scrollTimeout = setTimeout(() => {
-            let scrollPosition = window.scrollY + 30;
+            let scrollPosition = window.scrollY - 30;
             let activeCatId = null;
             
             sections.forEach(section => {
