@@ -282,6 +282,33 @@ function renderProducts() {
         product.visible !== false && product.visible !== "false"
     );
 
+    // 🌟 අඩ්මින් පැනල් එකේ category order එක සහ product sortOrder එක අනුව නිෂ්පාදන පෙළගැස්වීම
+    let sortedCategories = [...categories];
+    if (sortedCategories && sortedCategories.length > 0) {
+        sortedCategories.sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
+    }
+
+    visibleProducts.sort((a, b) => {
+        // පළමුව category අනුපිළිවෙළ අනුව සැකසීම
+        let catAId = a.category || 'General';
+        let catBId = b.category || 'General';
+        
+        let indexA = sortedCategories.findIndex(c => (typeof c === 'object' ? (c.id === catAId || c.name === catAId) : c === catAId));
+        let indexB = sortedCategories.findIndex(c => (typeof c === 'object' ? (c.id === catBId || c.name === catBId) : c === catBId));
+        
+        if (indexA === -1) indexA = 999;
+        if (indexB === -1) indexB = 999;
+
+        if (indexA !== indexB) {
+            return indexA - indexB;
+        }
+
+        // එකම category එක内 නම්, product වල sortOrder හෝ අංක පිළිවෙළට සැකසීම
+        let sortA = Number(a.sortOrder) || 0;
+        let sortB = Number(b.sortOrder) || 0;
+        return sortA - sortB;
+    });
+
     if (currentCategory !== 'all') {
         visibleProducts = visibleProducts.filter(p => (p.category || 'General') === currentCategory);
     }
