@@ -1110,51 +1110,98 @@ function updateAllOrdersPopupContent(ordersList) {
     const container = document.getElementById('all-orders-list-container');
     if (!container) return;
 
-    // 🌟 ප්‍රධාන බැනරය සඳහා භාවිතා කළ නවීන සැකිල්ලම මෙහි ද භාවිතා කිරීම
+    // 🌟 Pop-up එක සඳහා container එකට Padding සහ Gap එකක් එකතු කිරීම (ලස්සනට පෙන්වීමට)
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '10px';
+    container.style.padding = '5px';
+
+    // 🌟 ලැයිස්තුවේ ඇති සෑම ඇණවුමක් සඳහාම පෙර කේතයේ ඇති Modern Card Design එක යෙදීම
     container.innerHTML = ordersList.map(order => {
         let currentStatus = (order.status || 'pending').toLowerCase();
         let paymentStatus = (order.paymentStatus || '').toLowerCase();
         
-        let statusColor = '#fef08a';
-        let textColor = '#854d0e';
-        let statusText = 'Pending';
+        // Modern Status Colors (മുമ്പത്തെ මෙන්)
+        let statusBg = '#FEF3C7'; // Amber 100 (Pending)
+        let statusText = '#92400E'; // Amber 800
+        let statusDisplay = 'Pending';
 
         if (currentStatus === 'preparing') { 
-            statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
+            statusBg = '#DBEAFE'; statusText = '#1E40AF'; statusDisplay = 'Preparing'; 
         } else if (currentStatus === 'ready') { 
-            statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
+            statusBg = '#D1FAE5'; statusText = '#065F46'; statusDisplay = 'Ready! 🎉'; 
         } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-            statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
+            statusBg = '#CCFBF1'; statusText = '#0F766E'; statusDisplay = 'Paid 💳'; 
         } else if (currentStatus === 'completed') { 
-            statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
+            statusBg = '#F3F4F6'; statusText = '#4B5563'; statusDisplay = 'Completed'; 
         } else if (currentStatus === 'cancelled') { 
-            statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
+            statusBg = '#FEE2E2'; statusText = '#991B1B'; statusDisplay = 'Cancelled'; 
         }
 
-        // 💡 එක් එක් ඇණවුම සඳහා නවීන HTML සැකිල්ල
+        // 🌟 එක් එක් ඇණවුම සඳහා Compact Card එක (Live Order බැනරයට සමාන මෝස්තරයක්)
         return `
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-                <!-- Row 1: Order Number & Type -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-                    <span style="font-size: 0.85rem; color: #64748b;">Order #<b style="color: #0f172a; font-size: 0.95rem;">${order.id}</b></span>
+            <div style="
+                background: #ffffff; 
+                border: 1px solid #E5E7EB; 
+                border-radius: 12px; 
+                padding: 10px 14px; 
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                font-family: system-ui, -apple-system, sans-serif;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            ">
+                <!-- Top Row: Order ID & Type -->
+                <div style="
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center; 
+                    font-size: 0.8rem;
+                ">
+                    <span style="font-weight: 700; color: #111827;">${order.id}</span>
                     <span style="
-                        background: #e0e7ff; color: #4338ca; 
-                        padding: 2px 8px; border-radius: 6px; 
-                        font-size: 0.75rem; font-weight: 600; text-transform: capitalize;
+                        background: #EEF2FF; 
+                        color: #4F46E5; 
+                        padding: 2px 8px; 
+                        border-radius: 6px; 
+                        font-weight: 600; 
+                        text-transform: capitalize;
+                        font-size: 0.65rem;
                     ">
                         📍 ${order.type || 'Dine-in'}
                     </span>
                 </div>
 
-                <!-- Row 2: Amount & Status -->
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: #64748b;">Total: <b style="color: #059669; font-size: 0.95rem;">Rs. ${Number(order.total || 0).toFixed(0)}</b></span>
+                <!-- Middle Row: Pickup Time -->
+                <div style="font-size: 0.75rem; color: #6B7280;">
+                    🕒 Pickup Time: <span style="font-weight: 600; color: #374151;">${order.pickupTime || 'ASAP'}</span>
+                </div>
+
+                <!-- Bottom Row: Amount & Status -->
+                <div style="
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: center; 
+                    border-top: 1px solid #F3F4F6;
+                    padding-top: 8px;
+                ">
                     <span style="
-                        background: ${statusColor}; color: ${textColor}; 
-                        padding: 3px 10px; border-radius: 12px; 
-                        font-size: 0.75rem; font-weight: 700;
+                        font-size: 0.9rem; 
+                        font-weight: 700; 
+                        color: #111827;
                     ">
-                        ${statusText}
+                        Rs. ${Number(order.total || 0).toFixed(0)}
+                    </span>
+                    <span style="
+                        background: ${statusBg}; 
+                        color: ${statusText}; 
+                        padding: 3px 10px; 
+                        border-radius: 100px; 
+                        font-size: 0.7rem; 
+                        font-weight: 700; 
+                        box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+                    ">
+                        ${statusDisplay}
                     </span>
                 </div>
             </div>
