@@ -944,78 +944,133 @@ function renderAllCustomerBadges(ordersList) {
     if (!trackerContainer) return;
 
     trackerContainer.style.display = 'block';
-    trackerContainer.style.margin = '10px auto';
-    trackerContainer.style.width = '95%';
-    trackerContainer.style.maxWidth = '600px';
+    trackerContainer.style.margin = '8px auto'; // තවදුරටත් ඉඩ අඩු කිරීම
+    trackerContainer.style.width = '92%';
+    trackerContainer.style.maxWidth = '650px';
 
-    // ලැයිස්තුවේ අන්තිමටම ඇති ඇණවුම පමණක් ප්‍රධාන වශයෙන් පෙන්වයි
+    // ලැයිස්තුවේ අන්තිමටම ඇති ඇණවුම ලබා ගැනීම
     const latestOrder = ordersList[ordersList.length - 1];
     
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
     let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase();
     
-    let statusColor = '#fef08a';
-    let textColor = '#854d0e';
-    let statusText = 'Pending';
+    // Modern Status Colors & Text
+    let statusBg = '#FEF3C7'; // Amber 100 (Pending)
+    let statusText = '#92400E'; // Amber 800
+    let statusDisplay = 'Pending';
 
     if (currentStatus === 'preparing') { 
-        statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
+        statusBg = '#DBEAFE'; // Blue 100
+        statusText = '#1E40AF'; // Blue 800
+        statusDisplay = 'Preparing'; 
     } else if (currentStatus === 'ready') { 
-        statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
+        statusBg = '#D1FAE5'; // Emerald 100
+        statusText = '#065F46'; // Emerald 800
+        statusDisplay = 'Ready! 🎉'; 
     } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-        statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
+        statusBg = '#CCFBF1'; // Teal 100
+        statusText = '#0F766E'; // Teal 800
+        statusDisplay = 'Paid 💳'; 
     } else if (currentStatus === 'completed') { 
-        statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
+        statusBg = '#F3F4F6'; // Cool Gray 100
+        statusText = '#4B5563'; // Cool Gray 600
+        statusDisplay = 'Completed'; 
     } else if (currentStatus === 'cancelled') { 
-        statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
+        statusBg = '#FEE2E2'; // Red 100
+        statusText = '#991B1B'; // Red 800
+        statusDisplay = 'Cancelled'; 
     }
 
-    let otherOrdersHtml = '';
+    let viewAllBtnHtml = '';
     if (ordersList.length > 1) {
-        otherOrdersHtml = `
+        viewAllBtnHtml = `
             <button onclick="showAllOrdersPopup()" style="
-                background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;
-                padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #475569;
-                cursor: pointer; display: flex; align-items: center; gap: 4px;
-            ">
-                <span>📦 View All (${ordersList.length})</span>
+                background: transparent; border: 1px solid #d1d5db; border-radius: 100px;
+                padding: 2px 10px; font-size: 0.65rem; font-weight: 600; color: #374151;
+                cursor: pointer; transition: all 0.2s; margin-left: 8px;
+            " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                View All (${ordersList.length})
             </button>
         `;
     }
 
-    // 🌟 මෙන්න නව HTML සැකිල්ල (ඔබගේ අවශ්‍යතාවය අනුව සකස් කළ)
+    // 🌟 අලුත්ම Ultra-Compact & Modern Design HTML එක
     let html = `
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-                <span>🔔 Live Order Tracker</span>
-                ${otherOrdersHtml}
+        <div style="
+            background: #ffffff; 
+            border: 1px solid #E5E7EB; 
+            border-radius: 12px; 
+            padding: 8px 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        ">
+            <!-- Top Header (Status Title + View All) -->
+            <div style="
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                font-size: 0.75rem; 
+                color: #6B7280;
+                font-weight: 500;
+            ">
+                <div style="display: flex; align-items: center;">
+                    <span style="margin-right: 6px;">🔔</span> Live Order Status
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span style="font-weight: 600; color: #111827;">${latestOrder.id}</span>
+                    ${viewAllBtnHtml}
+                </div>
             </div>
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
-                
-                <!-- Row 1: Order Number & Type -->
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.9rem; color: #64748b;">Order #<b style="color: #0f172a; font-size: 1rem;">${latestOrder.id}</b></span>
-                    <span style="
-                        background: #e0e7ff; color: #4338ca; 
-                        padding: 2px 8px; border-radius: 6px; 
-                        font-size: 0.75rem; font-weight: 600; text-transform: capitalize;
-                    ">
-                        📍 ${latestOrder.type || 'Dine-in'}
-                    </span>
-                </div>
 
-                <!-- Row 2: Amount & Status -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
-                    <span style="font-size: 0.9rem; color: #64748b;">Total: <b style="color: #059669; font-size: 1rem;">Rs. ${Number(latestOrder.total || 0).toFixed(0)}</b></span>
-                    <span style="
-                        background: ${statusColor}; color: ${textColor}; 
-                        padding: 4px 12px; border-radius: 16px; 
-                        font-size: 0.8rem; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-                    ">
-                        ${statusText}
-                    </span>
-                </div>
+            <!-- Main Info Row (Type, Amount, Status) - සියල්ල එක පේළියක -->
+            <div style="
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                background: #F9FAFB; 
+                padding: 6px 10px; 
+                border-radius: 8px;
+                border: 1px solid #F3F4F6;
+            ">
+                <!-- Order Type (Dine-in/Takeaway) -->
+                <span style="
+                    background: #EEF2FF; 
+                    color: #4F46E5; 
+                    padding: 2px 8px; 
+                    border-radius: 6px; 
+                    font-size: 0.65rem; 
+                    font-weight: 600; 
+                    text-transform: capitalize;
+                    letter-spacing: 0.3px;
+                ">
+                    📍 ${latestOrder.type || 'Dine-in'}
+                </span>
 
+                <!-- Total Amount -->
+                <span style="
+                    font-size: 0.9rem; 
+                    font-weight: 700; 
+                    color: #111827;
+                    letter-spacing: -0.2px;
+                ">
+                    Rs. ${Number(latestOrder.total || 0).toFixed(0)}
+                </span>
+
+                <!-- Status Badge (Pill Style) -->
+                <span style="
+                    background: ${statusBg}; 
+                    color: ${statusText}; 
+                    padding: 3px 10px; 
+                    border-radius: 100px; 
+                    font-size: 0.7rem; 
+                    font-weight: 700; 
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+                ">
+                    ${statusDisplay}
+                </span>
             </div>
         </div>
     `;
