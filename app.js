@@ -943,14 +943,12 @@ function renderAllCustomerBadges(ordersList) {
     const trackerContainer = document.getElementById('live-order-tracker');
     if (!trackerContainer) return;
 
-    const activeOrdersCount = ordersList ? ordersList.length : 0;
-    document.getElementById('bubble-order-count').innerText = activeOrdersCount;
-
     trackerContainer.style.display = 'block';
     trackerContainer.style.margin = '10px auto';
     trackerContainer.style.width = '95%';
     trackerContainer.style.maxWidth = '600px';
 
+    // ලැයිස්තුවේ අන්තිමටම ඇති ඇණවුම පමණක් ප්‍රධාන වශයෙන් පෙන්වයි
     const latestOrder = ordersList[ordersList.length - 1];
     
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
@@ -961,25 +959,15 @@ function renderAllCustomerBadges(ordersList) {
     let statusText = 'Pending';
 
     if (currentStatus === 'preparing') { 
-        statusColor = '#e0f2fe'; 
-        textColor = '#0284c7'; 
-        statusText = 'Preparing'; 
+        statusColor = '#e0f2fe'; textColor = '#0284c7'; statusText = 'Preparing'; 
     } else if (currentStatus === 'ready') { 
-        statusColor = '#dcfce7'; 
-        textColor = '#16a34a'; 
-        statusText = 'Ready!'; 
+        statusColor = '#dcfce7'; textColor = '#16a34a'; statusText = 'Ready!'; 
     } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-        statusColor = '#ccfbf1'; 
-        textColor = '#0f766e'; 
-        statusText = 'Paid 💳'; 
+        statusColor = '#ccfbf1'; textColor = '#0f766e'; statusText = 'Paid 💳'; 
     } else if (currentStatus === 'completed') { 
-        statusColor = '#f1f5f9'; 
-        textColor = '#64748b'; 
-        statusText = 'Waiting for Payment'; 
+        statusColor = '#f1f5f9'; textColor = '#64748b'; statusText = 'Waiting for Payment'; 
     } else if (currentStatus === 'cancelled') { 
-        statusColor = '#fee2e2'; 
-        textColor = '#ef4444'; 
-        statusText = 'Cancelled'; 
+        statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
     }
 
     let otherOrdersHtml = '';
@@ -995,18 +983,39 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
+    // 🌟 මෙන්න නව HTML සැකිල්ල (ඔබගේ අවශ්‍යතාවය අනුව සකස් කළ)
     let html = `
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-                <span>🔔 Live Order Status</span>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                <span>🔔 Live Order Tracker</span>
                 ${otherOrdersHtml}
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 8px;">
-                <div>
-                    <b style="font-size: 0.9rem; color: #0f172a;">${latestOrder.id}</b>
-                    <span style="font-size: 0.8rem; color: #64748b; margin-left: 6px;">Rs. ${Number(latestOrder.total || 0).toFixed(0)}</span>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+                
+                <!-- Row 1: Order Number & Type -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.9rem; color: #64748b;">Order #<b style="color: #0f172a; font-size: 1rem;">${latestOrder.id}</b></span>
+                    <span style="
+                        background: #e0e7ff; color: #4338ca; 
+                        padding: 2px 8px; border-radius: 6px; 
+                        font-size: 0.75rem; font-weight: 600; text-transform: capitalize;
+                    ">
+                        📍 ${latestOrder.type || 'Dine-in'}
+                    </span>
                 </div>
-                <span style="background: ${statusColor}; color: ${textColor}; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700;">${statusText}</span>
+
+                <!-- Row 2: Amount & Status -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                    <span style="font-size: 0.9rem; color: #64748b;">Total: <b style="color: #059669; font-size: 1rem;">Rs. ${Number(latestOrder.total || 0).toFixed(0)}</b></span>
+                    <span style="
+                        background: ${statusColor}; color: ${textColor}; 
+                        padding: 4px 12px; border-radius: 16px; 
+                        font-size: 0.8rem; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                    ">
+                        ${statusText}
+                    </span>
+                </div>
+
             </div>
         </div>
     `;
