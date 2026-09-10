@@ -1055,6 +1055,7 @@ function updateAllOrdersPopupContent(ordersList) {
     const container = document.getElementById('all-orders-list-container');
     if (!container) return;
 
+    // 🌟 ප්‍රධාන බැනරය සඳහා භාවිතා කළ නවීන සැකිල්ලම මෙහි ද භාවිතා කිරීම
     container.innerHTML = ordersList.map(order => {
         let currentStatus = (order.status || 'pending').toLowerCase();
         let paymentStatus = (order.paymentStatus || '').toLowerCase();
@@ -1075,14 +1076,32 @@ function updateAllOrdersPopupContent(ordersList) {
             statusColor = '#fee2e2'; textColor = '#ef4444'; statusText = 'Cancelled'; 
         }
 
+        // 💡 එක් එක් ඇණවුම සඳහා නවීන HTML සැකිල්ල
         return `
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <b style="font-size: 0.9rem; color: #0f172a;">${order.id}</b>
-                    <span style="background: ${statusColor}; color: ${textColor}; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${statusText}</span>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                <!-- Row 1: Order Number & Type -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                    <span style="font-size: 0.85rem; color: #64748b;">Order #<b style="color: #0f172a; font-size: 0.95rem;">${order.id}</b></span>
+                    <span style="
+                        background: #e0e7ff; color: #4338ca; 
+                        padding: 2px 8px; border-radius: 6px; 
+                        font-size: 0.75rem; font-weight: 600; text-transform: capitalize;
+                    ">
+                        📍 ${order.type || 'Dine-in'}
+                    </span>
                 </div>
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 4px;">📍 ${order.table} | 🕒 ${order.pickupTime}</div>
-                <div style="font-size: 0.9rem; font-weight: 600; color: #16a34a;">Total: Rs. ${Number(order.total || 0).toFixed(0)}</div>
+
+                <!-- Row 2: Amount & Status -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: #64748b;">Total: <b style="color: #059669; font-size: 0.95rem;">Rs. ${Number(order.total || 0).toFixed(0)}</b></span>
+                    <span style="
+                        background: ${statusColor}; color: ${textColor}; 
+                        padding: 3px 10px; border-radius: 12px; 
+                        font-size: 0.75rem; font-weight: 700;
+                    ">
+                        ${statusText}
+                    </span>
+                </div>
             </div>
         `;
     }).join('');
