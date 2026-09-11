@@ -538,28 +538,24 @@ function renderCartItemsList(takeawayCharges = 0) {
 
     let html = '';
 
-    // Cart අයිතම සඳහා ලූප් කිරීම
     for (let id in cart) {
         const prod = systemData.products.find(p => p.id == id);
         if (prod) {
             const itemTotal = prod.price * cart[id];
-            
-            // 🌟 නව CSS classes (cart-item-row) භාවිතා කරමින් HTML එකලස් කිරීම
             html += `
-                <div class="cart-item-row">
-                    <span class="cart-item-name">${cart[id]}x ${prod.name}</span>
-                    <b class="cart-item-price">Rs. ${itemTotal.toFixed(2)}</b>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span>${cart[id]}x ${prod.name}</span>
+                    <b>Rs. ${itemTotal.toFixed(2)}</b>
                 </div>
             `;
         }
     }
 
-    // Takeaway charges එකතු කිරීම (ඇත්නම්)
     if (takeawayCharges > 0) {
         html += `
-            <div class="takeaway-charge-row">
-                <span class="takeaway-charge-name">Take Away Packaging Charges:</span>
-                <b class="takeaway-charge-price">Rs. ${takeawayCharges.toFixed(2)}</b>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px; color: #d97706; font-size: 0.9rem;">
+                <span>Take Away Packaging Charges:</span>
+                <b>Rs. ${takeawayCharges.toFixed(2)}</b>
             </div>
         `;
     }

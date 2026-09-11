@@ -335,64 +335,9 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
 .cart-items-list {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* පේළි අතර පරතරය ටිකක් වැඩි කිරීම */
+    gap: 6px;
     margin-bottom: 12px;
-
-/* 🌟 නව Cart Item Row (CSS Grid භාවිතා කරමින් - Single Line Layout) */
-.cart-item-row {
-    display: grid;
-    grid-template-columns: 1fr auto; /* පළමු තීරුවට නම සඳහා ඉඩ (1fr), දෙවැන්නට මුදල සඳහා අවශ්‍ය පමණට (auto) */
-    gap: 10px;
-    align-items: start; /* නම දිගු වුවහොත් උඩින් පටන් ගැනීමට */
-    width: 100%;
 }
-
-.cart-item-name {
-    font-size: 0.85rem;
-    color: #1e293b;
-    line-height: 1.4;
-    word-wrap: break-word;
-    /* නම දිගු නම් එය පහළ පේළියට නොගොස් කපා හැරීමට අවශ්‍ය නම් පහත රේඛා 3 uncomment කරන්න */
-    /* white-space: nowrap; */
-    /* overflow: hidden; */
-    /* text-overflow: ellipsis; */
-}
-
-.cart-item-price {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #059669;
-    text-align: right;
-    white-space: nowrap; /* Rs. සහ මුදල ඊළඟ පේළියට නොයෑමට */
-    align-self: center; /* මිල ගණන් නමට සාපේක්ෂව මැදට කිරීමට */
-}
-
-/* Takeaway Charges සඳහා ද එම Grid මෝස්තරයම යෙදීම */
-.takeaway-charge-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    align-items: start;
-    margin-top: 10px;
-    border-top: 1px dashed #fce7f3;
-    padding-top: 8px;
-    color: #d97706;
-    font-size: 0.85rem;
-}
-
-.takeaway-charge-name {
-    font-weight: 600;
-    align-self: center;
-}
-
-.takeaway-charge-price {
-    font-weight: 700;
-    text-align: right;
-    white-space: nowrap;
-    color: #d97706;
-    align-self: center;
-}
-
 
 .cart-input-group {
     display: flex;
