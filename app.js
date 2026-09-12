@@ -858,6 +858,7 @@ function submitOrder(sendWhatsApp) {
     });
 }
 
+
 // 🌟 ආරක්ෂිතව පාරිභෝගිකයාගේ ඇණවුම් තත්ත්වය පරීක්ෂා කිරීම
 async function checkMyOrderStatus() {
     let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
@@ -909,12 +910,12 @@ async function checkMyOrderStatus() {
                     }
 
                     if (status === 'cancelled') {
-                        myOrders = MyOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
+                        // මෙහි තිබූ ප්‍රධාන දෝෂය (MyOrders මඟින් 'myOrders' ලෙස නිවැරදි කර ඇත)
+                        myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
                         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
                         continue;
                     }
 
-                    // 🌟 මෙතැනදී LocalStorage එකේ තිබුණු Items සහ සර්වර් එකේ Status එක එකතු කරනු ලැබේ (Merge)
                     let completeOrder = {
                         ...(typeof orderObj === 'object' ? orderObj : {}),
                         ...serverOrder
@@ -926,6 +927,7 @@ async function checkMyOrderStatus() {
         }
 
         latestActiveOrders = activeOrdersList;
+        currentOrdersCache = activeOrdersList; // Modal එකට අවශ්‍ය Cache එක යාවත්කාලීන කිරීම
 
         const floatingBubble = document.getElementById('floating-live-bubble');
         const bubbleCountEl = document.getElementById('bubble-order-count');
