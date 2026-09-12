@@ -946,41 +946,29 @@ function renderAllCustomerBadges(ordersList) {
     if (!trackerContainer) return;
 
     trackerContainer.style.display = 'block';
-    trackerContainer.style.margin = '8px auto'; // තවදුරටත් ඉඩ අඩු කිරීම
+    trackerContainer.style.margin = '8px auto'; 
     trackerContainer.style.width = '92%';
     trackerContainer.style.maxWidth = '650px';
 
-    // ලැයිස්තුවේ අන්තිමටම ඇති ඇණවුම ලබා ගැනීම
     const latestOrder = ordersList[ordersList.length - 1];
     
     let currentStatus = (latestOrder.status || 'pending').toLowerCase();
     let paymentStatus = (latestOrder.paymentStatus || '').toLowerCase();
     
-    // Modern Status Colors & Text
-    let statusBg = '#FEF3C7'; // Amber 100 (Pending)
-    let statusText = '#92400E'; // Amber 800
+    let statusBg = '#FEF3C7'; 
+    let statusText = '#92400E'; 
     let statusDisplay = 'Pending';
 
     if (currentStatus === 'preparing') { 
-        statusBg = '#DBEAFE'; // Blue 100
-        statusText = '#1E40AF'; // Blue 800
-        statusDisplay = 'Preparing'; 
+        statusBg = '#DBEAFE'; statusText = '#1E40AF'; statusDisplay = 'Preparing'; 
     } else if (currentStatus === 'ready') { 
-        statusBg = '#D1FAE5'; // Emerald 100
-        statusText = '#065F46'; // Emerald 800
-        statusDisplay = 'Ready! 🎉'; 
+        statusBg = '#D1FAE5'; statusText = '#065F46'; statusDisplay = 'Ready! 🎉'; 
     } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-        statusBg = '#CCFBF1'; // Teal 100
-        statusText = '#0F766E'; // Teal 800
-        statusDisplay = 'Paid 💳'; 
+        statusBg = '#CCFBF1'; statusText = '#0F766E'; statusDisplay = 'Paid 💳'; 
     } else if (currentStatus === 'completed') { 
-        statusBg = '#F3F4F6'; // Cool Gray 100
-        statusText = '#4B5563'; // Cool Gray 600
-        statusDisplay = 'Completed'; 
+        statusBg = '#F3F4F6'; statusText = '#4B5563'; statusDisplay = 'Completed'; 
     } else if (currentStatus === 'cancelled') { 
-        statusBg = '#FEE2E2'; // Red 100
-        statusText = '#991B1B'; // Red 800
-        statusDisplay = 'Cancelled'; 
+        statusBg = '#FEE2E2'; statusText = '#991B1B'; statusDisplay = 'Cancelled'; 
     }
 
     let viewAllBtnHtml = '';
@@ -990,33 +978,33 @@ function renderAllCustomerBadges(ordersList) {
                 background: transparent; border: 1px solid #d1d5db; border-radius: 100px;
                 padding: 2px 10px; font-size: 0.65rem; font-weight: 600; color: #374151;
                 cursor: pointer; transition: all 0.2s; margin-left: 8px;
-            " onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+            ">
                 View All (${ordersList.length})
             </button>
         `;
     }
 
-    // 🌟 අලුත්ම Ultra-Compact & Modern Design HTML එක
+    // 🌟 Pickup time වෙනුවට items පෙන්වීම සඳහා සැකසූ කොටස
+    let itemsText = 'No items';
+    if (latestOrder.items && Array.isArray(latestOrder.items)) {
+        itemsText = latestOrder.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+    }
+
     let html = `
         <div style="
             background: #ffffff; 
             border: 1px solid #E5E7EB; 
             border-radius: 12px; 
             padding: 8px 12px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             font-family: system-ui, -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
             gap: 6px;
         ">
-            <!-- Top Header (Status Title + View All) -->
             <div style="
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-                font-size: 0.75rem; 
-                color: #6B7280;
-                font-weight: 500;
+                display: flex; justify-content: space-between; align-items: center; 
+                font-size: 0.75rem; color: #6B7280; font-weight: 500;
             ">
                 <div style="display: flex; align-items: center;">
                     <span style="margin-right: 6px;">🔔</span> Live Order Status
@@ -1027,49 +1015,31 @@ function renderAllCustomerBadges(ordersList) {
                 </div>
             </div>
 
-            <!-- Main Info Row (Type, Amount, Status) - සියල්ල එක පේළියක -->
+            <!-- Items පෙළගැස්වීම -->
+            <div style="font-size: 0.8rem; color: #374151; font-weight: 600; background: #F9FAFB; padding: 6px 10px; border-radius: 6px;">
+                🛒 Items: <span style="font-weight: 400; color: #4B5563;">${itemsText}</span>
+            </div>
+
             <div style="
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-                background: #F9FAFB; 
-                padding: 6px 10px; 
-                border-radius: 8px;
+                display: flex; justify-content: space-between; align-items: center; 
+                background: #F9FAFB; padding: 6px 10px; border-radius: 8px;
                 border: 1px solid #F3F4F6;
             ">
-                <!-- Order Type (Dine-in/Takeaway) -->
                 <span style="
-                    background: #EEF2FF; 
-                    color: #4F46E5; 
-                    padding: 2px 8px; 
-                    border-radius: 6px; 
-                    font-size: 0.65rem; 
-                    font-weight: 600; 
+                    background: #EEF2FF; color: #4F46E5; padding: 2px 8px; 
+                    border-radius: 6px; font-size: 0.65rem; font-weight: 600; 
                     text-transform: capitalize;
-                    letter-spacing: 0.3px;
                 ">
                     📍 ${latestOrder.type || 'Dine-in'}
                 </span>
 
-                <!-- Total Amount -->
-                <span style="
-                    font-size: 0.9rem; 
-                    font-weight: 700; 
-                    color: #111827;
-                    letter-spacing: -0.2px;
-                ">
+                <span style="font-size: 0.9rem; font-weight: 700; color: #111827;">
                     Rs. ${Number(latestOrder.total || 0).toFixed(0)}
                 </span>
 
-                <!-- Status Badge (Pill Style) -->
                 <span style="
-                    background: ${statusBg}; 
-                    color: ${statusText}; 
-                    padding: 3px 10px; 
-                    border-radius: 100px; 
-                    font-size: 0.7rem; 
-                    font-weight: 700; 
-                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+                    background: ${statusBg}; color: ${statusText}; padding: 3px 10px; 
+                    border-radius: 100px; font-size: 0.7rem; font-weight: 700;
                 ">
                     ${statusDisplay}
                 </span>
@@ -1077,6 +1047,81 @@ function renderAllCustomerBadges(ordersList) {
         </div>
     `;
     trackerContainer.innerHTML = html;
+}
+
+function updateAllOrdersPopupContent(ordersList) {
+    const container = document.getElementById('all-orders-list-container');
+    if (!container) return;
+
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '10px';
+    container.style.padding = '5px';
+
+    container.innerHTML = ordersList.map(order => {
+        let currentStatus = (order.status || 'pending').toLowerCase();
+        let paymentStatus = (order.paymentStatus || '').toLowerCase();
+        
+        let statusBg = '#FEF3C7'; 
+        let statusText = '#92400E'; 
+        let statusDisplay = 'Pending';
+
+        if (currentStatus === 'preparing') { 
+            statusBg = '#DBEAFE'; statusText = '#1E40AF'; statusDisplay = 'Preparing'; 
+        } else if (currentStatus === 'ready') { 
+            statusBg = '#D1FAE5'; statusText = '#065F46'; statusDisplay = 'Ready! 🎉'; 
+        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
+            statusBg = '#CCFBF1'; statusText = '#0F766E'; statusDisplay = 'Paid 💳'; 
+        } else if (currentStatus === 'completed') { 
+            statusBg = '#F3F4F6'; statusText = '#4B5563'; statusDisplay = 'Completed'; 
+        } else if (currentStatus === 'cancelled') { 
+            statusBg = '#FEE2E2'; statusText = '#991B1B'; statusDisplay = 'Cancelled'; 
+        }
+
+        let itemsHtml = '';
+        if (order.items && Array.isArray(order.items)) {
+            itemsHtml = order.items.map(i => `<div style="font-size: 0.75rem; color: #4B5563;">• ${i.qty}x ${i.name}</div>`).join('');
+        }
+
+        return `
+            <div style="
+                background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px; 
+                padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                display: flex; flex-direction: column; gap: 6px;
+            ">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                    <span style="font-weight: 700; color: #111827;">${order.id}</span>
+                    <span style="
+                        background: #EEF2FF; color: #4F46E5; padding: 2px 8px; 
+                        border-radius: 6px; font-weight: 600; text-transform: capitalize; font-size: 0.65rem;
+                    ">
+                        📍 ${order.type || 'Dine-in'}
+                    </span>
+                </div>
+
+                <!-- Items ලැයිස්තුව Popup එක තුළ පෙන්වීම -->
+                <div style="background: #F9FAFB; padding: 6px 8px; border-radius: 6px;">
+                    <div style="font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 2px;">Ordered Items:</div>
+                    ${itemsHtml}
+                </div>
+
+                <div style="
+                    display: flex; justify-content: space-between; align-items: center; 
+                    border-top: 1px solid #F3F4F6; padding-top: 6px;
+                ">
+                    <span style="font-size: 0.9rem; font-weight: 700; color: #111827;">
+                        Rs. ${Number(order.total || 0).toFixed(0)}
+                    </span>
+                    <span style="
+                        background: ${statusBg}; color: ${statusText}; padding: 3px 10px; 
+                        border-radius: 100px; font-size: 0.7rem; font-weight: 700;
+                    ">
+                        ${statusDisplay}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 function showAllOrdersPopup() {
@@ -1108,108 +1153,7 @@ function showAllOrdersPopup() {
     updateAllOrdersPopupContent(latestActiveOrders);
 }
 
-function updateAllOrdersPopupContent(ordersList) {
-    const container = document.getElementById('all-orders-list-container');
-    if (!container) return;
 
-    // 🌟 Pop-up එක සඳහා container එකට Padding සහ Gap එකක් එකතු කිරීම (ලස්සනට පෙන්වීමට)
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '10px';
-    container.style.padding = '5px';
-
-    // 🌟 ලැයිස්තුවේ ඇති සෑම ඇණවුමක් සඳහාම පෙර කේතයේ ඇති Modern Card Design එක යෙදීම
-    container.innerHTML = ordersList.map(order => {
-        let currentStatus = (order.status || 'pending').toLowerCase();
-        let paymentStatus = (order.paymentStatus || '').toLowerCase();
-        
-        // Modern Status Colors (മുമ്പത്തെ මෙන්)
-        let statusBg = '#FEF3C7'; // Amber 100 (Pending)
-        let statusText = '#92400E'; // Amber 800
-        let statusDisplay = 'Pending';
-
-        if (currentStatus === 'preparing') { 
-            statusBg = '#DBEAFE'; statusText = '#1E40AF'; statusDisplay = 'Preparing'; 
-        } else if (currentStatus === 'ready') { 
-            statusBg = '#D1FAE5'; statusText = '#065F46'; statusDisplay = 'Ready! 🎉'; 
-        } else if (currentStatus === 'paid' || paymentStatus === 'paid') { 
-            statusBg = '#CCFBF1'; statusText = '#0F766E'; statusDisplay = 'Paid 💳'; 
-        } else if (currentStatus === 'completed') { 
-            statusBg = '#F3F4F6'; statusText = '#4B5563'; statusDisplay = 'Completed'; 
-        } else if (currentStatus === 'cancelled') { 
-            statusBg = '#FEE2E2'; statusText = '#991B1B'; statusDisplay = 'Cancelled'; 
-        }
-
-        // 🌟 එක් එක් ඇණවුම සඳහා Compact Card එක (Live Order බැනරයට සමාන මෝස්තරයක්)
-        return `
-            <div style="
-                background: #ffffff; 
-                border: 1px solid #E5E7EB; 
-                border-radius: 12px; 
-                padding: 10px 14px; 
-                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-                font-family: system-ui, -apple-system, sans-serif;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            ">
-                <!-- Top Row: Order ID & Type -->
-                <div style="
-                    display: flex; 
-                    justify-content: space-between; 
-                    align-items: center; 
-                    font-size: 0.8rem;
-                ">
-                    <span style="font-weight: 700; color: #111827;">${order.id}</span>
-                    <span style="
-                        background: #EEF2FF; 
-                        color: #4F46E5; 
-                        padding: 2px 8px; 
-                        border-radius: 6px; 
-                        font-weight: 600; 
-                        text-transform: capitalize;
-                        font-size: 0.65rem;
-                    ">
-                        📍 ${order.type || 'Dine-in'}
-                    </span>
-                </div>
-
-                <!-- Middle Row: Pickup Time -->
-                <div style="font-size: 0.75rem; color: #6B7280;">
-                    🕒 Pickup Time: <span style="font-weight: 600; color: #374151;">${order.pickupTime || 'ASAP'}</span>
-                </div>
-
-                <!-- Bottom Row: Amount & Status -->
-                <div style="
-                    display: flex; 
-                    justify-content: space-between; 
-                    align-items: center; 
-                    border-top: 1px solid #F3F4F6;
-                    padding-top: 8px;
-                ">
-                    <span style="
-                        font-size: 0.9rem; 
-                        font-weight: 700; 
-                        color: #111827;
-                    ">
-                        Rs. ${Number(order.total || 0).toFixed(0)}
-                    </span>
-                    <span style="
-                        background: ${statusBg}; 
-                        color: ${statusText}; 
-                        padding: 3px 10px; 
-                        border-radius: 100px; 
-                        font-size: 0.7rem; 
-                        font-weight: 700; 
-                        box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
-                    ">
-                        ${statusDisplay}
-                    </span>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
 
 window.addEventListener('load', () => {
     setTimeout(() => {
