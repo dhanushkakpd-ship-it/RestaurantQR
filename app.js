@@ -681,6 +681,14 @@ function openOrderModal() {
                     <b>Rs. ${grandTotal.toFixed(2)}</b>
                 </div>
             </div>
+
+            <!-- 🌟 Table QR නම් WhatsApp නැතිව ඩිරෙක්ට් යන බටන් එක මෙතැනට වැටේ -->
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                ${isTableQR 
+                    ? `<button onclick="submitOrder(false)" style="width: 100%; padding: 12px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Confirm & Place Order</button>`
+                    : `<button onclick="submitOrder(true)" style="width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Send via WhatsApp</button>`
+                }
+            </div>
         `;
     }
 
