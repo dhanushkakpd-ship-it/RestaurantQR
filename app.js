@@ -1004,8 +1004,17 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    // 🌟 මෙහි 'latestOrder.type' හෝ 'latestOrder.table' පරීක්ෂා කර Dine-in හෝ Takeaway නිවැරදිව පෙන්වීම
-    let orderTypeText = latestOrder.type || latestOrder.table || 'Dine-in';
+    // 🌟 යාවත්කාලීන කළ කොටස: orderType හෝ table විස්තර පරීක්ෂා කර Dine-in හෝ Takeaway නිවැරදිව තෝරා ගැනීම
+    let rawType = (latestOrder.type || latestOrder.orderType || latestOrder.table || '').toLowerCase();
+    let orderTypeText = 'Dine-in';
+
+    if (rawType.includes('takeaway') || rawType.includes('take-away')) {
+        orderTypeText = 'Takeaway';
+    } else if (rawType.includes('dine') || rawType.includes('table')) {
+        orderTypeText = rawType.includes('table') ? latestOrder.table : 'Dine-in';
+    } else if (latestOrder.type) {
+        orderTypeText = latestOrder.type;
+    }
 
     let html = `
         <div style="
@@ -1099,6 +1108,18 @@ function updateAllOrdersPopupContent(ordersList) {
             itemsHtml = orderItemsList.map(i => `<div style="font-size: 0.75rem; color: #4B5563;">• ${i.qty || i.quantity || 1}x ${i.name || i.productName || i.title || 'Item'}</div>`).join('');
         }
 
+        // 🌟 යාවත්කාලීන කළ කොටස: orderType, type හෝ table විස්තර පරීක්ෂා කර නිවැරදි වර්ගය ලබා ගැනීම
+        let rawType = (order.type || order.orderType || order.table || '').toLowerCase();
+        let orderTypeText = 'Dine-in';
+
+        if (rawType.includes('takeaway') || rawType.includes('take-away')) {
+            orderTypeText = 'Takeaway';
+        } else if (rawType.includes('dine') || rawType.includes('table')) {
+            orderTypeText = rawType.includes('table') ? order.table : 'Dine-in';
+        } else if (order.type) {
+            orderTypeText = order.type;
+        }
+
         return `
             <div style="
                 background: #ffffff; border: 1px solid #E5E7EB; border-radius: 12px; 
@@ -1111,7 +1132,7 @@ function updateAllOrdersPopupContent(ordersList) {
                         background: #EEF2FF; color: #4F46E5; padding: 2px 8px; 
                         border-radius: 6px; font-weight: 600; text-transform: capitalize; font-size: 0.65rem;
                     ">
-                        📍 ${order.type || 'Dine-in'}
+                        📍 ${orderTypeText}
                     </span>
                 </div>
 
