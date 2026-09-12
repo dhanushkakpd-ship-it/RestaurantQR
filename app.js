@@ -681,6 +681,14 @@ function openOrderModal() {
                     <b>Rs. ${grandTotal.toFixed(2)}</b>
                 </div>
             </div>
+
+            <!-- 🌟 Table QR නම් රෝස පාට බටන් එකත්, Outside QR නම් කොළ පාට WhatsApp බටන් එකත් පමණක් පෙන්වීම -->
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                ${isTableQR 
+                    ? `<button onclick="submitOrder(false)" style="width: 100%; padding: 12px; background: #db2777; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">✅ Confirm Order Only</button>`
+                    : `<button onclick="submitOrder(true)" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">📲 Confirm & Send via WhatsApp</button>`
+                }
+            </div>
         `;
     }
 
