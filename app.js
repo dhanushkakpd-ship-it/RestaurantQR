@@ -944,9 +944,6 @@ async function checkMyOrderStatus() {
 let currentOrdersCache = []; // දත්ත තබා ගැනීමට ගෝලීය විචල්‍යයක් (Global Cache)
 
 function renderAllCustomerBadges(ordersList) {
-    if (!ordersList || ordersList.length === 0) return;
-    currentOrdersCache = ordersList; // ඩේටා මෙහි සේভ කර තබා ගනී
-
     const trackerContainer = document.getElementById('live-order-tracker');
     if (!trackerContainer) return;
 
@@ -989,14 +986,15 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    // 🌟 අයිතම නිවැරදිව ලබා ගැනීම (අවශ්‍ය නම් කන්සෝල් එකේ බලාගත හැක)
-    let orderItemsList = latestOrder.items || latestOrder.orderItems || latestOrder.cart || latestOrder.products || [];
-    let itemsText = 'No items found';
-    
-    if (Array.isArray(orderItemsList) && orderItemsList.length > 0) {
-        itemsText = orderItemsList.map(i => `${i.qty || i.quantity || 1}x ${i.name || i.productName || i.title || 'Item'}`).join(', ');
-    } else {
-        console.log("Latest Order Object without items:", latestOrder); // සර්වර් එකෙන් එන ඩේටා හැඩය බලාගැනීමට
+    // 🌟 Pickup time එකක් තිබේ නම් සහ එය ASAP නොවේ නම් පමණක් පෙන්වීම සඳහා සැකසීම
+    let pickupTimeHtml = '';
+    let pTime = latestOrder.pickupTime || latestOrder.time || '';
+    if (pTime && pTime.toLowerCase() !== 'asap' && pTime.trim() !== '') {
+        pickupTimeHtml = `
+            <div style="font-size: 0.8rem; color: #374151; font-weight: 600; background: #F9FAFB; padding: 6px 10px; border-radius: 6px;">
+                ⏰ Pickup Time: <span style="font-weight: 400; color: #4B5563;">${pTime}</span>
+            </div>
+        `;
     }
 
     let html = `
@@ -1019,14 +1017,13 @@ function renderAllCustomerBadges(ordersList) {
                     <span style="margin-right: 6px;">🔔</span> Live Order Status
                 </div>
                 <div style="display: flex; align-items: center;">
-                    <span style="font-weight: 600; color: #111827;">${latestOrder.id || 'Order'}</span>
+                    <span style="font-weight: 600; color: #111827;">${latestOrder.id}</span>
                     ${viewAllBtnHtml}
                 </div>
             </div>
 
-            <div style="font-size: 0.8rem; color: #374151; font-weight: 600; background: #F9FAFB; padding: 6px 10px; border-radius: 6px;">
-                🛒 Items: <span style="font-weight: 400; color: #4B5563;">${itemsText}</span>
-            </div>
+            <!-- Pickup Time එක ඇත්නම් පමණක් මෙහි දිස්වේ -->
+            ${pickupTimeHtml}
 
             <div style="
                 display: flex; justify-content: space-between; align-items: center; 
