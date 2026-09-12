@@ -368,6 +368,57 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
 }
 /* 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
 
+/* --- Order Review / Confirmation Modal Styles - Single Line Fix --- */
+
+/* ප්‍රධාන අයිතම ලැයිස්තුව සඳහා (මෙය ඔබගේ කේතයේ ඇති container class එකට ආදේශ කරන්න) */
+.modal-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* පේළි අතර පරතරය */
+    margin-bottom: 12px;
+}
+
+/* 🌟 නව Item Row (CSS Grid භාවිතා කරමින් - Single Line Layout) */
+/* ඔබගේ JS මඟින් ජනනය කරන එක් එක් අයිතමයේ HTML div එක සඳහා මෙම class එක යොදන්න */
+.modal-item-row {
+    display: grid;
+    grid-template-columns: 1fr auto; /* පළමු තීරුවට නම සඳහා ඉඩ (1fr), දෙවැන්නට මුදල සඳහා අවශ්‍ය පමණට (auto) */
+    gap: 10px; /* නම සහ මිල අතර පරතරය */
+    align-items: start; /* නම දිගු වුවහොත් එය උඩින් පටන් ගැනීමට */
+    width: 100%;
+}
+
+/* ආහාරයේ නම සඳහා Style එක */
+.modal-item-name {
+    font-size: 0.85rem;
+    color: #1e293b;
+    line-height: 1.4;
+    word-wrap: break-word; /* නම දිගු නම් එය පහළ පේළියට ගලා යාමට (නමුත් Rs. එක ඊළඟ පේළියට නොයයි) */
+}
+
+/* Rs. සහ මුදල සඳහා Style එක */
+.modal-item-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #059669; /* Green color for price */
+    text-align: right;
+    white-space: nowrap; /* 🌟 මෙය අනිවාර්යයි: Rs. සහ මුදල ඊළඟ පේළියට යාම වලක්වයි */
+    align-self: center; /* මිල නමට සාපේක්ෂව මැදට කිරීමට */
+}
+
+/* Total Amount කොටස සඳහා ද එම Grid මෝස්තරයම යෙදීම */
+.modal-total-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 1.05rem;
+    color: #16a34a;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 8px;
+    font-weight: bold;
+}
+
 
 .cart-input-group {
     display: flex;
