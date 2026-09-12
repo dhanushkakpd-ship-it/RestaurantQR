@@ -315,6 +315,7 @@ app.post('/api/customer-order-status', async (req, res) => {
                 id: order.id,
                 status: order.status,
                 paymentStatus: order.paymentStatus,
+                orderType: order.orderType || order.type || 'N/A',
                 createdAt: order.createdAt,
                 total: order.total,
                 items: order.items || order.orderItems || order.cart || []
