@@ -69,8 +69,20 @@ const uploadToCloudinary = (buffer, folderName) => {
     });
 };
 
+// 1. JWT_SECRET එක ඇද්දැයි පරීක්ෂා කිරීම
+if (!process.env.JWT_SECRET) {
+    console.error('❌ දෝෂයකි: JWT_SECRET පරිසර විචල්‍යය (Environment Variable) අර්ථ දක්වා නැත!');
+    process.exit(1); // සෙවර් එක ක්‍රියාත්මක වීම වහාම නවත්වයි
+}
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// 2. MONGO_URI සඳහාත් මෙයම කිරීම වඩාත් සුදුසුය
+if (!process.env.MONGO_URI) {
+    console.error('❌ දෝෂයකි: MONGO_URI පරිසර විචල්‍යය අර්ථ දක්වා නැත!');
+    process.exit(1);
+}
 const MONGO_URI = process.env.MONGO_URI;
-const JWT_SECRET = process.env.JWT_SECRET || 'cafe_dn_super_secret_key_2026';
+
 
 const Product = mongoose.model('Product', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
