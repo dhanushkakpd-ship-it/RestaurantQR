@@ -984,10 +984,12 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    // 🌟 Pickup time වෙනුවට items පෙන්වීම සඳහා සැකසූ කොටස
-    let itemsText = 'No items';
-    if (latestOrder.items && Array.isArray(latestOrder.items)) {
-        itemsText = latestOrder.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+    // 🌟 අයිතම නිවැරදිව පරීක්ෂා කර ලබා ගැනීම (items හෝ orderItems හෝ වෙනත් නමකින් තිබේදැයි බැලීම)
+    let orderItemsList = latestOrder.items || latestOrder.orderItems || [];
+    let itemsText = 'Items details not available';
+    
+    if (Array.isArray(orderItemsList) && orderItemsList.length > 0) {
+        itemsText = orderItemsList.map(i => `${i.qty || i.quantity || 1}x ${i.name || i.productName || 'Item'}`).join(', ');
     }
 
     let html = `
@@ -1015,7 +1017,7 @@ function renderAllCustomerBadges(ordersList) {
                 </div>
             </div>
 
-            <!-- Items පෙළගැස්වීම -->
+            <!-- අයිතම පෙළගැස්වීම -->
             <div style="font-size: 0.8rem; color: #374151; font-weight: 600; background: #F9FAFB; padding: 6px 10px; border-radius: 6px;">
                 🛒 Items: <span style="font-weight: 400; color: #4B5563;">${itemsText}</span>
             </div>
@@ -1078,9 +1080,11 @@ function updateAllOrdersPopupContent(ordersList) {
             statusBg = '#FEE2E2'; statusText = '#991B1B'; statusDisplay = 'Cancelled'; 
         }
 
-        let itemsHtml = '';
-        if (order.items && Array.isArray(order.items)) {
-            itemsHtml = order.items.map(i => `<div style="font-size: 0.75rem; color: #4B5563;">• ${i.qty}x ${i.name}</div>`).join('');
+        let orderItemsList = order.items || order.orderItems || [];
+        let itemsHtml = '<div style="font-size: 0.75rem; color: #6B7280;">No items found</div>';
+        
+        if (Array.isArray(orderItemsList) && orderItemsList.length > 0) {
+            itemsHtml = orderItemsList.map(i => `<div style="font-size: 0.75rem; color: #4B5563;">• ${i.qty || i.quantity || 1}x ${i.name || i.productName || 'Item'}</div>`).join('');
         }
 
         return `
@@ -1099,7 +1103,6 @@ function updateAllOrdersPopupContent(ordersList) {
                     </span>
                 </div>
 
-                <!-- Items ලැයිස්තුව Popup එක තුළ පෙන්වීම -->
                 <div style="background: #F9FAFB; padding: 6px 8px; border-radius: 6px;">
                     <div style="font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 2px;">Ordered Items:</div>
                     ${itemsHtml}
