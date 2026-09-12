@@ -865,6 +865,8 @@ async function checkMyOrderStatus() {
 
     if (myOrders.length === 0) {
         if (trackerContainer) trackerContainer.style.display = 'none';
+        const floatingBubble = document.getElementById('floating-live-bubble');
+        if (floatingBubble) floatingBubble.style.display = 'none';
         return;
     }
 
@@ -919,7 +921,11 @@ async function checkMyOrderStatus() {
 
         latestActiveOrders = activeOrdersList;
 
+        const floatingBubble = document.getElementById('floating-live-bubble');
+        const bubbleCountEl = document.getElementById('bubble-order-count');
+
         if (latestActiveOrders.length > 0) {
+            if (bubbleCountEl) bubbleCountEl.innerText = latestActiveOrders.length;
             renderAllCustomerBadges(latestActiveOrders);
             
             const existingModal = document.getElementById('all-orders-popup-modal');
@@ -928,6 +934,7 @@ async function checkMyOrderStatus() {
             }
         } else {
             if (trackerContainer) trackerContainer.style.display = 'none';
+            if (floatingBubble) floatingBubble.style.display = 'none';
         }
     } catch (e) {
         console.error("Error checking customer orders status:", e);
