@@ -888,33 +888,39 @@ async function checkMyOrderStatus() {
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.order) {
-                    let o = data.order;
-                    let status = (o.status || '').toLowerCase();
-                    let paymentStatus = (o.paymentStatus || '').toLowerCase();
+                    let serverOrder = data.order;
+                    let status = (serverOrder.status || '').toLowerCase();
+                    let paymentStatus = (serverOrder.paymentStatus || '').toLowerCase();
                     
                     let isPaidOrCompleted = (status === 'paid' || status === 'completed' || paymentStatus === 'paid');
 
                     if (isPaidOrCompleted) {
-                        if (!paidTimestamps[o.id]) {
-                            paidTimestamps[o.id] = currentTime;
+                        if (!paidTimestamps[serverOrder.id]) {
+                            paidTimestamps[serverOrder.id] = currentTime;
                             localStorage.setItem('cafePaidTimestamps', JSON.stringify(paidTimestamps));
                         }
 
-                        let elapsed = currentTime - paidTimestamps[o.id];
+                        let elapsed = currentTime - paidTimestamps[serverOrder.id];
                         if (elapsed >= 60000) { 
-                            myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== o.id : item !== o.id));
+                            myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
                             localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
                             continue; 
                         }
                     }
 
                     if (status === 'cancelled') {
-                        myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== o.id : item !== o.id));
+                        myOrders = MyOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
                         localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
                         continue;
                     }
 
-                    activeOrdersList.push(o);
+                    // 🌟 මෙතැනදී LocalStorage එකේ තිබුණු Items සහ සර්වර් එකේ Status එක එකතු කරනු ලැබේ (Merge)
+                    let completeOrder = {
+                        ...(typeof orderObj === 'object' ? orderObj : {}),
+                        ...serverOrder
+                    };
+
+                    activeOrdersList.push(completeOrder);
                 }
             }
         }
