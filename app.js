@@ -941,7 +941,12 @@ async function checkMyOrderStatus() {
     }
 }
 
+let currentOrdersCache = []; // දත්ත තබා ගැනීමට ගෝලීය විචල්‍යයක් (Global Cache)
+
 function renderAllCustomerBadges(ordersList) {
+    if (!ordersList || ordersList.length === 0) return;
+    currentOrdersCache = ordersList; // ඩේටා මෙහි සේভ කර තබා ගනී
+
     const trackerContainer = document.getElementById('live-order-tracker');
     if (!trackerContainer) return;
 
@@ -984,12 +989,14 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    // 🌟 විවිධ නම් යටතේ ඇති අයිතම ලැයිස්තු පරීක්ෂා කිරීම
+    // 🌟 අයිතම නිවැරදිව ලබා ගැනීම (අවශ්‍ය නම් කන්සෝල් එකේ බලාගත හැක)
     let orderItemsList = latestOrder.items || latestOrder.orderItems || latestOrder.cart || latestOrder.products || [];
     let itemsText = 'No items found';
     
     if (Array.isArray(orderItemsList) && orderItemsList.length > 0) {
         itemsText = orderItemsList.map(i => `${i.qty || i.quantity || 1}x ${i.name || i.productName || i.title || 'Item'}`).join(', ');
+    } else {
+        console.log("Latest Order Object without items:", latestOrder); // සර්වර් එකෙන් එන ඩේටා හැඩය බලාගැනීමට
     }
 
     let html = `
@@ -1012,12 +1019,11 @@ function renderAllCustomerBadges(ordersList) {
                     <span style="margin-right: 6px;">🔔</span> Live Order Status
                 </div>
                 <div style="display: flex; align-items: center;">
-                    <span style="font-weight: 600; color: #111827;">${latestOrder.id}</span>
+                    <span style="font-weight: 600; color: #111827;">${latestOrder.id || 'Order'}</span>
                     ${viewAllBtnHtml}
                 </div>
             </div>
 
-            <!-- Items පෙළගැස්වීම -->
             <div style="font-size: 0.8rem; color: #374151; font-weight: 600; background: #F9FAFB; padding: 6px 10px; border-radius: 6px;">
                 🛒 Items: <span style="font-weight: 400; color: #4B5563;">${itemsText}</span>
             </div>
@@ -1094,7 +1100,7 @@ function updateAllOrdersPopupContent(ordersList) {
                 display: flex; flex-direction: column; gap: 6px;
             ">
                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
-                    <span style="font-weight: 700; color: #111827;">${order.id}</span>
+                    <span style="font-weight: 700; color: #111827;">${order.id || 'Order'}</span>
                     <span style="
                         background: #EEF2FF; color: #4F46E5; padding: 2px 8px; 
                         border-radius: 6px; font-weight: 600; text-transform: capitalize; font-size: 0.65rem;
@@ -1153,7 +1159,9 @@ function showAllOrdersPopup() {
         </div>
     `;
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    updateAllOrdersPopupContent(latestActiveOrders);
+    
+    // දැන් මෙහි `currentOrdersCache` පාවිච්චි කරන නිසා ඩේටා නැතිවීමේ ප්‍රශ්නය එන්නේ නැත
+    updateAllOrdersPopupContent(currentOrdersCache);
 }
 
 
