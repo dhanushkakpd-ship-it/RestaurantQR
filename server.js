@@ -316,7 +316,8 @@ app.post('/api/customer-order-status', async (req, res) => {
                 status: order.status,
                 paymentStatus: order.paymentStatus,
                 createdAt: order.createdAt,
-                total: order.total
+                total: order.total,
+                items: order.items || order.orderItems || order.cart || []
             }
         });
     } catch (error) {
