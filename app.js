@@ -994,7 +994,6 @@ function renderAllCustomerBadges(ordersList) {
         `;
     }
 
-    // 🌟 Pickup time එකක් තිබේ නම් සහ එය ASAP නොවේ නම් පමණක් පෙන්වීම සඳහා සැකසීම
     let pickupTimeHtml = '';
     let pTime = latestOrder.pickupTime || latestOrder.time || '';
     if (pTime && pTime.toLowerCase() !== 'asap' && pTime.trim() !== '') {
@@ -1004,6 +1003,9 @@ function renderAllCustomerBadges(ordersList) {
             </div>
         `;
     }
+
+    // 🌟 මෙහි 'latestOrder.type' හෝ 'latestOrder.table' පරීක්ෂා කර Dine-in හෝ Takeaway නිවැරදිව පෙන්වීම
+    let orderTypeText = latestOrder.type || latestOrder.table || 'Dine-in';
 
     let html = `
         <div style="
@@ -1030,7 +1032,6 @@ function renderAllCustomerBadges(ordersList) {
                 </div>
             </div>
 
-            <!-- Pickup Time එක ඇත්නම් පමණක් මෙහි දිස්වේ -->
             ${pickupTimeHtml}
 
             <div style="
@@ -1043,7 +1044,7 @@ function renderAllCustomerBadges(ordersList) {
                     border-radius: 6px; font-size: 0.65rem; font-weight: 600; 
                     text-transform: capitalize;
                 ">
-                    📍 ${latestOrder.type || 'Dine-in'}
+                    📍 ${orderTypeText}
                 </span>
 
                 <span style="font-size: 0.9rem; font-weight: 700; color: #111827;">
