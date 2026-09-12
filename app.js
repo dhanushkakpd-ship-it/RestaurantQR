@@ -542,24 +542,19 @@ function renderCartItemsList(takeawayCharges = 0) {
         const prod = systemData.products.find(p => p.id == id);
         if (prod) {
             const itemTotal = prod.price * cart[id];
+            
+            // 🌟🌟🌟 මෙන්න මේ HTML කොටස වෙනස් කරන්න (cart-item-row class එක යෙදීම) 🌟🌟🌟
             html += `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span>${cart[id]}x ${prod.name}</span>
-                    <b>Rs. ${itemTotal.toFixed(2)}</b>
+                <div class="cart-item-row">
+                    <span class="cart-item-name">${cart[id]}x ${prod.name}</span>
+                    <b class="cart-item-price">Rs. ${itemTotal.toFixed(2)}</b>
                 </div>
             `;
+            // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
         }
     }
 
-    if (takeawayCharges > 0) {
-        html += `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px; color: #d97706; font-size: 0.9rem;">
-                <span>Take Away Packaging Charges:</span>
-                <b>Rs. ${takeawayCharges.toFixed(2)}</b>
-            </div>
-        `;
-    }
-
+    // (Takeaway charges කොටස එලෙසම තබා ගන්න)
     container.innerHTML = html;
 }
 

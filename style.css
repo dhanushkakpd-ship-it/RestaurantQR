@@ -335,9 +335,39 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
 .cart-items-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     margin-bottom: 12px;
 }
+
+/* 🌟🌟🌟 මෙන්න මේ කොටස අලුතින් එක් කරන්න හෝ ආදේශ කරන්න 🌟🌟🌟 */
+/* එක් එක් අයිතමය සඳහා Grid Layout එක (නම සහ මිල එක පේළියක තැබීමට) */
+.cart-item-row {
+    display: grid;
+    grid-template-columns: 1fr auto; /* 1fr: නමට හැකි තරම් ඉඩ, auto: මිලට අවශ්‍ය පමණට ඉඩ */
+    gap: 10px; /* නම සහ මිල අතර පරතරය */
+    align-items: start; /* නම දිගු නම් එය ඉහළින් (top) පටන් ගැනීමට */
+    width: 100%;
+}
+
+/* ආහාරයේ නම සඳහා Style එක */
+.cart-item-name {
+    font-size: 0.85rem;
+    color: #1e293b;
+    line-height: 1.4;
+    word-wrap: break-word; /* නම දිගු නම් එය පහළ පේළියට ගලා යාමට (නමුත් Rs. එක ඊළඟ පේළියට නොයයි) */
+}
+
+/* Rs. සහ මුදල සඳහා Style එක */
+.cart-item-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #059669; /* Green color for price */
+    text-align: right;
+    white-space: nowrap; /* 🌟 මෙය අනිවාර්යයි: Rs. සහ මිල ඊළඟ පේළියට යාම වලක්වයි */
+    align-self: center; /* නමට සාපේක්ෂව මිල මැදින් තැබීමට */
+}
+/* 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+
 
 .cart-input-group {
     display: flex;
