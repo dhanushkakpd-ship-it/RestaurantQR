@@ -1,7 +1,12 @@
 // --- CAFE DN - Admin Panel Script ---
 
-// පිටුව ලෝඩ් වූ වහාම ටෝකන් එක ඇත්දැයි පරීක්ෂා කිරීම
+// --- CAFE DN - Admin Panel Script ---
+
+// පිටුව ලෝඩ් වූ වහාම ටෝකන් එක සහ එහි කාල සීමාව පරීක්ෂා කිරීම
 window.addEventListener('DOMContentLoaded', () => {
+    // 🌟 1. පළමුව ටෝකන් කාලය ඉකුත් වී ඇත්දැයි පරීක්ෂා කිරීම
+    checkTokenExpiry();
+
     const token = localStorage.getItem('adminToken');
     const overlay = document.getElementById('loginOverlay');
     
@@ -11,7 +16,35 @@ window.addEventListener('DOMContentLoaded', () => {
         if (overlay) overlay.style.display = 'flex'; 
     }
     fetchShopStatus();
+
+    // 🌟 2. පිටුව විවෘත කර ඇති අතරතුර සෑම විනාඩි 1 කට වරක්ම ටෝකන් කාලය පරීක්ෂා කිරීම
+    setInterval(checkTokenExpiry, 60000);
 });
+
+// Token කාලය පරීක්ෂා කර කල් ඉකුත් වී නම් Auto Logout කරන ෆන්ක්ෂන් එක
+function checkTokenExpiry() {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const decoded = JSON.parse(jsonPayload);
+        const currentTime = Date.now() / 1000;
+
+        if (decoded.exp < currentTime) {
+            localStorage.removeItem('adminToken');
+            alert('ඔබගේ සැසි කාලය (Session) අවසන් වී ඇත. කරුණාකර නැවත ලොග් වන්න.');
+            window.location.href = 'admin.html';
+        }
+    } catch (e) {
+        console.error("Token check error:", e);
+    }
+}
 
 // Admin Login වීම සහ Token එක Save කරගැනීම
 async function handleAdminLogin(event) {

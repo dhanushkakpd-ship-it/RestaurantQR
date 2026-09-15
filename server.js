@@ -419,7 +419,7 @@ app.post('/api/admin/login', loginLimiter, async (req, res) => {
             return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
         }
 
-        const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '2h' });
+        const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ success: true, message: 'Login successful', token: token });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
