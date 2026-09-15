@@ -306,11 +306,28 @@ async function changeStatus(orderId, newStatus) {
 }
 
 // WhatsApp Trigger
+// WhatsApp Trigger (Country Code සමඟ නිවැරදිව සකස් කරන ලදී)
 function notifyCustomer(orderId) {
     const order = orders.find(o => o.id === orderId);
     if (order && order.phone) {
+        let phone = order.phone.trim();
+        
+        // අංකයෙන් '+' ලකුණ ඉවත් කර ගැනීම
+        if (phone.startsWith('+')) {
+            phone = phone.substring(1);
+        }
+        
+        // අංකය '0' ලකුණින් පටන් ගනී නම්, ඉදිරි බිංදුව ඉවත් කර '94' එකතු කිරීම
+        if (phone.startsWith('0')) {
+            phone = '94' + phone.substring(1);
+        } 
+        // මුලට '94' නොමැති නම් '94' එකතු කිරීම
+        else if (!phone.startsWith('94')) {
+            phone = '94' + phone;
+        }
+
         const msg = `👋 Hello ${order.customerName || ''}!\n\nYour Order *${order.id}* is READY! 🎉\nPlease collect it from the counter / enjoy your meal.`;
-        const waUrl = `https://wa.me/${order.phone}?text=${encodeURIComponent(msg)}`;
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
         window.open(waUrl, '_blank');
     } else {
         alert("පාරිභෝගිකයාගේ දුරකථන අංකය ලබා දී නොමැත.");
