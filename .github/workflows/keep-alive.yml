@@ -1,0 +1,13 @@
+name: Keep Render Server Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # සෑම විනාඩි 10කට වරක්ම ක්‍රියාත්මක වේ
+
+jobs:
+  ping-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP GET request to Render App
+        run: |
+          curl -X GET https://cafe-dn-app.onrender.com/?table=10
