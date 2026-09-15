@@ -742,3 +742,13 @@ display: none; /* JavaScript මඟින් මෙය පෙන්වයි */
     40% {transform: translateY(-6px);}
     60% {transform: translateY(-3px);}
 }
+
+#cart-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease; /* ඊතලය හැරෙන විට Smooth වීමට */
+}
+
+/* Cart එක Open වූ විට ඊතලය පහළට හැරවීම (▲ එක 180ක් කැකී ▼ වීම) */
+.cart-bar.open #cart-arrow {
+    transform: rotate(180deg);
+}

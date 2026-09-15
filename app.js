@@ -560,9 +560,21 @@ function renderCartItemsList(takeawayCharges = 0) {
 
 function toggleCart() {
     if (!isShopOpen) return;
+    const cartBar = document.getElementById('cart-bar'); // 🌟 අලුතින් එකතු කළ රේඛාව
     const details = document.getElementById('cart-details');
+    
     if (details) {
-        details.style.display = details.style.display === 'block' ? 'none' : 'block';
+        const isOpen = details.style.display === 'block';
+        details.style.display = isOpen ? 'none' : 'block';
+        
+        // 🌟 කාට් එක ඕපන්/ක්ලෝස් වන විට `.open` class එක එකතු කිරීම හෝ ඉවත් කිරීම
+        if (cartBar) {
+            if (!isOpen) {
+                cartBar.classList.add('open');
+            } else {
+                cartBar.classList.remove('open');
+            }
+        }
     }
 
     const timeContainer = document.getElementById('pickup-time-container');
