@@ -10,15 +10,8 @@
 <div class="container">
     <div class="header">
         <h2>Product Management</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <!-- 🌟 Category Filter Dropdown -->
-            <select id="filterCategory" onchange="render()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #fff;">
-                <option value="all">All Categories</option>
-            </select>
-            <button class="btn btn-add" onclick="openModal()">+ Add Product</button>
-        </div>
+        <button class="btn btn-add" onclick="openModal()">+ Add Product</button>
     </div>
-    
     <table>
         <thead>
             <tr>
@@ -99,7 +92,7 @@
     let categories = [];
     let products = [];
 
-    const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
+    const fallbackSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNjYmQ1ZTEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgZmlsbD0iIzY0NzQ4YiIgZm9udC1zaXplPSIxMCI+SU1HPC90ZXh0Pjwvc3ZnPg==";
 
     async function fetchCategories() {
         try {
@@ -120,25 +113,7 @@
             ];
         }
         
-        populateCategoryDropdowns();
-    }
-
-    function populateCategoryDropdowns() {
-        const selectEl = document.getElementById('pCategory');
-        const filterEl = document.getElementById('filterCategory');
-
-        if (selectEl) {
-            selectEl.innerHTML = categories.map(cat => `
-                <option value="${cat.id}">${cat.name}</option>
-            `).join('');
-        }
-
-        if (filterEl) {
-            const currentFilter = filterEl.value;
-            filterEl.innerHTML = `<option value="all">All Categories</option>` + categories.map(cat => `
-                <option value="${cat.id}" ${cat.id === currentFilter ? 'selected' : ''}>${cat.name}</option>
-            `).join('');
-        }
+        populateCategoryDropdown();
     }
 
     function populateCategoryDropdown(selectedCatId = '') {
@@ -186,8 +161,6 @@
 
     function render() {
         const tbody = document.getElementById('tbody');
-        const selectedFilter = document.getElementById('filterCategory') ? document.getElementById('filterCategory').value : 'all';
-        
         if (!tbody) return;
 
         if (!products || products.length === 0) {
@@ -195,23 +168,7 @@
             return;
         }
 
-        // 🌟 Filter products based on selected category
-        let filteredProducts = products.filter((p, index) => {
-            p.originalIndex = index; // Keep track of original index for editing/deleting
-            if (selectedFilter === 'all') return true;
-            return p.category === selectedFilter;
-        });
-
-        if (filteredProducts.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #64748b;">No products found in this category.</td></tr>`;
-            return;
-        }
-
-        // 🌟 Sort products by category so they appear grouped together nicely
-        filteredProducts.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
-
-        tbody.innerHTML = filteredProducts.map((p) => {
-            const i = p.originalIndex;
+        tbody.innerHTML = products.map((p, i) => {
             const catObj = categories.find(c => c.id === p.category);
             const catName = catObj ? catObj.name : (p.category || 'Uncategorized');
 
@@ -265,6 +222,7 @@
         let existingImage = document.getElementById('pExistingImage').value;
         let fileInput = document.getElementById('pImageFile');
 
+        // 🌟 JWT Token එක ලබා ගැනීම
         const token = localStorage.getItem('adminToken');
 
         if (!name || !price) {
@@ -301,7 +259,7 @@
             const response = await fetch('/api/products', {
                 method: 'POST',
                 headers: { 
-                    'Authorization': 'Bearer ' + token 
+                    'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම[cite: 1]
                 },
                 body: formData
             });
@@ -333,26 +291,26 @@
     }
 
     function syncServerProducts(dataArray) {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
 
         fetch('/api/products', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token 
+                'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම[cite: 1]
             },
             body: JSON.stringify(dataArray)
         }).catch(err => console.error("Sync error:", err));
     }
 
     function del(id) {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('adminToken'); // 🌟 Token එක ලබා ගැනීම
 
         if (confirm('Are you sure you want to delete this product?')) {
             fetch(`/api/products/${id}`, { 
                 method: 'DELETE',
                 headers: { 
-                    'Authorization': 'Bearer ' + token 
+                    'Authorization': 'Bearer ' + token // 🌟 Token එක යැවීම[cite: 1]
                 }
             })
             .then(res => res.json())
@@ -417,6 +375,7 @@
 </script>
 
 <script>
+    // 🌟 පරිශීලකයා ටෝකන් එකක් සහිතව ලොග් වී ඇද්දැයි පරීක්ෂා කිරීම
     if (!localStorage.getItem("adminToken")) {
         window.location.href = "admin.html";
     }
