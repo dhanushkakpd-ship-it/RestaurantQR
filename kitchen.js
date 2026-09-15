@@ -9,6 +9,9 @@ let currentFilter = 'all';
 let previousOrderIds = new Set();
 let isInitialFetch = true;
 
+// 🌟 අලුත් Order එකක් සඳහා Start Preparing දෙන තුරු නාද වීම පවත්වා ගැනීමට අවශ්‍ය විචල්‍යයන්
+let pendingSoundInterval = null; 
+
 document.addEventListener('DOMContentLoaded', () => {
     startClock();
     fetchOrdersFromServer();
@@ -49,17 +52,41 @@ function fetchOrdersFromServer() {
             orders = newOrders;
             previousOrderIds = newIds;
             
+            // 🌟 Pending හෝ New Orders (Start Preparing දෙන තුරු) පවතීදැයි පරීක්ෂා කිරීම
+            const pendingOrdersList = orders.filter(o => {
+                let status = (o.status || '').toLowerCase();
+                let paymentStatus = (o.paymentStatus || '').toLowerCase();
+                return (status === 'pending' || !status) && paymentStatus !== 'paid';
+            });
+
+            if (pendingOrdersList.length > 0) {
+                // Pending orders පවතින තාක් කල් සහ soundEnabled නම් සවුන්ඩ් එක අඛණ්ඩව ලූප් වීම
+                if (soundEnabled && !pendingSoundInterval) {
+                    if (hasNewOrder || isInitialFetch) {
+                        playAlertSound(); // පළමු වරට වහාම ශබ්දය නගන්න
+                    }
+                    
+                    // තත්පර 4 කට වරක් Start Preparing දෙන තුරු ශබ්දය නැවත නැවත වැදීම
+                    pendingSoundInterval = setInterval(() => {
+                        if (soundEnabled) {
+                            playAlertSound();
+                        }
+                    }, 4000); // අවශ්‍ය නම් කාලය (4000ms = තත්පර 4) වෙනස් කරගත හැක
+                }
+            } else {
+                // සියලුම Orders සඳහා Start Preparing දී ඇත්නම් ශබ්දය නතර කිරීම
+                if (pendingSoundInterval) {
+                    clearInterval(pendingSoundInterval);
+                    pendingSoundInterval = null;
+                }
+            }
+
             const currentOrdersJson = JSON.stringify(orders);
             
             // දත්තවල කිසියම් වෙනසක් වී ඇත්නම් පමණක් renderTickets() ක්‍රියාත්මක කිරීම
             if (currentOrdersJson !== lastOrdersJson) {
                 lastOrdersJson = currentOrdersJson;
                 renderTickets();
-                
-                // මුල් ලෝඩ් වීම නොවන සහ අලුත් Order එකක් පැමිණ තිබේ නම් ශබ්දය නගන්න
-                if (!isInitialFetch && hasNewOrder && soundEnabled) {
-                    playAlertSound();
-                }
             }
             
             isInitialFetch = false;
@@ -119,7 +146,6 @@ function renderTickets() {
     
     let filteredOrders = [];
 
-    // ගෙවීම් කළ, closed වූ හෝ completed වූ ඇණවුම් සක්‍රීය ලැයිස්තුවෙන් හැසිරවීම
     if (currentFilter === 'all') {
         filteredOrders = orders.filter(o => {
             let status = (o.status || '').toLowerCase();
@@ -298,6 +324,13 @@ async function changeStatus(orderId, newStatus) {
         }
 
         console.log(`Order ${orderId} marked as ${newStatus}`);
+
+        // 🌟 'Start Preparing' ක්ලික් කළ වහාම නාද වන ශබ්දය (Interval) වහාම නැවැත්වීම
+        if (newStatus === 'preparing' && pendingSoundInterval) {
+            clearInterval(pendingSoundInterval);
+            pendingSoundInterval = null;
+        }
+
         fetchOrdersFromServer(); 
 
     } catch (error) {
@@ -306,23 +339,17 @@ async function changeStatus(orderId, newStatus) {
 }
 
 // WhatsApp Trigger
-// WhatsApp Trigger (Country Code සමඟ නිවැරදිව සකස් කරන ලදී)
 function notifyCustomer(orderId) {
     const order = orders.find(o => o.id === orderId);
     if (order && order.phone) {
         let phone = order.phone.trim();
         
-        // අංකයෙන් '+' ලකුණ ඉවත් කර ගැනීම
         if (phone.startsWith('+')) {
             phone = phone.substring(1);
         }
-        
-        // අංකය '0' ලකුණින් පටන් ගනී නම්, ඉදිරි බිංදුව ඉවත් කර '94' එකතු කිරීම
         if (phone.startsWith('0')) {
             phone = '94' + phone.substring(1);
-        } 
-        // මුලට '94' නොමැති නම් '94' එකතු කිරීම
-        else if (!phone.startsWith('94')) {
+        } else if (!phone.startsWith('94')) {
             phone = '94' + phone;
         }
 
@@ -338,7 +365,14 @@ function notifyCustomer(orderId) {
 function toggleSound() {
     soundEnabled = !soundEnabled;
     const btn = document.getElementById('sound-toggle-btn');
-    if (btn) btn.innerText = soundEnabled ? "🔊 Sound Alert: ON" : "🔇 Sound Alert: OFF";
+    if (btn) {
+        btn.innerText = soundEnabled ? "🔊 Sound Alert: ON" : "🔇 Sound Alert: OFF";
+    }
+    // Sound එක Off කළහොත් მიმდინარე interval එක clear කිරීම
+    if (!soundEnabled && pendingSoundInterval) {
+        clearInterval(pendingSoundInterval);
+        pendingSoundInterval = null;
+    }
 }
 
 // Filter Tickets
@@ -364,7 +398,6 @@ function closeDeleteModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// 1. දැනට Filter වී පෙනෙන Orders සියල්ල මකා දැමීම
 async function handleBulkDelete() {
     const filteredOrders = orders.filter(o => {
         let status = (o.status || '').toLowerCase();
@@ -398,7 +431,6 @@ async function handleBulkDelete() {
     }
 }
 
-// නිශ්චිත Order ID එකක් මකා දැමීම (අංකය පමණක් ටයිප් කළ හැක)
 async function handleSpecificDelete() {
     const inputField = document.getElementById('targetOrderId');
     if (!inputField) return;
