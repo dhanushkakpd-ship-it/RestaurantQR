@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 const rateLimit = require('express-rate-limit'); 
 const { body, validationResult } = require('express-validator');
+const crypto = require('crypto'); // 🌟 ආරක්ෂිත අහඹු අංක සඳහා crypto එකතු කරන ලදී
 
 const app = express();
 
@@ -72,7 +73,7 @@ const uploadToCloudinary = (buffer, folderName) => {
 // 1. JWT_SECRET එක ඇද්දැයි පරීක්ෂා කිරීම
 if (!process.env.JWT_SECRET) {
     console.error('❌ දෝෂයකි: JWT_SECRET පරිසර විචල්‍යය (Environment Variable) අර්ථ දක්වා නැත!');
-    process.exit(1); // සෙවර් එක ක්‍රියාත්මක වීම වහාම නවත්වයි
+    process.exit(1); 
 }
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -109,7 +110,7 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     status: { type: String, default: 'pending' },
     paymentStatus: { type: String, default: 'unpaid' },
-    secretKey: { type: String, required: true }, // 🌟 පාරිභෝගික ආරක්ෂාව සඳහා Secret Key එකතු කරන ලදී
+    secretKey: { type: String, required: true }, 
     createdAt: { type: Date, default: Date.now }
 }, { strict: false }));
 
@@ -179,7 +180,7 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
             imagePath = uploadResult.secure_url;
         }
 
-        const productId = id && id !== '' ? id : 'PROD-' + Date.now();
+        const productId = id && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
         let productData = {
             id: productId,
             name: name || '',
@@ -232,7 +233,7 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
             imagePath = uploadResult.secure_url;
         }
 
-        const categoryId = id && id !== '' ? id : 'CAT-' + Date.now();
+        const categoryId = id && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
         let categoryData = {
             id: categoryId,
             name: name || '',
@@ -259,7 +260,6 @@ app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
     }
 });
 
-// Admin සඳහා පමණක් සියලුම ඕර්ඩර්ස් බැලීමට
 app.get('/api/orders', verifyAdminToken, async (req, res) => {
     try {
         const orders = await Order.find({}).sort({ createdAt: -1 });
@@ -269,7 +269,7 @@ app.get('/api/orders', verifyAdminToken, async (req, res) => {
     }
 });
 
-// නව ඇණවුමක් දැමීමේදී Secret Key එකක් සමඟ සේව් වීම[cite: 6]
+// 🌟 නව ඇණවුමක් දැමීමේදී ආරක්ෂිත crypto මඟින් Secret Key සහ ID ජනනය කිරීම
 app.post('/api/orders', [
     body('name').optional().trim().escape(),
     body('phone').optional().trim().isLength({ min: 9, max: 15 }).withMessage('වලංගු දුරකථන අංකයක් ලබා දෙන්න!').escape()
@@ -280,10 +280,11 @@ app.post('/api/orders', [
     }
 
     try {
-        const secretKey = 'SEC-' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        const secretKey = 'SEC-' + crypto.randomBytes(16).toString('hex');
+        const randomNum = crypto.randomInt(100, 1000);
 
         const newOrderData = {
-            id: `ORD-${Math.floor(100 + Math.random() * 900)}`,
+            id: `ORD-${randomNum}`,
             status: 'pending',
             paymentStatus: 'unpaid',
             secretKey: secretKey,
@@ -306,7 +307,6 @@ app.post('/api/orders', [
     }
 });
 
-// 🌟 පාරිභෝගිකයාගේ Live Status සඳහා ආරක්ෂිත API එක[cite: 6]
 app.post('/api/customer-order-status', async (req, res) => {
     try {
         const { orderId, secretKey } = req.body;
@@ -338,12 +338,12 @@ app.post('/api/customer-order-status', async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
+app.put('/api/orders/:id', verifyAdminToken, async (resultUpdate, res) => {
     try {
-        const { id } = req.params;
+        const { id } = resultUpdate.params;
         let updateData = {};
-        if (req.body.status !== undefined) updateData.status = req.body.status;
-        if (req.body.paymentStatus !== undefined) updateData.paymentStatus = req.body.paymentStatus;
+        if (resultUpdate.body.status !== undefined) updateData.status = resultUpdate.body.status;
+        if (resultUpdate.body.paymentStatus !== undefined) updateData.paymentStatus = resultUpdate.body.paymentStatus;
 
         const updatedOrder = await Order.findOneAndUpdate({ id: id }, updateData, { new: true });
         if (!updatedOrder) {
