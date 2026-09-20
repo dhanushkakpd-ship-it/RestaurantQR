@@ -933,11 +933,22 @@ async function checkMyOrderStatus() {
                     }
 
                     if (status === 'cancelled') {
-                        // මෙහි තිබූ ප්‍රධාන දෝෂය (MyOrders මඟින් 'myOrders' ලෙස නිවැරදි කර ඇත)
+                     // 1. අදාළ ඇණවුම ඉවත් කිරීම
                         myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
-                        localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
-                        continue;
-                    }
+    
+                    // 2. localStorage වෙත දැමීමට පෙර secretKey ඉවත් කිරීම (Sanitization)
+                        const sanitizedOrders = myOrders.map(item => {
+                        if (typeof item === 'object' && item !== null) {
+                        const { secretKey, ...rest } = item;
+                    return rest; // secretKey හැර අනෙකුත් දත්ත පමණක් ලබා දීම
+        }
+        return item;
+    });
+
+    // 3. ආරක්ෂිත දත්ත පමණක් localStorage හි ගබඩා කිරීම
+    localStorage.setItem('cafeCustomerOrders', JSON.stringify(sanitizedOrders));
+    continue;
+}
 
                     let completeOrder = {
                         ...(typeof orderObj === 'object' ? orderObj : {}),
