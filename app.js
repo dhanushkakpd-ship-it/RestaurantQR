@@ -675,35 +675,38 @@ function openOrderModal() {
             <b>Rs. ${totalTakeAwayCharges.toFixed(2)}</b>
         </div>`;
     }
-
-    const modalBody = document.getElementById('modal-body');
+        const modalBody = document.getElementById('modal-body');
     if (modalBody) {
-        modalBody.innerHTML = `
-            <div class="modal-summary-card">
-                <div>📍 <b>Type:</b> ${displayTableType}</div>
-                <div>👤 <b>Name:</b> ${nameInput}</div>
-                <div>📱 <b>Phone:</b> ${phoneInput || 'Not required'}</div>
-                <div>🕒 <b>Pickup Time:</b> ${timeInput || 'ASAP'}</div>
-            </div>
-            <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
-                <p style="font-weight:700; color:#475569; margin-bottom:8px;">Order Items:</p>
-                ${itemsHtml}
-                <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:1.05rem; color:#16a34a; border-top: 1px solid #e2e8f0; padding-top: 8px;">
-                    <b>Total Amount:</b>
-                    <b>Rs. ${grandTotal.toFixed(2)}</b>
-                </div>
-            </div>
+    // පරිශීලක දත්ත escapeHtml හරහා ආරක්ෂිත කර ගැනීම
+    const safeName = escapeHtml(nameInput);
+    const safeTableType = escapeHtml(displayTableType);
+    const safePhone = escapeHtml(phoneInput || 'Not required');
+    const safeTime = escapeHtml(timeInput || 'ASAP');
 
-            <!-- 🌟 Table QR නම් රෝස පාට බටන් එකත්, Outside QR නම් කොළ පාට WhatsApp බටන් එකත් පමණක් පෙන්වීම -->
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                ${isTableQR 
-                    ? `<button onclick="submitOrder(false)" style="width: 100%; padding: 12px; background: #db2777; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">✅ Confirm Order </button>`
-                    : `<button onclick="submitOrder(true)" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">📲 Confirm & Send via WhatsApp</button>`
-                }
+    modalBody.innerHTML = `
+        <div class="modal-summary-card">
+            <div>📍 <b>Type:</b> ${safeTableType}</div>
+            <div>👤 <b>Name:</b> ${safeName}</div>
+            <div>📱 <b>Phone:</b> ${safePhone}</div>
+            <div>🕒 <b>Pickup Time:</b> ${safeTime}</div>
+        </div>
+        <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px;">
+            <p style="font-weight:700; color:#475569; margin-bottom:8px;">Order Items:</p>
+            ${itemsHtml}
+            <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:1.05rem; color:#16a34a; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+                <b>Total Amount:</b>
+                <b>Rs. ${grandTotal.toFixed(2)}</b>
             </div>
-        `;
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            ${isTableQR 
+                ? `<button onclick="submitOrder(false)" style="width: 100%; padding: 12px; background: #db2777; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">✅ Confirm Order </button>`
+                : `<button onclick="submitOrder(true)" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">📲 Confirm & Send via WhatsApp</button>`
+            }
+        </div>
+    `;
     }
-
     const orderModal = document.getElementById('order-modal');
     if (orderModal) orderModal.style.display = 'flex';
 }
@@ -1261,4 +1264,15 @@ function toggleLiveOrderModal() {
             showAllOrdersPopup();
         }
     }
+}
+
+// HTML වල විශේෂ අකුරු ආරක්ෂිතව වෙනස් කරන කුඩා ශ්‍රිතයක් (Escape function)
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
