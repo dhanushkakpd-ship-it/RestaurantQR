@@ -282,7 +282,7 @@ app.post('/api/orders', [
 
     try {
         const secretKey = 'SEC-' + crypto.randomBytes(16).toString('hex');
-        const randomNum = crypto.randomInt(100, 1000);
+        const randomNum = crypto.randomInt(100, 10000);
 
         const newOrderData = {
             id: `ORD-${randomNum}`,
