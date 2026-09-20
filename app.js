@@ -932,25 +932,20 @@ async function checkMyOrderStatus() {
                         }
                     }
 
-                    if (status === 'cancelled') {
+                   if (status === 'cancelled') {
     myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
     
-    // 🌟 Whitelist ක්‍රමය මඟින් ආරක්ෂිත fields පමණක් අලුතින් සැකසීම (CodeQL දෝෂය මඟහරවා ගැනීමට)
-    const sanitizedOrders = myOrders.map(item => {
+    // 🌟 මුල් සබඳතාව සම්පූර්ණයෙන්ම විසන්ධි කර (Deep Copy) secretKey ඉවත් කිරීම
+    const cleanOrders = myOrders.map(item => {
         if (typeof item === 'object' && item !== null) {
-            return {
-                id: item.id,
-                items: item.items,
-                total: item.total,
-                status: item.status,
-                createdAt: item.createdAt
-                // මෙහි secretKey කිසිසේත් ඇතුළත් කර නැත
-            };
+            const copy = JSON.parse(JSON.stringify(item));
+            delete copy.secretKey; // secretKey සම්පූර්ණයෙන්ම ඉවත් කරයි
+            return copy;
         }
         return item;
     });
 
-    localStorage.setItem('cafeCustomerOrders', JSON.stringify(sanitizedOrders));
+    localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue;
 }
 
