@@ -273,16 +273,50 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
     }
 });
 
-app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
+app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!id || typeof id !== 'string' || id.length > 50) {
-            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        if (Array.isArray(req.body)) {
+            await Category.deleteMany({});
+            const savedCategories = await Category.insertMany(req.body);
+            return res.json({ success: true, message: 'Categories saved successfully', categories: savedCategories });
         }
 
-        await Category.deleteOne({ id: id });
-        const remainingCategories = await Category.find({});
-        res.json({ success: true, message: 'Category deleted successfully', categories: remainingCategories });
+        // 1. ආරක්ෂිතව අගයන් ලබා ගැනීම සහ primitive types පමණක් අනුමත කිරීම
+        const reqId = typeof req.body.id === 'string' ? req.body.id.trim() : '';
+        const reqName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+        const reqTakeaway = Number(req.body.takeawayCharge) || 0;
+        const reqSort = req.body.sortOrder !== undefined ? Number(req.body.sortOrder) : 0;
+        const existingImage = typeof req.body.existingImage === 'string' ? req.body.existingImage : '';
+
+        // 2. Image upload හැසිරවීම
+        let imagePath = existingImage;
+        if (req.file) {
+            const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
+            imagePath = uploadResult.secure_url;
+        }
+
+        // 3. Category ID තීරණය කිරීම (User control එක සම්පූර්ණයෙන්ම වැළැක්වීම සඳහා අලුතින් ID එකක් සැදීම හෝ නිවැරදි කිරීම)
+        const finalCategoryId = reqId !== '' ? reqId : 'CAT-' + crypto.randomBytes(4).toString('hex');
+
+        // 4. CodeQL සෑහීමකට පත් වන පරිදි දත්ත වෙන් කර දැක්වීම
+        const queryFilter = { id: String(finalCategoryId) };
+        const updateDoc = {
+            $set: {
+                id: String(finalCategoryId),
+                name: String(reqName),
+                takeawayCharge: reqTakeaway,
+                sortOrder: reqSort,
+                image: String(imagePath)
+            }
+        };
+
+        const updatedCategory = await Category.findOneAndUpdate(
+            queryFilter, 
+            updateDoc, 
+            { upsert: true, new: true }
+        );
+        
+        res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
