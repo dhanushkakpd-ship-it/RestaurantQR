@@ -184,22 +184,13 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         }
 
         const { id, name, category, price, description, existingImage, ...otherFields } = req.body;
-        
-        // 🌟 id සහ category සඳහා ආරක්ෂක පරීක්ෂාවන්
-        if (id && typeof id !== 'string') {
-            return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
-        }
-        if (category && typeof category !== 'string') {
-            return res.status(400).json({ success: false, message: 'අවලංගු ප්‍රභේදයකි!' });
-        }
-
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/products');
             imagePath = uploadResult.secure_url;
         }
 
-        const productId = id && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
+        const productId = id && typeof id === 'string' && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
         let productData = {
             id: productId,
             name: name || '',
@@ -250,19 +241,13 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
         }
 
         const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
-
-        // 🌟 id එක සඳහා ආරක්ෂක පරීක්ෂාව
-        if (id && typeof id !== 'string') {
-            return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
-        }
-
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
             imagePath = uploadResult.secure_url;
         }
 
-        const categoryId = id && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
+        const categoryId = id && typeof id === 'string' && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
         let categoryData = {
             id: categoryId,
             name: name || '',
