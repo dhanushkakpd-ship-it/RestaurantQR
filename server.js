@@ -183,7 +183,8 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
             return res.json({ success: true, message: 'Products saved successfully', products: savedProducts });
         }
 
-        const { id, name, category, price, description, existingImage, ...otherFields } = req.body;
+        // 🌟 otherFields ඉවත් කර ඇත
+        const { id, name, category, price, description, existingImage, oldPrice, badge, available, visible } = req.body;
 
         if (id !== undefined && typeof id !== 'string') {
             return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
@@ -200,7 +201,7 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
 
         const productId = id && typeof id === 'string' && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
         
-        // 🌟 productData වෙනුවට ඍජුවම දත්ත මෙහි ඇතුළත් කර ඇත
+        // 🌟 ...otherFields වෙනුවට සියලු fields විවෘතව සහ ආරක්ෂිතව දක්වා ඇත
         const updatedProduct = await Product.findOneAndUpdate(
             { id: String(productId) },
             {
@@ -208,9 +209,12 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
                 name: typeof name === 'string' ? name : '',
                 category: typeof category === 'string' ? category : '',
                 price: parseFloat(price) || 0,
+                oldPrice: oldPrice !== undefined && oldPrice !== '' ? parseFloat(oldPrice) : 0,
                 description: typeof description === 'string' ? description : '',
                 image: String(imagePath),
-                ...otherFields
+                badge: typeof badge === 'string' ? badge : '',
+                available: available === 'true' || available === true,
+                visible: visible === 'true' || visible === true
             },
             { upsert: true, new: true }
         );
@@ -220,7 +224,6 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         res.status(500).json({ success: false, error: error.message });
     }
 });
-
 app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     try {
         const { id } = req.params;
