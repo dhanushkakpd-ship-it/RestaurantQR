@@ -50,6 +50,21 @@ const loginLimiter = rateLimit({
     }
 });
 
+// සාමාන්‍ය API සඳහා Rate Limiter එකක් සෑදීම
+const generalApiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // විනාඩි 15ක කාලයක් සඳහා
+    max: 100, // එක IP එකකින් විනාඩි 15ක් ඇතුළත ලබාගත හැකි උපරිම Requests ගණන
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { 
+        success: false, 
+        message: 'අධික ඉල්ලීම් ප්‍රමාණයක් යවා ඇත! කරුණාකර විනාඩි 15කින් පසු නැවත උත්සාහ කරන්න.' 
+    }
+});
+
+// සියලුම /api/ endpoints සඳහා මෙය යොදන්න (routes වලට ඉහළින් අර්ථ දක්වන්න)
+app.use('/api/', generalApiLimiter);
+
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
