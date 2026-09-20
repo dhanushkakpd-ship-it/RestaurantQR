@@ -242,7 +242,7 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
 
         const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
 
-        // 🌟 id සහ name සඳහා දැඩි වර්ග පරීක්ෂාවන් (Type validations) එකතු කිරීම
+        // 🌟 id සහ name සඳහා දැඩි වර්ග පරීක්ෂාවන් (Type validations)
         if (id !== undefined && typeof id !== 'string') {
             return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
         }
@@ -258,64 +258,19 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
 
         const categoryId = id && typeof id === 'string' && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
         
-        let categoryData = {
-            id: categoryId,
-            name: typeof name === 'string' ? name : '',
-            takeawayCharge: parseFloat(takeawayCharge) || 0,
-            sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0,
-            image: imagePath
-        };
-
-        const updatedCategory = await Category.findOneAndUpdate({ id: categoryId }, categoryData, { upsert: true, new: true });
-        res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req, res) => {
-    try {
-        if (Array.isArray(req.body)) {
-            await Category.deleteMany({});
-            const savedCategories = await Category.insertMany(req.body);
-            return res.json({ success: true, message: 'Categories saved successfully', categories: savedCategories });
-        }
-
-        // 1. ආරක්ෂිතව අගයන් ලබා ගැනීම සහ primitive types පමණක් අනුමත කිරීම
-        const reqId = typeof req.body.id === 'string' ? req.body.id.trim() : '';
-        const reqName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
-        const reqTakeaway = Number(req.body.takeawayCharge) || 0;
-        const reqSort = req.body.sortOrder !== undefined ? Number(req.body.sortOrder) : 0;
-        const existingImage = typeof req.body.existingImage === 'string' ? req.body.existingImage : '';
-
-        // 2. Image upload හැසිරවීම
-        let imagePath = existingImage;
-        if (req.file) {
-            const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
-            imagePath = uploadResult.secure_url;
-        }
-
-        // 3. Category ID තීරණය කිරීම (User control එක සම්පූර්ණයෙන්ම වැළැක්වීම සඳහා අලුතින් ID එකක් සැදීම හෝ නිවැරදි කිරීම)
-        const finalCategoryId = reqId !== '' ? reqId : 'CAT-' + crypto.randomBytes(4).toString('hex');
-
-        // 4. CodeQL සෑහීමකට පත් වන පරිදි දත්ත වෙන් කර දැක්වීම
-        const queryFilter = { id: String(finalCategoryId) };
-        const updateDoc = {
-            $set: {
-                id: String(finalCategoryId),
-                name: String(reqName),
-                takeawayCharge: reqTakeaway,
-                sortOrder: reqSort,
-                image: String(imagePath)
-            }
-        };
-
+        // 🌟 categoryData variable එක භාවිත නොකර, ඍජුවම දත්ත මෙහි ඇතුළත් කර ඇත
         const updatedCategory = await Category.findOneAndUpdate(
-            queryFilter, 
-            updateDoc, 
+            { id: String(categoryId) },
+            {
+                id: String(categoryId),
+                name: typeof name === 'string' ? name : '',
+                takeawayCharge: parseFloat(takeawayCharge) || 0,
+                sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0,
+                image: String(imagePath)
+            },
             { upsert: true, new: true }
         );
-        
+
         res.json({ success: true, message: 'Category saved successfully', category: updatedCategory });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
