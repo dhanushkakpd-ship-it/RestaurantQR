@@ -36,7 +36,13 @@ app.use(cors({
     credentials: true
 }));
 
-app.use(express.static(__dirname));
+const path = require('path');
+
+// මුල් ක්‍රමය (අනාරක්ෂිතයි):
+// app.use(express.static(__dirname));
+
+// ආරක්ෂිත ක්‍රමය:
+app.use(express.static(path.join(__dirname, 'public')));
 
 const loginLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
