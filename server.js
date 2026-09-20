@@ -36,7 +36,6 @@ app.use(cors({
     credentials: true
 }));
 
-const path = require('path');
 
 // මුල් ක්‍රමය (අනාරක්ෂිතයි):
 // app.use(express.static(__dirname));
