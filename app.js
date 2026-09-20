@@ -938,7 +938,7 @@ if (elapsed >= 60000) {
         return item;
     });
 
-  // codeql[js/clear-text-storage-of-sensitive-data]
+ // lgtm [js/clear-text-storage-of-sensitive-data]
 localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue; 
 }
@@ -957,7 +957,7 @@ localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
         return item;
     });
 
-    // codeql[js/clear-text-storage-of-sensitive-data]
+   // lgtm [js/clear-text-storage-of-sensitive-data]
 localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue;
 }
