@@ -184,6 +184,14 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         }
 
         const { id, name, category, price, description, existingImage, ...otherFields } = req.body;
+
+        if (id !== undefined && typeof id !== 'string') {
+            return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
+        }
+        if (name !== undefined && typeof name !== 'string') {
+            return res.status(400).json({ success: false, message: 'අවලංගු නමක ආකෘතියකි!' });
+        }
+
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/products');
@@ -191,17 +199,22 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
         }
 
         const productId = id && typeof id === 'string' && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
-        let productData = {
-            id: productId,
-            name: name || '',
-            category: category || '',
-            price: parseFloat(price) || 0,
-            description: description || '',
-            image: imagePath,
-            ...otherFields
-        };
+        
+        // 🌟 productData වෙනුවට ඍජුවම දත්ත මෙහි ඇතුළත් කර ඇත
+        const updatedProduct = await Product.findOneAndUpdate(
+            { id: String(productId) },
+            {
+                id: String(productId),
+                name: typeof name === 'string' ? name : '',
+                category: typeof category === 'string' ? category : '',
+                price: parseFloat(price) || 0,
+                description: typeof description === 'string' ? description : '',
+                image: String(imagePath),
+                ...otherFields
+            },
+            { upsert: true, new: true }
+        );
 
-        const updatedProduct = await Product.findOneAndUpdate({ id: productId }, productData, { upsert: true, new: true });
         res.json({ success: true, message: 'Product saved successfully', product: updatedProduct });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
