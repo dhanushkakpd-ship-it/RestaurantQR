@@ -933,19 +933,23 @@ async function checkMyOrderStatus() {
                     }
 
                     if (status === 'cancelled') {
-                     // 1. අදාළ ඇණවුම ඉවත් කිරීම
-                        myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
+    myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
     
-                    // 2. localStorage වෙත දැමීමට පෙර secretKey ඉවත් කිරීම (Sanitization)
-                        const sanitizedOrders = myOrders.map(item => {
-                        if (typeof item === 'object' && item !== null) {
-                        const { secretKey, ...rest } = item;
-                    return rest; // secretKey හැර අනෙකුත් දත්ත පමණක් ලබා දීම
+    // 🌟 Whitelist ක්‍රමය මඟින් ආරක්ෂිත fields පමණක් අලුතින් සැකසීම (CodeQL දෝෂය මඟහරවා ගැනීමට)
+    const sanitizedOrders = myOrders.map(item => {
+        if (typeof item === 'object' && item !== null) {
+            return {
+                id: item.id,
+                items: item.items,
+                total: item.total,
+                status: item.status,
+                createdAt: item.createdAt
+                // මෙහි secretKey කිසිසේත් ඇතුළත් කර නැත
+            };
         }
         return item;
     });
 
-    // 3. ආරක්ෂිත දත්ත පමණක් localStorage හි ගබඩා කිරීම
     localStorage.setItem('cafeCustomerOrders', JSON.stringify(sanitizedOrders));
     continue;
 }
