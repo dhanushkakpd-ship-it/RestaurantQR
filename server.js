@@ -36,7 +36,7 @@ app.use(cors({
     credentials: true
 }));
 
-const path = require('path');
+
 
 
  app.use(express.static(__dirname));
