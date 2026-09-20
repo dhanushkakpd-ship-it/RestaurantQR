@@ -37,9 +37,8 @@ app.use(cors({
 }));
 
 
-
-// ආරක්ෂිත ක්‍රමය:
-app.use(express.static(path.join(__dirname, 'public')));
+// ප්‍රධාන ෆෝල්ඩරයෙන්ම (Root directory) සියලුම HTML, CSS, JS ගොනු ලබා දීම සඳහා:
+app.use(express.static(path.join(__dirname)));
 
 const loginLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
