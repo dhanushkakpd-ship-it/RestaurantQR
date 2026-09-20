@@ -36,8 +36,11 @@ app.use(cors({
     credentials: true
 }));
 
-// public වෙනුවට ප්‍රධාන ෆෝල්ඩරයම static ලෙස ලබා දීම
-app.use(express.static(path.join(__dirname)));
+const path = require('path');
+
+
+ app.use(express.static(__dirname));
+
 
 const loginLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
