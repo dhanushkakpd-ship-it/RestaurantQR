@@ -363,8 +363,21 @@ app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
         }
 
         let updateData = {};
-        if (req.body.status !== undefined) updateData.status = req.body.status;
-        if (req.body.paymentStatus !== undefined) updateData.paymentStatus = req.body.paymentStatus;
+        
+        // 🌟 status සහ paymentStatus අගයන් සැබවින්ම string එකක් දැයි පරීක්ෂා කිරීම
+        if (req.body.status !== undefined) {
+            if (typeof req.body.status !== 'string') {
+                return res.status(400).json({ success: false, message: 'අවලංගු තත්ත්ව ආකෘතියකි!' });
+            }
+            updateData.status = req.body.status;
+        }
+
+        if (req.body.paymentStatus !== undefined) {
+            if (typeof req.body.paymentStatus !== 'string') {
+                return res.status(400).json({ success: false, message: 'අවලංගු ගෙවීම් තත්ත්ව ආකෘතියකි!' });
+            }
+            updateData.paymentStatus = req.body.paymentStatus;
+        }
 
         const updatedOrder = await Order.findOneAndUpdate({ id: id }, updateData, { new: true });
         if (!updatedOrder) {
