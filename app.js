@@ -925,11 +925,22 @@ async function checkMyOrderStatus() {
                         }
 
                         let elapsed = currentTime - paidTimestamps[serverOrder.id];
-                        if (elapsed >= 60000) { 
-                            myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
-                            localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
-                            continue; 
-                        }
+if (elapsed >= 60000) { 
+    myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
+    
+    // 🌟 මෙහිදීත් secretKey ඉවත් කර පිරිසිදු කළ දත්ත පමණක් localStorage හි ගබඩා කිරීම
+    const cleanOrders = myOrders.map(item => {
+        if (typeof item === 'object' && item !== null) {
+            const copy = JSON.parse(JSON.stringify(item));
+            delete copy.secretKey;
+            return copy;
+        }
+        return item;
+    });
+
+    localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
+    continue; 
+}
                     }
 
                    if (status === 'cancelled') {
