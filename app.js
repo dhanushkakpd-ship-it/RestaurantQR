@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadCategoriesForCart();
         await loadProductsFromServer(); 
         checkMyOrderStatus();
-    }, 3000);
+    }, 5000);
 
     const urlParams = new URLSearchParams(window.location.search);
     tableNumber = urlParams.get('table');
@@ -760,7 +760,7 @@ function showCustomAlert(message) {
         setTimeout(() => {
             alertBox.style.display = 'none';
         }, 300);
-    }, 3000);
+    }, 5000);
 }
 
 function submitOrder(sendWhatsApp) {
