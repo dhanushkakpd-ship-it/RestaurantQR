@@ -10,7 +10,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); 
 const rateLimit = require('express-rate-limit'); 
 const { body, validationResult } = require('express-validator');
-const crypto = require('crypto'); // 🌟 ආරක්ෂිත අහඹු අංක සඳහා crypto එකතු කරන ලදී
+const crypto = require('crypto');
 
 const app = express();
 
@@ -49,11 +49,9 @@ const loginLimiter = rateLimit({
     }
 });
 
-// සාමාන්‍ය API සඳහා Rate Limiter එකක් සෑදීම
-// සාමාන්‍ය API සඳහා Rate Limiter එක යාවත්කාලීන කිරීම
 const generalApiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // විනාඩි 1ක් තුළ
-    max: 300, // උපරිම ඉල්ලීම් ගණන 300 දක්වා වැඩි කරන්න
+    windowMs: 1 * 60 * 1000,
+    max: 300,
     standardHeaders: true,
     legacyHeaders: false,
     message: { 
@@ -62,7 +60,6 @@ const generalApiLimiter = rateLimit({
     }
 });
 
-// සියලුම /api/ endpoints සඳහා මෙය යොදන්න (routes වලට ඉහළින් අර්ථ දක්වන්න)
 app.use('/api/', generalApiLimiter);
 
 cloudinary.config({
@@ -86,20 +83,17 @@ const uploadToCloudinary = (buffer, folderName) => {
     });
 };
 
-// 1. JWT_SECRET එක ඇද්දැයි පරීක්ෂා කිරීම
 if (!process.env.JWT_SECRET) {
-    console.error('❌ දෝෂයකි: JWT_SECRET පරිසර විචල්‍යය (Environment Variable) අර්ථ දක්වා නැත!');
+    console.error('❌ දෝෂයකි: JWT_SECRET පරිසර විචල්‍යය අර්ථ දක්වා නැත!');
     process.exit(1); 
 }
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// 2. MONGO_URI සඳහාත් මෙයම කිරීම වඩාත් සුදුසුය
 if (!process.env.MONGO_URI) {
     console.error('❌ දෝෂයකි: MONGO_URI පරිසර විචල්‍යය අර්ථ දක්වා නැත!');
     process.exit(1);
 }
 const MONGO_URI = process.env.MONGO_URI;
-
 
 const Product = mongoose.model('Product', new mongoose.Schema({
     id: { type: String, required: true, unique: true },
@@ -196,7 +190,7 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
             imagePath = uploadResult.secure_url;
         }
 
-        const productId = id && id !== '' ? String(id) : 'PROD-' + crypto.randomBytes(4).toString('hex');
+        const productId = id && typeof id === 'string' && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
         let productData = {
             id: productId,
             name: name || '',
@@ -216,9 +210,12 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
 
 app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     try {
-        // 🌟 ආරක්ෂිතව String එකක් ලෙස Cast කිරීම (NoSQL Injection වැළැක්වීමට)
-        const safeId = String(req.params.id);
-        await Product.deleteOne({ id: safeId });
+        const { id } = req.params;
+        if (!id || typeof id !== 'string' || id.length > 50) {
+            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        }
+
+        await Product.deleteOne({ id: id });
         const remainingProducts = await Product.find({});
         res.json({ success: true, message: 'Product deleted successfully', products: remainingProducts });
     } catch (error) {
@@ -250,7 +247,7 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
             imagePath = uploadResult.secure_url;
         }
 
-        const categoryId = id && id !== '' ? String(id) : 'CAT-' + crypto.randomBytes(4).toString('hex');
+        const categoryId = id && typeof id === 'string' && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
         let categoryData = {
             id: categoryId,
             name: name || '',
@@ -268,8 +265,12 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
 
 app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
     try {
-        const safeId = String(req.params.id);
-        await Category.deleteOne({ id: safeId });
+        const { id } = req.params;
+        if (!id || typeof id !== 'string' || id.length > 50) {
+            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        }
+
+        await Category.deleteOne({ id: id });
         const remainingCategories = await Category.find({});
         res.json({ success: true, message: 'Category deleted successfully', categories: remainingCategories });
     } catch (error) {
@@ -286,7 +287,6 @@ app.get('/api/orders', verifyAdminToken, async (req, res) => {
     }
 });
 
-// 🌟 නව ඇණවුමක් දැමීමේදී ආරක්ෂිත crypto මඟින් Secret Key සහ ID ජනනය කිරීම
 app.post('/api/orders', [
     body('name').optional().trim().escape(),
     body('phone').optional().trim().isLength({ min: 9, max: 15 }).withMessage('වලංගු දුරකථන අංකයක් ලබා දෙන්න!').escape()
@@ -298,7 +298,7 @@ app.post('/api/orders', [
 
     try {
         const secretKey = 'SEC-' + crypto.randomBytes(16).toString('hex');
-        const randomNum = crypto.randomInt(100, 10000);
+        const randomNum = crypto.randomInt(1000, 10000);
 
         const newOrderData = {
             id: `ORD-${randomNum}`,
@@ -326,12 +326,10 @@ app.post('/api/orders', [
 
 app.post('/api/customer-order-status', async (req, res) => {
     try {
-        // 🌟 පරිශීලක ආදාන ආරක්ෂිතව String බවට පත් කිරීම
-        const orderId = req.body.orderId ? String(req.body.orderId) : '';
-        const secretKey = req.body.secretKey ? String(req.body.secretKey) : '';
+        const { orderId, secretKey } = req.body;
         
-        if (!orderId || !secretKey) {
-            return res.status(400).json({ success: false, message: 'Order ID සහ Secret Key අවශ්‍ය වේ!' });
+        if (!orderId || typeof orderId !== 'string' || !secretKey || typeof secretKey !== 'string') {
+            return res.status(400).json({ success: false, message: 'Order ID සහ SecretKey අනිවාර්යයෙන්ම string විය යුතුය!' });
         }
 
         const order = await Order.findOne({ id: orderId, secretKey: secretKey });
@@ -357,14 +355,18 @@ app.post('/api/customer-order-status', async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', verifyAdminToken, async (resultUpdate, res) => {
+app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
-        const safeId = String(resultUpdate.params.id);
-        let updateData = {};
-        if (resultUpdate.body.status !== undefined) updateData.status = resultUpdate.body.status;
-        if (resultUpdate.body.paymentStatus !== undefined) updateData.paymentStatus = resultUpdate.body.paymentStatus;
+        const { id } = req.params;
+        if (!id || typeof id !== 'string' || id.length > 50) {
+            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        }
 
-        const updatedOrder = await Order.findOneAndUpdate({ id: safeId }, updateData, { new: true });
+        let updateData = {};
+        if (req.body.status !== undefined) updateData.status = req.body.status;
+        if (req.body.paymentStatus !== undefined) updateData.paymentStatus = req.body.paymentStatus;
+
+        const updatedOrder = await Order.findOneAndUpdate({ id: id }, updateData, { new: true });
         if (!updatedOrder) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
@@ -385,12 +387,16 @@ app.delete('/api/orders', verifyAdminToken, async (req, res) => {
 
 app.delete('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
-        const safeId = String(req.params.id);
-        const result = await Order.deleteOne({ id: safeId });
+        const { id } = req.params;
+        if (!id || typeof id !== 'string' || id.length > 50) {
+            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        }
+
+        const result = await Order.deleteOne({ id: id });
         if (result.deletedCount === 0) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
-        res.json({ success: true, message: `Order ${safeId} deleted successfully` });
+        res.json({ success: true, message: `Order ${id} deleted successfully` });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -427,8 +433,11 @@ app.post('/api/shop-status', verifyAdminToken, async (req, res) => {
 app.post('/api/admin/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
-        const admin = await Admin.findOne({ username: String(username) });
-        
+        if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
+            return res.status(400).json({ success: false, message: 'වලංගු නොවන ආදානයකි!' });
+        }
+
+        const admin = await Admin.findOne({ username: username });
         if (!admin) {
             return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
         }
