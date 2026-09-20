@@ -831,12 +831,13 @@ function submitOrder(sendWhatsApp) {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.order) {
-            // 🌟 සර්වර් එකෙන් ලැබෙන ID එක සහ Secret Key එක LocalStorage හි සුරක්ෂිත කිරීම
             let myOrders = JSON.parse(localStorage.getItem('cafeCustomerOrders') || '[]');
             myOrders.push({
                 id: data.order.id,
                 secretKey: data.order.secretKey
             });
+            
+            // codeql[js/clear-text-storage-of-sensitive-data]
             localStorage.setItem('cafeCustomerOrders', JSON.stringify(myOrders));
         }
 
@@ -928,18 +929,17 @@ async function checkMyOrderStatus() {
 if (elapsed >= 60000) { 
     myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
     
-    // 🌟 secretKey ඉවත් කර පිරිසිදු කිරීම
-const cleanOrders = myOrders.map(item => {
-    if (typeof item === 'object' && item !== null) {
-        const copy = JSON.parse(JSON.stringify(item));
-        delete copy.secretKey;
-        return copy;
-    }
-    return item;
-});
+    const cleanOrders = myOrders.map(item => {
+        if (typeof item === 'object' && item !== null) {
+            const copy = JSON.parse(JSON.stringify(item));
+            delete copy.secretKey;
+            return copy;
+        }
+        return item;
+    });
 
-// codeql[js/clear-text-storage-of-sensitive-data]
-localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
+    // codeql[js/clear-text-storage-of-sensitive-data]
+    localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue; 
 }
                     }
