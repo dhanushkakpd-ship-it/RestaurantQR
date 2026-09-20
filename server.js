@@ -50,14 +50,15 @@ const loginLimiter = rateLimit({
 });
 
 // සාමාන්‍ය API සඳහා Rate Limiter එකක් සෑදීම
+// සාමාන්‍ය API සඳහා Rate Limiter එක යාවත්කාලීන කිරීම
 const generalApiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // විනාඩි 15ක කාලයක් සඳහා
-    max: 100, // එක IP එකකින් විනාඩි 15ක් ඇතුළත ලබාගත හැකි උපරිම Requests ගණන
+    windowMs: 1 * 60 * 1000, // විනාඩි 1ක් තුළ
+    max: 300, // උපරිම ඉල්ලීම් ගණන 300 දක්වා වැඩි කරන්න
     standardHeaders: true,
     legacyHeaders: false,
     message: { 
         success: false, 
-        message: 'අධික ඉල්ලීම් ප්‍රමාණයක් යවා ඇත! කරුණාකර විනාඩි 15කින් පසු නැවත උත්සාහ කරන්න.' 
+        message: 'අධික ඉල්ලීම් ප්‍රමාණයක් යවා ඇත! කරුණාකර ටික වේලාවකින් නැවත උත්සාහ කරන්න.' 
     }
 });
 
