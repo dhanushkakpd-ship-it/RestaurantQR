@@ -947,18 +947,17 @@ if (elapsed >= 60000) {
                    if (status === 'cancelled') {
     myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
     
-    // 🌟 මුල් සබඳතාව සම්පූර්ණයෙන්ම විසන්ධි කර (Deep Copy) secretKey ඉවත් කිරීම
     const cleanOrders = myOrders.map(item => {
         if (typeof item === 'object' && item !== null) {
             const copy = JSON.parse(JSON.stringify(item));
-            delete copy.secretKey; // secretKey සම්පූර්ණයෙන්ම ඉවත් කරයි
+            delete copy.secretKey;
             return copy;
         }
         return item;
     });
 
-   // lgtm [js/clear-text-storage-of-sensitive-data]
-localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
+    // codeql[js/clear-text-storage-of-sensitive-data]
+    localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue;
 }
 
