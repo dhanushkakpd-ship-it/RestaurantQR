@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '*/10 * * * *' # සෑම විනාඩි 10කට වරක්ම ක්‍රියාත්මක වේ
 
+permissions:
+  contents: read
+
 jobs:
   ping-server:
     runs-on: ubuntu-latest

@@ -956,8 +956,8 @@ if (elapsed >= 60000) {
         return item;
     });
 
-    // codeql[js/clear-text-storage-of-sensitive-data]
-    localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
+   // codeql[js/clear-text-storage-of-sensitive-data]
+localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue;
 }
 
