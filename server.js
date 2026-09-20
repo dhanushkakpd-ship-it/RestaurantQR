@@ -241,6 +241,15 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
         }
 
         const { id, name, takeawayCharge, sortOrder, existingImage } = req.body;
+
+        // 🌟 id සහ name සඳහා දැඩි වර්ග පරීක්ෂාවන් (Type validations) එකතු කිරීම
+        if (id !== undefined && typeof id !== 'string') {
+            return res.status(400).json({ success: false, message: 'අවලංගු ID ආකෘතියකි!' });
+        }
+        if (name !== undefined && typeof name !== 'string') {
+            return res.status(400).json({ success: false, message: 'අවලංගු නමක ආකෘතියකි!' });
+        }
+
         let imagePath = existingImage || '';
         if (req.file) {
             const uploadResult = await uploadToCloudinary(req.file.buffer, 'cafe_dn/categories');
@@ -248,9 +257,10 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
         }
 
         const categoryId = id && typeof id === 'string' && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
+        
         let categoryData = {
             id: categoryId,
-            name: name || '',
+            name: typeof name === 'string' ? name : '',
             takeawayCharge: parseFloat(takeawayCharge) || 0,
             sortOrder: sortOrder !== undefined && sortOrder !== '' ? Number(sortOrder) : 0,
             image: imagePath
