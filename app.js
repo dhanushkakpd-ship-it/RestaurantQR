@@ -928,17 +928,17 @@ async function checkMyOrderStatus() {
 if (elapsed >= 60000) { 
     myOrders = myOrders.filter(item => (typeof item === 'object' ? item.id !== serverOrder.id : item !== serverOrder.id));
     
-    // 🌟 මෙහිදීත් secretKey ඉවත් කර පිරිසිදු කළ දත්ත පමණක් localStorage හි ගබඩා කිරීම
-    const cleanOrders = myOrders.map(item => {
-        if (typeof item === 'object' && item !== null) {
-            const copy = JSON.parse(JSON.stringify(item));
-            delete copy.secretKey;
-            return copy;
-        }
-        return item;
-    });
+    // 🌟 secretKey ඉවත් කර පිරිසිදු කිරීම
+const cleanOrders = myOrders.map(item => {
+    if (typeof item === 'object' && item !== null) {
+        const copy = JSON.parse(JSON.stringify(item));
+        delete copy.secretKey;
+        return copy;
+    }
+    return item;
+});
 
- // lgtm [js/clear-text-storage-of-sensitive-data]
+// codeql[js/clear-text-storage-of-sensitive-data]
 localStorage.setItem('cafeCustomerOrders', JSON.stringify(cleanOrders));
     continue; 
 }
