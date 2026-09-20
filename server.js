@@ -406,6 +406,23 @@ app.put('/api/orders/:id', verifyAdminToken, async (req, res) => {
     }
 });
 
+
+app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id || typeof id !== 'string' || id.length > 50) {
+            return res.status(400).json({ success: false, message: 'අවලංගු හැඳුනුම්මකි!' });
+        }
+
+        await Category.deleteOne({ id: id });
+        const remainingCategories = await Category.find({});
+        res.json({ success: true, message: 'Category deleted successfully', categories: remainingCategories });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
 app.delete('/api/orders', verifyAdminToken, async (req, res) => {
     try {
         await Order.deleteMany({});
