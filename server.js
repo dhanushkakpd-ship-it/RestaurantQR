@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -196,7 +195,7 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
             imagePath = uploadResult.secure_url;
         }
 
-        const productId = id && id !== '' ? id : 'PROD-' + crypto.randomBytes(4).toString('hex');
+        const productId = id && id !== '' ? String(id) : 'PROD-' + crypto.randomBytes(4).toString('hex');
         let productData = {
             id: productId,
             name: name || '',
@@ -216,8 +215,9 @@ app.post('/api/products', verifyAdminToken, upload.single('image'), async (req, 
 
 app.delete('/api/products/:id', verifyAdminToken, async (req, res) => {
     try {
-        const { id } = req.params;
-        await Product.deleteOne({ id: id });
+        // 🌟 ආරක්ෂිතව String එකක් ලෙස Cast කිරීම (NoSQL Injection වැළැක්වීමට)
+        const safeId = String(req.params.id);
+        await Product.deleteOne({ id: safeId });
         const remainingProducts = await Product.find({});
         res.json({ success: true, message: 'Product deleted successfully', products: remainingProducts });
     } catch (error) {
@@ -249,7 +249,7 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
             imagePath = uploadResult.secure_url;
         }
 
-        const categoryId = id && id !== '' ? id : 'CAT-' + crypto.randomBytes(4).toString('hex');
+        const categoryId = id && id !== '' ? String(id) : 'CAT-' + crypto.randomBytes(4).toString('hex');
         let categoryData = {
             id: categoryId,
             name: name || '',
@@ -267,8 +267,8 @@ app.post('/api/categories', verifyAdminToken, upload.single('image'), async (req
 
 app.delete('/api/categories/:id', verifyAdminToken, async (req, res) => {
     try {
-        const { id } = req.params;
-        await Category.deleteOne({ id: id });
+        const safeId = String(req.params.id);
+        await Category.deleteOne({ id: safeId });
         const remainingCategories = await Category.find({});
         res.json({ success: true, message: 'Category deleted successfully', categories: remainingCategories });
     } catch (error) {
@@ -325,7 +325,9 @@ app.post('/api/orders', [
 
 app.post('/api/customer-order-status', async (req, res) => {
     try {
-        const { orderId, secretKey } = req.body;
+        // 🌟 පරිශීලක ආදාන ආරක්ෂිතව String බවට පත් කිරීම
+        const orderId = req.body.orderId ? String(req.body.orderId) : '';
+        const secretKey = req.body.secretKey ? String(req.body.secretKey) : '';
         
         if (!orderId || !secretKey) {
             return res.status(400).json({ success: false, message: 'Order ID සහ Secret Key අවශ්‍ය වේ!' });
@@ -356,12 +358,12 @@ app.post('/api/customer-order-status', async (req, res) => {
 
 app.put('/api/orders/:id', verifyAdminToken, async (resultUpdate, res) => {
     try {
-        const { id } = resultUpdate.params;
+        const safeId = String(resultUpdate.params.id);
         let updateData = {};
         if (resultUpdate.body.status !== undefined) updateData.status = resultUpdate.body.status;
         if (resultUpdate.body.paymentStatus !== undefined) updateData.paymentStatus = resultUpdate.body.paymentStatus;
 
-        const updatedOrder = await Order.findOneAndUpdate({ id: id }, updateData, { new: true });
+        const updatedOrder = await Order.findOneAndUpdate({ id: safeId }, updateData, { new: true });
         if (!updatedOrder) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
@@ -382,12 +384,12 @@ app.delete('/api/orders', verifyAdminToken, async (req, res) => {
 
 app.delete('/api/orders/:id', verifyAdminToken, async (req, res) => {
     try {
-        const { id } = req.params;
-        const result = await Order.deleteOne({ id: id });
+        const safeId = String(req.params.id);
+        const result = await Order.deleteOne({ id: safeId });
         if (result.deletedCount === 0) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
-        res.json({ success: true, message: `Order ${id} deleted successfully` });
+        res.json({ success: true, message: `Order ${safeId} deleted successfully` });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -424,7 +426,7 @@ app.post('/api/shop-status', verifyAdminToken, async (req, res) => {
 app.post('/api/admin/login', loginLimiter, async (req, res) => {
     try {
         const { username, password } = req.body;
-        const admin = await Admin.findOne({ username });
+        const admin = await Admin.findOne({ username: String(username) });
         
         if (!admin) {
             return res.status(401).json({ success: false, message: 'වැරදි Username එකක් හෝ Password එකක්!' });
